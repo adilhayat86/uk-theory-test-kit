@@ -7,6 +7,8 @@ export type TheoryQuestion = {
   correctIndex: 0 | 1 | 2 | 3;
   explanation: string;
   reference: string;
+  /** Public primary source for manual editorial checking. */
+  sourceUrl?: string;
   /** Locally bundled video asset linking a three-question case study; future content. */
   caseStudyVideoAssetId?: string;
 };
