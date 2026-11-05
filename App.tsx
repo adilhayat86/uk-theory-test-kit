@@ -282,11 +282,14 @@ function AppContent() {
                 </Pressable>
               </View>
 
-              {practiceSession && practiceSession.currentIndex < practiceSession.questionIds.length ? (
+              {practiceSession ? (
                 <Pressable accessibilityRole="button" style={styles.resumeBanner}
                   onPress={() => setTab('practice')}>
-                  <Text style={styles.resumeTitle}>Continue saved practice ›</Text>
-                  <Text style={styles.resumeBody}>Question {practiceSession.currentIndex + 1} of {practiceSession.questionIds.length} · works offline</Text>
+                  <Text style={styles.resumeTitle}>{practiceSession.currentIndex < practiceSession.questionIds.length
+                    ? 'Continue saved practice ›' : 'Review your last practice result ›'}</Text>
+                  <Text style={styles.resumeBody}>{practiceSession.currentIndex < practiceSession.questionIds.length
+                    ? 'Question ' + (practiceSession.currentIndex + 1) + ' of ' + practiceSession.questionIds.length
+                    : Object.keys(practiceSession.answers).length + ' answers saved'} · available offline</Text>
                 </Pressable>
               ) : null}
               <Text style={styles.sectionTitle}>Learn and practise</Text>
@@ -367,7 +370,7 @@ function AppContent() {
                 </Pressable>
               </View>
               <Text style={styles.sectionTitle}>All theory test tools</Text>
-              <MenuCard index="01" title="Practise Revision Questions" detail={questions.length + ' original draft questions'} onPress={() => startPractice()} />
+              <MenuCard index="01" title="Practise 20 Questions" detail={'20 mixed questions drawn from ' + questions.length + ' original drafts'} onPress={() => startPractice(questions, 20)} />
               <MenuCard index="02" title="Timed Mini Test" detail="Resumable 5-question sample; not an official exam simulation" onPress={() => setTab('mock')} />
               <MenuCard index="03" title="Search Questions" detail="Find questions by word, topic or rule" onPress={() => setTab('search')} />
               <MenuCard index="04" title="Flagged Questions" detail={bookmarkedIds.length + ' saved for later practice'} onPress={() => setTab('saved')} />
@@ -527,8 +530,8 @@ function AppContent() {
               ))}
               <Text style={styles.sectionTitle}>Current content</Text>
               <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>{questions.length} original sample questions</Text>
-                <Text style={styles.infoBody}>This is an early content sample, not yet the complete question bank or a full timed mock exam.</Text>
+                <Text style={styles.infoTitle}>{questions.length} original draft questions</Text>
+                <Text style={styles.infoBody}>All {questions.length} are available for revision. Independent editorial approval is still pending, and the full official-style mock is not included.</Text>
               </View>
               <Pressable style={styles.primaryButton} onPress={() => startPractice()}>
                 <Text style={styles.primaryButtonText}>Continue practising</Text>
