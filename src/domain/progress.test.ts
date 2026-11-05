@@ -37,5 +37,7 @@ describe('progress calculations', () => {
     expect(gradeAnswer(1, -1)).toBe(false);
     expect(gradeAnswer(1, 1.5)).toBe(false);
     expect(gradeAnswer(1, 1)).toBe(true);
+    expect(gradeAnswer(4, 4)).toBe(false);
+    expect(gradeAnswer(-1, -1)).toBe(false);
   });
 });
