@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -40,6 +40,8 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [storageMessage, setStorageMessage] = useState<string | null>(null);
+  const answerLockedRef = useRef(false);
+  const pendingBookmarksRef = useRef<Set<string>>(new Set());
 
   const currentQuestion = practiceQuestions[questionIndex];
   const savedQuestions = useMemo(
@@ -79,6 +81,7 @@ function AppContent() {
       setTab('saved');
       return;
     }
+    answerLockedRef.current = false;
     setPracticeQuestions(items);
     setQuestionIndex(0);
     setSelectedAnswer(null);
@@ -89,7 +92,9 @@ function AppContent() {
   }
 
   async function chooseAnswer(index: number) {
-    if (!currentQuestion || selectedAnswer !== null || isSaving) return;
+    if (!currentQuestion || selectedAnswer !== null || isSaving || answerLockedRef.current) return;
+    // Lock synchronously, before React can render disabled answer buttons.
+    answerLockedRef.current = true;
     setSelectedAnswer(index);
     setSessionAnswered((value) => value + 1);
     const correct = index === currentQuestion.correctIndex;
@@ -108,6 +113,8 @@ function AppContent() {
   }
 
   async function handleBookmark(questionId: string) {
+    if (pendingBookmarksRef.current.has(questionId)) return;
+    pendingBookmarksRef.current.add(questionId);
     try {
       const isSaved = await toggleBookmark(questionId);
       setBookmarkedIds((previous) => isSaved
@@ -116,10 +123,14 @@ function AppContent() {
       setStorageMessage(null);
     } catch {
       setStorageMessage('The bookmark could not be saved on this device.');
+    } finally {
+      pendingBookmarksRef.current.delete(questionId);
     }
   }
 
   function goToNextQuestion() {
+    if (isSaving) return;
+    answerLockedRef.current = false;
     if (questionIndex + 1 >= practiceQuestions.length) {
       setQuestionIndex(practiceQuestions.length);
       setSelectedAnswer(null);
@@ -335,7 +346,7 @@ function AppContent() {
 
         <View style={styles.bottomNav}>
           <NavItem label="Home" icon="⌂" active={tab === 'home'} onPress={() => setTab('home')} />
-          <NavItem label="Practice" icon="✓" active={tab === 'practice'} onPress={() => startPractice()} />
+          <NavItem label="Practice" icon="✓" active={tab === 'practice'} onPress={() => { if (tab !== 'practice') startPractice(); }} />
           <NavItem label="Saved" icon="☆" active={tab === 'saved'} onPress={() => setTab('saved')} />
           <NavItem label="Progress" icon="▥" active={tab === 'progress'} onPress={() => setTab('progress')} />
         </View>
