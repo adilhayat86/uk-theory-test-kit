@@ -28,7 +28,7 @@ import type { ProgressSummary } from './src/domain/progress';
 import { getQuestionsToRetry, getTopicReview, selectSmartPractice } from './src/domain/revision';
 import type { QuestionProgressDetail } from './src/domain/revision';
 
-type Tab = 'home' | 'theory' | 'practice' | 'mock' | 'saved' | 'progress' | 'flashcards' | 'search' | 'roadSigns' | 'hazard' | 'code';
+type Tab = 'home' | 'theory' | 'practice' | 'mock' | 'saved' | 'progress' | 'flashcards' | 'search' | 'roadSigns';
 
 const EMPTY_PROGRESS: ProgressSummary = {
   questionsAnswered: 0,
@@ -190,22 +190,20 @@ function AppContent() {
               <View style={styles.hero}>
                 <Text style={styles.heroKicker}>YOUR NEXT STEP</Text>
                 <Text style={styles.heroTitle}>Learn the rules. Build confidence.</Text>
-                <Text style={styles.heroBody}>Short practice sessions, clear explanations and progress saved on this device.</Text>
-                <Pressable style={styles.primaryButton} onPress={() => startPractice()}>
-                  <Text style={styles.primaryButtonText}>Start practice <Text style={styles.buttonArrow}>›</Text></Text>
+                <Text style={styles.heroBody}>Original UK road-rule revision for Great Britain. Practise without an account or internet connection.</Text>
+                <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={() => startPractice(questions, 10)}>
+                  <Text style={styles.primaryButtonText}>Start 10-question practice <Text style={styles.buttonArrow}>›</Text></Text>
                 </Pressable>
               </View>
 
-              <Text style={styles.sectionTitle}>Explore your kit</Text>
-              <MenuCard index="01" title="Theory Test" detail="Revision, mock, search and flagged questions" onPress={() => setTab('theory')} />
-              <MenuCard index="02" title="Hazard Perception" detail="How developing hazards and scoring work · guide only" onPress={() => setTab('hazard')} />
-              <MenuCard index="03" title="Highway Code Notes" detail="Starter notes from our original question explanations" onPress={() => setTab('code')} />
-              <MenuCard index="04" title="Road Signs" detail="Browse, search, save and quiz · text-first preview" onPress={() => setTab('roadSigns')} />
+              <Text style={styles.sectionTitle}>Learn and practise</Text>
+              <MenuCard index="01" title="Theory Revision" detail="Practice questions, quick sessions, search and saved questions" onPress={() => setTab('theory')} />
+              <MenuCard index="02" title="Road Sign Notes" detail="Text-based sign study, saved notes and quiz preview" onPress={() => setTab('roadSigns')} />
               <Text style={styles.scopeNote}>GB car theory preparation. NI-specific questions are not yet provided.</Text>
 
               <Pressable accessibilityRole="button" style={styles.mockBanner} onPress={() => setTab('mock')}>
-                <Text style={styles.mockBannerTitle}>Timed mock exams  ›</Text>
-                <Text style={styles.mockBannerBody}>5-question sample • resume offline • review results</Text>
+                <Text style={styles.mockBannerTitle}>Timed 5-question practice  ›</Text>
+                <Text style={styles.mockBannerBody}>Short sample only • resume offline • review answers</Text>
               </Pressable>
 
               <View style={styles.studyModeRow}>
@@ -277,7 +275,7 @@ function AppContent() {
               </View>
               <Text style={styles.sectionTitle}>All theory test tools</Text>
               <MenuCard index="01" title="Practise Revision Questions" detail={questions.length + ' original sample questions'} onPress={() => startPractice()} />
-              <MenuCard index="02" title="Timed Mock Test" detail="Resumable five-question sample; full simulator locked" onPress={() => setTab('mock')} />
+              <MenuCard index="02" title="Timed Mini Test" detail="Resumable 5-question sample; not an official exam simulation" onPress={() => setTab('mock')} />
               <MenuCard index="03" title="Search Questions" detail="Find questions by word, topic or rule" onPress={() => setTab('search')} />
               <MenuCard index="04" title="Flagged Questions" detail={bookmarkedIds.length + ' saved for later practice'} onPress={() => setTab('saved')} />
               <MenuCard index="05" title="Progress Monitor" detail="Topic coverage, recent mistakes and accuracy" onPress={() => setTab('progress')} />
@@ -362,46 +360,6 @@ function AppContent() {
           {tab === 'mock' && <MockExamScreen onBack={() => setTab('theory')} />}
           {tab === 'search' && <QuestionSearchScreen onBack={() => setTab('theory')} onPractise={startPractice} />}
           {tab === 'roadSigns' && <RoadSignsScreen onBack={() => setTab('home')} />}
-          {tab === 'hazard' && (
-            <>
-              <Pressable accessibilityRole="button" style={styles.backButton} onPress={() => setTab('home')}>
-                <Text style={styles.backText}>‹ Home</Text>
-              </Pressable>
-              <Text style={styles.pageTitle}>Hazard Perception</Text>
-              <Text style={styles.pageSubtitle}>An offline introduction. Interactive video clips and timed scoring are not yet available.</Text>
-              <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>What is a developing hazard?</Text>
-                <Text style={styles.infoBody}>A situation that could require you to change speed or direction. Recognise when a potential risk begins to develop and demands action.</Text>
-              </View>
-              <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>How the real car test is structured</Text>
-                <Text style={styles.infoBody}>There are 14 clips and 15 developing hazards, including one clip with two. You can earn up to five points per hazard. The pass mark is 44 out of 75.</Text>
-              </View>
-              <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>Click naturally, not in a pattern</Text>
-                <Text style={styles.infoBody}>Click when you notice a hazard starting to develop. Excessive or repeated clicking patterns can result in no score for that clip. This guide does not simulate the test's click detection.</Text>
-              </View>
-              <Text style={styles.scopeNote}>Source: GOV.UK — Theory test: Hazard perception test. Video practice will only be enabled with original or separately licensed offline clips.</Text>
-            </>
-          )}
-          {tab === 'code' && (
-            <>
-              <Pressable accessibilityRole="button" style={styles.backButton} onPress={() => setTab('home')}>
-                <Text style={styles.backText}>‹ Home</Text>
-              </Pressable>
-              <Text style={styles.pageTitle}>Highway Code Notes</Text>
-              <Text style={styles.pageSubtitle}>Short offline explanations from our original practice bank. This is not yet the full Highway Code or a substitute for official guidance.</Text>
-              {questions.filter((item) => item.reference.startsWith('Highway Code')).map((item) => (
-                <View key={item.id} style={styles.infoCard}>
-                  <Text style={styles.codeTopic}>{item.topic.toUpperCase()}</Text>
-                  <Text style={styles.infoTitle}>{item.prompt}</Text>
-                  <Text style={styles.codeAnswer}>{item.options[item.correctIndex]}</Text>
-                  <Text style={styles.infoBody}>{item.explanation}</Text>
-                  <Text style={styles.codeReference}>{item.reference}</Text>
-                </View>
-              ))}
-            </>
-          )}
           {tab === 'flashcards' && <FlashcardsScreen onBack={() => setTab('home')} onPractise={startPractice} />}
 
           {tab === 'saved' && (
@@ -652,9 +610,6 @@ const styles = StyleSheet.create({
   moduleDetail: { fontSize: 12, lineHeight: 17, color: colors.muted, marginTop: 5 },
   moduleChevron: { fontWeight: '900', fontSize: 24, color: colors.blue, marginLeft: 4 },
   scopeNote: { color: colors.muted, fontSize: 11, lineHeight: 17, marginTop: 4, marginBottom: 18 },
-  codeTopic: { color: colors.blue, fontSize: 10, fontWeight: '900', letterSpacing: 0.5, marginBottom: 8 },
-  codeAnswer: { color: colors.green, fontSize: 14, fontWeight: '800', marginTop: 8 },
-  codeReference: { color: '#8492A7', fontSize: 10, marginTop: 10 },
   mockBanner: { backgroundColor: '#E5EDFD', borderRadius: 15, padding: 16, marginBottom: 22 },
   mockBannerTitle: { color: '#183D8A', fontSize: 16, fontWeight: '900' },
   mockBannerBody: { color: '#526B9A', fontSize: 12, marginTop: 5 },
