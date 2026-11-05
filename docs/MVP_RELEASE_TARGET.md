@@ -48,8 +48,8 @@ must have four distinct options, one checked answer, a useful explanation,
 and a reliable rule/source reference.
 
 Automated guard: run `npm run check:mvp:content`. This checks question
-count, topic distribution and basic source/answer integrity; it **fails**
-while only 21 sample questions exist. Run it in CI with
+count, topic distribution and basic source/answer integrity; it **now passes the numeric/question-format gate for 200 authored questions**.
+Independent human editorial sign-off remains incomplete and is a separate launch blocker. Run it in CI with
 `npm run check:mvp:content -- --report-only` to exercise the script before
 the bank is complete without hiding the unmet requirement.
 
@@ -82,14 +82,14 @@ Review date and source URL/rule number should be traceable before release.
 
 ## Current status
 
-**Implementation:** offline core and short practices mostly coded on the
-feature branch; smart study, search, bookmarks, flashcards, road-sign text
-preview and per-topic results exist. Automated CI / physical-device QA must
+**Implementation:** 200 questions have been drafted in the feature branch, with
+source URLs and a per-question editorial tracker. Smart study, search,
+bookmarks, flashcards, road-sign text preview and per-topic results exist. Automated CI / physical-device QA must
 be verified for the exact final commit.
 
-**Biggest gap:** 21 original questions versus 200 required, plus external
-editorial verification. Next engineering work should be reliability fixes
-and editorial content tooling rather than adding more tabs or "premium" upsells.
+**Biggest gap:** all 200 questions require independent editorial verification,
+realistic distractor review and Android device QA. The automated gate checks
+structure only; it does not mean every answer is legally verified.
 
 ## Upgrade path only AFTER this MVP
 
@@ -113,3 +113,5 @@ reproduced without permission; do not assume the competitor APK supplies
 rights. Confirm commercial licensing implications with a qualified reviewer
 before store publication. Highway Code/official sign content can be reused
 subject to the applicable Open Government Licence conditions.
+
+Review evidence: [200-question editorial audit](QUESTION_BANK_EDITORIAL_AUDIT.md) and [per-question review tracker](QUESTION_REVIEW_TRACKER.csv).
