@@ -119,8 +119,9 @@ jobs:
             echo "Expo did not generate an Xcode workspace."
             exit 1
           fi
-          SCHEME="$(xcodebuild -list -json -workspace "$WORKSPACE" | node -e 'let s=""; process.stdin.on("data", d => s += d); process.stdin.on("end", () => { const data = JSON.parse(s); const schemes = data.workspace?.schemes ?? []; if (!schemes.length) process.exit(2); process.stdout.write(schemes[0]); });')"
+          SCHEME="$(basename "$WORKSPACE" .xcworkspace)"
           echo "Building workspace: $WORKSPACE"
+          xcodebuild -list -workspace "$WORKSPACE"
           echo "Using scheme: $SCHEME"
           xcodebuild \
             -workspace "$WORKSPACE" \
