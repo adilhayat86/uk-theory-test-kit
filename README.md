@@ -63,6 +63,25 @@ npx expo start
 - A full 50-question / 57-minute exam engine with 43/50 pass criteria is implemented and tested, but **the full-exam button is intentionally locked** pending the full source-reviewed question bank and actual local video case-study playback.
 - Android debug APK and iOS simulator build jobs in GitHub Actions.
 
+## Crash-safe practice and Android release verification
+
+The ordinary revision session now has an on-device SQLite snapshot: selected
+question order, current position, answers and completed result. The **Continue
+saved practice** banner resumes unfinished work after restarting, and finished
+results remain reviewable. A selected answer and its progress counter are
+written in **one SQLite transaction** so a failed save cannot silently
+double-count or lose the answer. The Android system Back key returns to
+the relevant study screen. Tests for strict session transitions were added.
+
+CI also builds a **release-mode Android App Bundle** for build verification.
+This is **not production-signed** and must **never** be uploaded to Play
+without the publisher's release/upload key and Play Console checks.
+The app version is `0.1.0`, Android version code `1`.
+
+See [manual Android smoke-test plan](docs/ANDROID_RELEASE_SMOKE_TEST.md) and
+[privacy notice draft](docs/PRIVACY_POLICY_DRAFT.md). Neither has been
+signed off or published as a final store document.
+
 ## Quality gates
 
 Use the [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [audit](docs/audit-2026-11-06.md) for remaining blockers. The app is **not yet a complete commercial theory-test product**. The current revision bank is not an official-style full mock; hazard perception and video case studies are not yet available.
