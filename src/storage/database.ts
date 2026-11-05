@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
-import { TheoryQuestion } from '../data/questions';
-import { ProgressSummary, summarizeProgress } from '../domain/progress';
+import type { TheoryQuestion } from '../data/questions';
+import { summarizeProgress } from '../domain/progress';
+import type { ProgressSummary } from '../domain/progress';
 
 type StoredProgressRow = {
   question_id: string;
