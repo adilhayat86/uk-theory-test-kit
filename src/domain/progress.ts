@@ -12,7 +12,8 @@ export type ProgressSummary = {
 };
 
 export function gradeAnswer(correctIndex: number, selectedIndex: number): boolean {
-  return Number.isInteger(selectedIndex) && selectedIndex >= 0 && selectedIndex === correctIndex;
+  const validIndex = (value: number) => Number.isInteger(value) && value >= 0 && value <= 3;
+  return validIndex(correctIndex) && validIndex(selectedIndex) && selectedIndex === correctIndex;
 }
 
 export function summarizeProgress(records: ProgressRecord[]): ProgressSummary {
