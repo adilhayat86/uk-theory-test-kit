@@ -8,8 +8,8 @@ const WHITE = '#FFFFFF';
 
 /** Locally rendered, vector teaching diagrams. Not pixel-perfect traffic sign artwork. */
 export default function RoadSignVisual({
-  artwork, size = 114,
-}: { artwork: string; size?: number }) {
+  artwork, size = 114, accessibilityLabel,
+}: { artwork: string; size?: number; accessibilityLabel?: string }) {
   const isSpeed = artwork.startsWith('limit-');
   const isWarning = [
     'traffic-lights', 'crossroads', 'bend-right', 'road-narrows',
@@ -19,7 +19,7 @@ export default function RoadSignVisual({
   const isRedCircle = ['no-entry','no-u-turn'].includes(artwork);
   return (
     <Svg width={size} height={size} viewBox="0 0 120 120"
-      accessibilityRole="image" accessibilityLabel={`Illustrated ${artwork.replace(/-/g, ' ')} road sign`}>
+      accessibilityRole="image" accessibilityLabel={accessibilityLabel ?? 'Illustrated road sign'}>
       {isSpeed || artwork === 'national-limit' || isRedCircle ? (
         <Circle cx={60} cy={60} r={49} fill={WHITE} stroke={artwork === 'national-limit' ? BLACK : RED} strokeWidth={artwork === 'national-limit' ? 3 : 10} />
       ) : null}
