@@ -11,16 +11,21 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
 import MockExamScreen from './src/components/MockExamScreen';
+import RoadSignsScreen from './src/components/RoadSignsScreen';
+import { roadSigns } from './src/data/roadSigns';
+import { getMistakeQuestions, getSmartRevision } from './src/domain/revision';
+import type { QuestionLearningRecord } from './src/domain/revision';
 import type { TheoryQuestion } from './src/data/questions';
 import {
   getBookmarkedQuestionIds,
   getProgressSummary,
+  getQuestionLearningRecords,
   recordAnswer,
   toggleBookmark,
 } from './src/storage/database';
 import type { ProgressSummary } from './src/domain/progress';
 
-type Tab = 'home' | 'practice' | 'mock' | 'saved' | 'progress';
+type Tab = 'home' | 'practice' | 'mock' | 'signs' | 'saved' | 'progress';
 
 const EMPTY_PROGRESS: ProgressSummary = {
   questionsAnswered: 0,
@@ -38,6 +43,7 @@ function AppContent() {
   const [sessionAnswered, setSessionAnswered] = useState(0);
   const [progress, setProgress] = useState<ProgressSummary>(EMPTY_PROGRESS);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [learningRecords, setLearningRecords] = useState<QuestionLearningRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [storageMessage, setStorageMessage] = useState<string | null>(null);
@@ -49,23 +55,28 @@ function AppContent() {
     () => questions.filter((question) => bookmarkedIds.includes(question.id)),
     [bookmarkedIds],
   );
+  const mistakeQuestions = useMemo(() => getMistakeQuestions(questions, learningRecords), [learningRecords]);
+  const smartQuestions = useMemo(() => getSmartRevision(questions, learningRecords, 10), [learningRecords]);
 
   const refreshLocalData = useCallback(async () => {
-    const [nextProgress, nextBookmarks] = await Promise.all([
+    const [nextProgress, nextBookmarks, nextRecords] = await Promise.all([
       getProgressSummary(),
       getBookmarkedQuestionIds(),
+      getQuestionLearningRecords(),
     ]);
     setProgress(nextProgress);
     setBookmarkedIds(nextBookmarks);
+    setLearningRecords(nextRecords);
   }, []);
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([getProgressSummary(), getBookmarkedQuestionIds()])
-      .then(([nextProgress, nextBookmarks]) => {
+    Promise.all([getProgressSummary(), getBookmarkedQuestionIds(), getQuestionLearningRecords()])
+      .then(([nextProgress, nextBookmarks, nextRecords]) => {
         if (!mounted) return;
         setProgress(nextProgress);
         setBookmarkedIds(nextBookmarks);
+        setLearningRecords(nextRecords);
       })
       .catch(() => {
         if (mounted) setStorageMessage('Local storage could not be opened. Your current practice screen is still available.');
@@ -186,6 +197,26 @@ function AppContent() {
                 <Text style={styles.mockBannerBody}>5-question sample • resume offline • review results</Text>
               </Pressable>
 
+              <Pressable accessibilityRole="button" style={styles.signBanner} onPress={() => setTab('signs')}>
+                <Text style={styles.signBannerTitle}>Road sign library  ›</Text>
+                <Text style={styles.signBannerBody}>{roadSigns.length} illustrated signs · 10-question identification quizzes</Text>
+              </Pressable>
+
+              <View style={styles.revisionRow}>
+                <Pressable accessibilityRole="button" disabled={mistakeQuestions.length === 0}
+                  style={[styles.revisionCard, mistakeQuestions.length === 0 && styles.disabledButton]}
+                  onPress={() => startPractice(mistakeQuestions)}>
+                  <Text style={styles.revisionTitle}>Fix mistakes</Text>
+                  <Text style={styles.revisionCount}>{mistakeQuestions.length} to review</Text>
+                  <Text style={styles.revisionSub}>Questions you last answered incorrectly</Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" style={styles.revisionCard} onPress={() => startPractice(smartQuestions)}>
+                  <Text style={styles.revisionTitle}>Smart revision</Text>
+                  <Text style={styles.revisionCount}>10 questions</Text>
+                  <Text style={styles.revisionSub}>Mistakes first, then weaker and new topics</Text>
+                </Pressable>
+              </View>
+
               <Text style={styles.sectionTitle}>Your progress</Text>
               <View style={styles.statsRow}>
                 <StatCard value={String(progress.questionsAnswered)} label="Questions tried" />
@@ -294,7 +325,9 @@ function AppContent() {
             </>
           )}
 
-          {tab === 'mock' && <MockExamScreen onBack={() => setTab('home')} />}
+          {tab === 'mock' && <MockExamScreen onBack={() => setTab('home')} onFinished={refreshLocalData} />}
+
+          {tab === 'signs' && <RoadSignsScreen onBack={() => setTab('home')} />}
 
           {tab === 'saved' && (
             <>
@@ -356,7 +389,7 @@ function AppContent() {
           <NavItem label="Home" icon="⌂" active={tab === 'home'} onPress={() => setTab('home')} />
           <NavItem label="Practice" icon="✓" active={tab === 'practice'} onPress={() => { if (tab !== 'practice') startPractice(); }} />
           <NavItem label="Mock" icon="◷" active={tab === 'mock'} onPress={() => setTab('mock')} />
-          <NavItem label="Saved" icon="☆" active={tab === 'saved'} onPress={() => setTab('saved')} />
+          <NavItem label="Signs" icon="△" active={tab === 'signs'} onPress={() => setTab('signs')} />
           <NavItem label="Progress" icon="▥" active={tab === 'progress'} onPress={() => setTab('progress')} />
         </View>
       </View>
@@ -487,6 +520,14 @@ const styles = StyleSheet.create({
   mockBanner: { backgroundColor: '#E5EDFD', borderRadius: 15, padding: 16, marginBottom: 22 },
   mockBannerTitle: { color: '#183D8A', fontSize: 16, fontWeight: '900' },
   mockBannerBody: { color: '#526B9A', fontSize: 12, marginTop: 5 },
+  signBanner: { backgroundColor: '#E8F4F0', borderRadius: 15, padding: 16, marginBottom: 13 },
+  signBannerTitle: { color: '#176247', fontSize: 16, fontWeight: '900' },
+  signBannerBody: { color: '#467A68', fontSize: 12, marginTop: 5 },
+  revisionRow: { flexDirection: 'row', gap: 10, marginBottom: 22 },
+  revisionCard: { flex: 1, padding: 14, backgroundColor: '#FFFFFF', borderRadius: 13, borderColor: colors.border, borderWidth: 1 },
+  revisionTitle: { color: colors.ink, fontSize: 13, fontWeight: '900' },
+  revisionCount: { color: colors.blue, fontSize: 18, fontWeight: '900', marginTop: 8 },
+  revisionSub: { color: colors.muted, fontSize: 11, lineHeight: 16, marginTop: 4 },
   bottomNav: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8, paddingBottom: 4 },
   navItem: { flex: 1, alignItems: 'center', paddingVertical: 5 },
   navIcon: { fontSize: 20, color: '#91A0B4' },

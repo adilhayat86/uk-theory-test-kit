@@ -32,7 +32,10 @@ npx expo start
 
 ## Working features
 
+- 50 original Highway Code-based practice questions with explanations and source references, grouped by topic.
 - Offline study topics, answer explanations and bookmarked questions.
+- 24 original, locally rendered road-sign learning diagrams, category/search filters and 10-question recognition quizzes.
+- One-tap review of latest incorrect answers, plus 10-question smart sessions mixing weak and unseen topics.
 - Saved answer counts and accuracy over repeated attempts.
 - **Timed five-question sample mock** (six minutes), with flagging, changing answers, question jumping, submission, timeout, answer review and saved offline mock history.
 - Mock session resumes from SQLite after leaving and returning to the screen, including after an app restart. The timer is anchored to wall-clock time, not a paused app timer.
@@ -42,6 +45,12 @@ npx expo start
 ## Quality gates
 
 Use the [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [audit](docs/audit-2026-11-06.md) for remaining blockers. The app is **not yet a complete commercial theory-test product**. The current sample is not an official-style full mock; hazard perception and video case studies are not yet available.
+
+## How to try competitive learning features
+
+Open **Signs** in the bottom navigation to study original simplified road-sign diagrams or run a 10-question visual identification quiz. On the home screen, **Fix mistakes** replays questions you last answered incorrectly. **Smart revision** prioritises mistakes, weak areas and then unseen questions across topics. Completed mock exams count toward these learning records.
+
+Road-sign diagrams are schematic teaching illustrations, not official sign drawings. Sign sources are credited to the Department for Transport under Open Government Licence v3.0, and DfT details may be viewed using the source links when online.
 
 ## How to try the mock
 

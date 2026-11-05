@@ -22,7 +22,7 @@ A source file or CI configuration does not establish that the app works. Each ph
 ## Phase 2 — Offline mock-exam workflow (engine and UI implemented in this PR)
 
 - [x] Pure, tested 57-minute / 50-question exam engine with 43/50 pass threshold.
-- [x] Six-minute / five-question **sample**, explicitly labelled non-predictive; original practice bank expanded to 21 source-referenced questions.
+- [x] Six-minute / five-question **sample**, explicitly labelled non-predictive; original practice bank expanded to **50 source-referenced questions** on the next feature branch.
 - [x] Answer changes, flags, navigation, jump-to-question and expiry.
 - [x] User-confirmed submit, timeout handling and result review.
 - [x] SQLite session snapshots, resume and historical attempt storage.
@@ -35,9 +35,9 @@ A source file or CI configuration does not establish that the app works. Each ph
 
 ## Phase 3 — Complete independent editorial content (major outstanding work)
 
-- [ ] Author, fact-check, copyedit and source-reference at least 1,000 original questions across UK car theory topics.
+- [ ] Author, fact-check, copyedit and source-reference **950 additional** original questions (50 drafted; target at least 1,000) across car theory topics.
 - [ ] Include reviewed local silent video case studies and their three linked questions; check their use in the 50-question exam selector.
-- [ ] Create road-sign study library with appropriately licensed government assets and Open Government Licence attribution where applicable.
+- [x] First 24 simplified vector signs and 10-question recognition quizzes implemented; [ ] complete 150 official-accurate signs and finalize OGL attribution.
 - [ ] Create 14 original hazard perception practice clips per full simulation (one double-hazard clip), accurately timed hazard windows and separate 44/75 pass criteria.
 - [ ] Add separate structured hazard perception preparation and practice.
 - [ ] QA each question with a second check against current Highway Code and actual legislation/official guidance.

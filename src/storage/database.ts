@@ -4,6 +4,8 @@ import type { MockSession, MockResult } from '../domain/mockExam';
 import type { TheoryQuestion } from '../data/questions';
 import { summarizeProgress } from '../domain/progress';
 import type { ProgressSummary } from '../domain/progress';
+import type { QuestionLearningRecord } from '../domain/revision';
+import { questions } from '../data/questions';
 
 type StoredProgressRow = {
   question_id: string;
@@ -85,6 +87,24 @@ export async function getProgressSummary(): Promise<ProgressSummary> {
     attempts: row.attempts,
     correctAttempts: row.correct_attempts,
   })));
+}
+
+export async function getQuestionLearningRecords(): Promise<QuestionLearningRecord[]> {
+  const db = await openDatabase();
+  const rows = await db.getAllAsync<{
+    question_id: string;
+    attempts: number;
+    correct_attempts: number;
+    last_selected_index: number;
+  }>(
+    'SELECT question_id, attempts, correct_attempts, last_selected_index FROM question_progress',
+  );
+  return rows.map((row) => ({
+    questionId: row.question_id,
+    attempts: row.attempts,
+    correctAttempts: row.correct_attempts,
+    lastSelectedIndex: row.last_selected_index,
+  }));
 }
 
 export async function getBookmarkedQuestionIds(): Promise<string[]> {
@@ -189,6 +209,29 @@ export async function finishStoredMock(session: MockSession, result: MockResult)
   return enqueueMockWrite(async () => {
     const db = await openDatabase();
     await db.withExclusiveTransactionAsync(async (txn) => {
+      // Only count a completed mock once, even if the submit callback retries.
+      const existingResult = await txn.getFirstAsync<{ id: string }>(
+        'SELECT id FROM mock_exam_results WHERE id = ?', result.id,
+      );
+      if (!existingResult) {
+        const lookup = new Map(questions.map((q) => [q.id, q.correctIndex]));
+        for (const questionId of result.questionIds) {
+          const selected = result.answers[questionId];
+          const correct = lookup.get(questionId);
+          if (correct === undefined || !Number.isInteger(selected) || selected < 0 || selected > 3) continue;
+          await txn.runAsync(
+            `INSERT INTO question_progress (
+              question_id, attempts, correct_attempts, last_selected_index, last_answered_at
+            ) VALUES (?, 1, ?, ?, ?)
+            ON CONFLICT(question_id) DO UPDATE SET
+              attempts = question_progress.attempts + 1,
+              correct_attempts = question_progress.correct_attempts + excluded.correct_attempts,
+              last_selected_index = excluded.last_selected_index,
+              last_answered_at = excluded.last_answered_at`,
+            questionId, selected === correct ? 1 : 0, selected, new Date(result.finishedAt).toISOString(),
+          );
+        }
+      }
       await txn.runAsync(
         'INSERT OR REPLACE INTO mock_exam_results (id, payload, completed_at) VALUES (?, ?, ?)',
         result.id, JSON.stringify(result), new Date(result.finishedAt).toISOString(),
