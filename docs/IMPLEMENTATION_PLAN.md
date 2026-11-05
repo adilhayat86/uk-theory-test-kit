@@ -13,7 +13,7 @@ A source file or CI configuration does not establish that the app works. Each ph
 - [x] Expo Doctor, TypeScript checks and unit tests in GitHub Actions.
 - [x] Bundling for iOS/Android.
 - [x] Debug Android APK and iOS simulator jobs (both have passed on prior PR revision).
-- [ ] Commit a reproducible npm `package-lock.json`; convert install steps to `npm ci`.
+- [x] Commit a reproducible npm `package-lock.json`; convert install steps to `npm ci`.
 - [ ] Install and launch on a physical Android phone; test offline start/resume and persistence.
 - [ ] Install and launch on iOS simulator; capture automated UI test evidence.
 
@@ -22,7 +22,7 @@ A source file or CI configuration does not establish that the app works. Each ph
 ## Phase 2 — Offline mock-exam workflow (engine and UI implemented in this PR)
 
 - [x] Pure, tested 57-minute / 50-question exam engine with 43/50 pass threshold.
-- [x] Six-minute / five-question **sample**, explicitly labelled non-predictive.
+- [x] Six-minute / five-question **sample**, explicitly labelled non-predictive; original practice bank expanded to 21 source-referenced questions.
 - [x] Answer changes, flags, navigation, jump-to-question and expiry.
 - [x] User-confirmed submit, timeout handling and result review.
 - [x] SQLite session snapshots, resume and historical attempt storage.
