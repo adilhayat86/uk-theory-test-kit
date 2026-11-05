@@ -10,6 +10,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
+import MockExamScreen from './src/components/MockExamScreen';
 import type { TheoryQuestion } from './src/data/questions';
 import {
   getBookmarkedQuestionIds,
@@ -19,7 +20,7 @@ import {
 } from './src/storage/database';
 import type { ProgressSummary } from './src/domain/progress';
 
-type Tab = 'home' | 'practice' | 'saved' | 'progress';
+type Tab = 'home' | 'practice' | 'mock' | 'saved' | 'progress';
 
 const EMPTY_PROGRESS: ProgressSummary = {
   questionsAnswered: 0,
@@ -180,6 +181,11 @@ function AppContent() {
                 </Pressable>
               </View>
 
+              <Pressable accessibilityRole="button" style={styles.mockBanner} onPress={() => setTab('mock')}>
+                <Text style={styles.mockBannerTitle}>Timed mock exams  ›</Text>
+                <Text style={styles.mockBannerBody}>5-question sample • resume offline • review results</Text>
+              </Pressable>
+
               <Text style={styles.sectionTitle}>Your progress</Text>
               <View style={styles.statsRow}>
                 <StatCard value={String(progress.questionsAnswered)} label="Questions tried" />
@@ -288,6 +294,8 @@ function AppContent() {
             </>
           )}
 
+          {tab === 'mock' && <MockExamScreen onBack={() => setTab('home')} />}
+
           {tab === 'saved' && (
             <>
               <Text style={styles.pageTitle}>Saved questions</Text>
@@ -347,6 +355,7 @@ function AppContent() {
         <View style={styles.bottomNav}>
           <NavItem label="Home" icon="⌂" active={tab === 'home'} onPress={() => setTab('home')} />
           <NavItem label="Practice" icon="✓" active={tab === 'practice'} onPress={() => { if (tab !== 'practice') startPractice(); }} />
+          <NavItem label="Mock" icon="◷" active={tab === 'mock'} onPress={() => setTab('mock')} />
           <NavItem label="Saved" icon="☆" active={tab === 'saved'} onPress={() => setTab('saved')} />
           <NavItem label="Progress" icon="▥" active={tab === 'progress'} onPress={() => setTab('progress')} />
         </View>
@@ -475,6 +484,9 @@ const styles = StyleSheet.create({
   completionTitle: { color: colors.ink, fontSize: 22, fontWeight: '900', marginTop: 10 },
   completionBody: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: 'center', marginTop: 8 },
   completionScore: { color: colors.blue, fontSize: 28, fontWeight: '900', marginTop: 14 },
+  mockBanner: { backgroundColor: '#E5EDFD', borderRadius: 15, padding: 16, marginBottom: 22 },
+  mockBannerTitle: { color: '#183D8A', fontSize: 16, fontWeight: '900' },
+  mockBannerBody: { color: '#526B9A', fontSize: 12, marginTop: 5 },
   bottomNav: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8, paddingBottom: 4 },
   navItem: { flex: 1, alignItems: 'center', paddingVertical: 5 },
   navIcon: { fontSize: 20, color: '#91A0B4' },
