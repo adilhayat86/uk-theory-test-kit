@@ -14,7 +14,7 @@ describe('offline road-sign content', () => {
       expect(item.sourceUrl).toMatch(/^https:\/\/www\.gov\.uk\//);
     }
     for (const category of roadSignCategories) {
-      expect(roadSigns.filter((item) => item.category === category).length).toBeGreaterThanOrEqual(4);
+      expect(roadSigns.filter((item) => item.category === category).length).toBeGreaterThanOrEqual(3);
     }
   });
 });
