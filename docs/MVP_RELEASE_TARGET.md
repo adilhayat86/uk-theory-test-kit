@@ -53,7 +53,7 @@ Independent human editorial sign-off remains incomplete and is a separate launch
 `npm run check:mvp:content -- --report-only` to exercise the script before
 the bank is complete without hiding the unmet requirement.
 
-This structural gate is **not** editorial approval. Two-person or
+This structural gate is **not** editorial approval. A second required release gate is `npm run check:mvp:editorial`, which validates the 200-row named-reviewer tracker and intentionally fails until all questions are independently approved. Two-person or
 independent cross-check of answers against current Highway Code, sign
 specifications and official guidance must be recorded for all questions.
 Review date and source URL/rule number should be traceable before release.
