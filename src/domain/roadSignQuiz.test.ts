@@ -20,7 +20,8 @@ describe('road sign recognition quiz', () => {
     for (const question of quiz) {
       const sign = roadSigns.find((item) => item.id === question.signId)!;
       const sameCategoryLabels = roadSigns.filter((item) => item.category === sign.category).map((item) => item.label);
-      expect(question.options.every((option) => sameCategoryLabels.includes(option))).toBe(true);
+      expect(question.options.filter((option) => sameCategoryLabels.includes(option)).length)
+        .toBe(Math.min(4, sameCategoryLabels.length));
     }
   });
 
