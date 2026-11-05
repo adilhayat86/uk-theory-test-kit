@@ -1,10 +1,26 @@
 # UK Theory Test Kit
 
-An independent, offline-first UK car theory test preparation app for Android and iOS.
+An independent, offline-first Great Britain car theory revision prototype, targeting a lean Android launch.
+
+## Android-first MVP scope (current launch target)
+
+**Target paid product:** £0.99 / Google Play for Great Britain car revision,
+fully offline with no ads, account or subscription. The first release must
+contain at least **200 independently authored, checked questions** across
+10 or more topics; today's 21-question sample is development-only.
+See [MVP release target](docs/MVP_RELEASE_TARGET.md) and run
+`npm run check:mvp:content` to enforce the structural release gate.
+
+**MVP included:** mixed and topic practice, question search, saved/flagged
+questions, explanations, 5/10-question sessions with answer review,
+retry incorrect, offline progress, basic flashcards and text-first sign notes.
+**Deferred:** hazard videos, full exam-equivalent mock, full Highway Code,
+AI rewording, games, social features, Northern Ireland content and iOS launch.
+Do not describe it as an official test simulator or complete 4-in-1 app.
 
 ## Product decisions
 
-- UK market, Android and iOS
+- Great Britain car learners; Android first (iOS later)
 - React Native + Expo + TypeScript
 - Target price: £0.99 one-time purchase; no ads or subscriptions
 - Core study content and user progress stored locally on the device
@@ -54,13 +70,13 @@ Use the [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [audit](docs/audi
 
 ## Navigate the screenshot-informed modules
 
-From **Home**, choose **Theory Test** for a dedicated hub with configurable quick practice (5/10 questions), timed sample mock, search, saved/flagged questions, progress, flashcards and Smart Revision. The completed quick practice view now has answer-review filters and a retry-mistakes action. Choose **Road Signs** to browse categories, search and save explanatory notes or complete a text-based mini quiz. The **Hazard Perception** section is educational only, and **Highway Code Notes** are a sample of original local notes, not a full book.
+From **Home**, choose **Theory Revision** for a dedicated hub with configurable quick practice (5/10 questions), timed sample mock, search, saved/flagged questions, progress, flashcards and Smart Revision. The completed quick practice view now has answer-review filters and a retry-mistakes action. Choose **Road Sign Notes** to browse categories, search and save explanatory notes or complete a text-based mini quiz. Hazard perception and a full Highway Code section are deferred from MVP navigation; they must not be marketed as included functionality.
 
 All new sample features work locally, but a full sign illustration bank, original hazard clips and source-reviewed 50-question mock are still required before launch.
 
 ## How to try the mock
 
-Open the app, select **Mock**, then **Start 5-question sample**. Tap an answer, flag questions, navigate with Previous/Next or question numbers, and submit to get explanations. Leaving and returning to **Mock** restores the active timed session. Finished attempts appear in history.
+Open the app, select **Theory Revision**, open **Timed Mini Test**, then **Start 5-question sample**. Tap an answer, flag questions, navigate with Previous/Next or question numbers, and submit to get explanations. Leaving and returning to **Mock** restores the active timed session. Finished attempts appear in history.
 
 
 
