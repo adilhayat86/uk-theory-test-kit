@@ -85,10 +85,22 @@ function evaluate(bank) {
     if (typeof item.reference !== 'string' || item.reference.trim().length < 6) {
       issues.push('Missing reference for ' + id);
     }
+    // A reference must be inspectable against the official source. This tests
+    // URL syntax/host, not whether the human interpretation is correct.
+    if (typeof item.sourceUrl !== 'string' ||
+      !/^https:\/\/(www\.)?gov\.uk\//.test(item.sourceUrl)) {
+      issues.push('Missing canonical GOV.UK source URL for ' + id);
+    }
   }
 
   if (topicCounts.size < MIN_TOPICS) {
     issues.push('Need at least ' + MIN_TOPICS + ' subject topics (currently ' + topicCounts.size + ')');
+  }
+  const choices = bank.filter((item) => item && Array.isArray(item.options) && Number.isInteger(item.correctIndex))
+    .map((item) => item.correctIndex);
+  const answersUsed = new Set(choices);
+  if (answersUsed.size !== 4) {
+    issues.push('Correct options must occupy all four answer positions in the full bank');
   }
   for (const [topic, count] of topicCounts) {
     if (count < MIN_PER_TOPIC) {
