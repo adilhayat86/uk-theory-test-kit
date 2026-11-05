@@ -35,6 +35,10 @@ async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
             question_id TEXT PRIMARY KEY NOT NULL,
             created_at TEXT NOT NULL
           );
+          CREATE TABLE IF NOT EXISTS saved_signs (
+            sign_id TEXT PRIMARY KEY NOT NULL,
+            created_at TEXT NOT NULL
+          );
           CREATE TABLE IF NOT EXISTS mock_exam_sessions (
             id TEXT PRIMARY KEY NOT NULL,
             payload TEXT NOT NULL,
@@ -130,6 +134,32 @@ export async function toggleBookmark(questionId: string): Promise<boolean> {
     'INSERT INTO bookmarks (question_id, created_at) VALUES (?, ?)',
     questionId,
     new Date().toISOString(),
+  );
+  return true;
+}
+
+/** Offline saved road-sign notes use their own table, separate from question bookmarks. */
+export async function getSavedSignIds(): Promise<string[]> {
+  const db = await openDatabase();
+  const rows = await db.getAllAsync<{ sign_id: string }>(
+    'SELECT sign_id FROM saved_signs ORDER BY created_at DESC',
+  );
+  return rows.map((row) => row.sign_id);
+}
+
+export async function toggleSavedSign(signId: string): Promise<boolean> {
+  const db = await openDatabase();
+  const existing = await db.getFirstAsync<{ sign_id: string }>(
+    'SELECT sign_id FROM saved_signs WHERE sign_id = ?',
+    signId,
+  );
+  if (existing) {
+    await db.runAsync('DELETE FROM saved_signs WHERE sign_id = ?', signId);
+    return false;
+  }
+  await db.runAsync(
+    'INSERT INTO saved_signs (sign_id, created_at) VALUES (?, ?)',
+    signId, new Date().toISOString(),
   );
   return true;
 }
