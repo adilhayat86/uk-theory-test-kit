@@ -26,6 +26,10 @@ A source file or CI configuration does not establish that the app works. Each ph
 - [x] Answer changes, flags, navigation, jump-to-question and expiry.
 - [x] User-confirmed submit, timeout handling and result review.
 - [x] SQLite session snapshots, resume and historical attempt storage.
+- [x] Offline adaptive revision using most recent wrong answers, unseen questions and weaker topics.
+- [x] Local per-topic attempts, accuracy and last-mistake counts.
+- [x] Topic-filtered, on-device flashcards (existing original questions; no audio or copied content).
+- [ ] Verify new revision flows on a physical Android device and via CI checks.
 - [x] Block full mock until the question count and video-case-study requirement are met.
 - [ ] SQLite integration test on a native device and forced app termination/resume test.
 - [ ] Review bug resilience: lost storage, changing question banks, device clock jumps.
@@ -76,3 +80,7 @@ A source file or CI configuration does not establish that the app works. Each ph
 6. Validate poor-network and airplane-mode behavior throughout.
 7. Check screen readers, touch targets, text sizing and low-end Android performance.
 8. All release content and copyrights reviewed.
+
+## Competitor-informed enhancements (6 November 2026)
+
+The user-supplied APK was analysed statically, and priorities were compared with official competitor feature descriptions. See [the APK audit](COMPETITOR_APK_AUDIT.md). The immediate revision and flashcard features are implemented in source, but **do not** resolve the large missing bank, hazard-perception videos, or release QA gates. Do not describe the app as equivalent to an official or commercial full theory-test preparation kit.
