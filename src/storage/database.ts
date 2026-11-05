@@ -1,4 +1,6 @@
 import * as SQLite from 'expo-sqlite';
+import { isMockSession } from '../domain/mockExam';
+import type { MockSession, MockResult } from '../domain/mockExam';
 import type { TheoryQuestion } from '../data/questions';
 import { summarizeProgress } from '../domain/progress';
 import type { ProgressSummary } from '../domain/progress';
@@ -27,6 +29,19 @@ async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
           CREATE TABLE IF NOT EXISTS bookmarks (
             question_id TEXT PRIMARY KEY NOT NULL,
             created_at TEXT NOT NULL
+          );
+          CREATE TABLE IF NOT EXISTS mock_exam_sessions (
+            id TEXT PRIMARY KEY NOT NULL,
+            payload TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            completed_at TEXT
+          );
+          CREATE INDEX IF NOT EXISTS mock_sessions_active_idx
+            ON mock_exam_sessions(completed_at, updated_at);
+          CREATE TABLE IF NOT EXISTS mock_exam_results (
+            id TEXT PRIMARY KEY NOT NULL,
+            payload TEXT NOT NULL,
+            completed_at TEXT NOT NULL
           );
         `);
         return db;
@@ -106,4 +121,94 @@ export async function closeDatabaseForTests(): Promise<void> {
     await db.closeAsync();
     databasePromise = null;
   }
+}
+
+/**
+ * Serialize mock writes: an answer-save arriving after a submit must not recreate
+ * an active session. This queue also keeps rapid answer/flag updates in order.
+ */
+let mockWriteTail: Promise<void> = Promise.resolve();
+
+function enqueueMockWrite(task: () => Promise<void>): Promise<void> {
+  const operation = mockWriteTail.then(task, task);
+  mockWriteTail = operation.catch(() => undefined);
+  return operation;
+}
+
+export async function saveMockSession(session: MockSession): Promise<void> {
+  if (!isMockSession(session)) throw new Error('Invalid mock session.');
+  return enqueueMockWrite(async () => {
+    const db = await openDatabase();
+    await db.runAsync(
+      `INSERT INTO mock_exam_sessions (id, payload, updated_at, completed_at)
+        VALUES (?, ?, ?, NULL)
+        ON CONFLICT(id) DO UPDATE SET
+          payload = excluded.payload,
+          updated_at = excluded.updated_at`,
+      session.id,
+      JSON.stringify(session),
+      new Date().toISOString(),
+    );
+  });
+}
+
+export async function getActiveMockSession(): Promise<MockSession | null> {
+  await mockWriteTail;
+  const db = await openDatabase();
+  const row = await db.getFirstAsync<{ payload: string }>(
+    'SELECT payload FROM mock_exam_sessions WHERE completed_at IS NULL ORDER BY updated_at DESC LIMIT 1',
+  );
+  if (!row) return null;
+  try {
+    const parsed: unknown = JSON.parse(row.payload);
+    return isMockSession(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getMockResults(limit: number = 10): Promise<MockResult[]> {
+  await mockWriteTail;
+  const db = await openDatabase();
+  const rows = await db.getAllAsync<{ payload: string }>(
+    'SELECT payload FROM mock_exam_results ORDER BY completed_at DESC LIMIT ?',
+    Math.max(1, Math.min(50, Math.trunc(limit))),
+  );
+  return rows.flatMap((row) => {
+    try {
+      const data: MockResult = JSON.parse(row.payload);
+      return typeof data.id === 'string' && typeof data.correct === 'number' ? [data] : [];
+    } catch {
+      return [];
+    }
+  });
+}
+
+export async function finishStoredMock(session: MockSession, result: MockResult): Promise<void> {
+  if (session.id !== result.id) throw new Error('Mock result does not match its session.');
+  return enqueueMockWrite(async () => {
+    const db = await openDatabase();
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        'INSERT OR REPLACE INTO mock_exam_results (id, payload, completed_at) VALUES (?, ?, ?)',
+        result.id, JSON.stringify(result), new Date(result.finishedAt).toISOString(),
+      );
+      await txn.runAsync(
+        'UPDATE mock_exam_sessions SET payload = ?, completed_at = ? WHERE id = ?',
+        JSON.stringify(session),
+        new Date(result.finishedAt).toISOString(),
+        session.id,
+      );
+    });
+  });
+}
+
+export async function discardActiveMock(id: string): Promise<void> {
+  return enqueueMockWrite(async () => {
+    const db = await openDatabase();
+    await db.runAsync(
+      'DELETE FROM mock_exam_sessions WHERE id = ? AND completed_at IS NULL',
+      id,
+    );
+  });
 }
