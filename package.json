@@ -12,7 +12,8 @@
     "doctor": "npx expo-doctor@latest",
     "export:android": "expo export --platform android --output-dir dist/android",
     "export:ios": "expo export --platform ios --output-dir dist/ios",
-    "check:mvp:content": "node scripts/check-mvp-content.cjs"
+    "check:mvp:content": "node scripts/check-mvp-content.cjs",
+    "check:mvp:editorial": "node scripts/check-editorial-review.cjs"
   },
   "dependencies": {
     "expo": "~58.0.0",
