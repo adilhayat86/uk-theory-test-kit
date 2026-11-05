@@ -32,6 +32,8 @@ jobs:
         run: npm run typecheck
       - name: Run domain tests
         run: npm test -- --coverage
+      - name: Report Android MVP content readiness (not a release approval)
+        run: npm run check:mvp:content -- --report-only
 
   javascript-bundles:
     name: Export Android and iOS JavaScript bundles
