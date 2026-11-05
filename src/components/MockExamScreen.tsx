@@ -26,6 +26,9 @@ export default function MockExamScreen({ onBack }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const submitting = useRef(false);
   const readiness = fullMockReadiness(questions);
+  // Do not unlock a full mock until an actual offline video player is implemented.
+  const videoCaseStudyPlayerReady = false;
+  const fullMockCanStart = readiness.eligible && videoCaseStudyPlayerReady;
 
   useEffect(() => {
     let mounted = true;
@@ -169,11 +172,11 @@ export default function MockExamScreen({ onBack }: Props) {
           <View style={styles.info}>
             <Text style={styles.infoTitle}>Full GB car theory mock</Text>
             <Text style={styles.body}>50 questions · 57 minutes · 43/50 pass mark · video case study</Text>
-            <Text style={styles.note}>{readiness.eligible
-              ? 'Question and case-study requirements are met.'
-              : `Locked until 50 reviewed questions and a video case study are included. Current bank: ${readiness.questionCount} questions.`}</Text>
-            <Pressable accessibilityRole="button" disabled={!readiness.eligible || busy} style={[styles.primary, !readiness.eligible && styles.disabled]} onPress={() => { void start('full'); }}>
-              <Text style={styles.primaryText}>{readiness.eligible ? 'Start full mock' : 'Full mock not yet available'}</Text>
+            <Text style={styles.note}>{fullMockCanStart
+              ? 'All content and playback requirements are met.'
+              : `Locked until 50 reviewed questions, locally playable video case study and video playback are included. Current bank: ${readiness.questionCount} questions.`}</Text>
+            <Pressable accessibilityRole="button" disabled={!fullMockCanStart || busy} style={[styles.primary, !fullMockCanStart && styles.disabled]} onPress={() => { void start('full'); }}>
+              <Text style={styles.primaryText}>{fullMockCanStart ? 'Start full mock' : 'Full mock not yet available'}</Text>
             </Pressable>
           </View>
           {history.length > 0 ? (
