@@ -99,3 +99,43 @@ Official references:
 - https://www.gov.uk/theory-test/hazard-perception-test
 - https://www.gov.uk/theory-test/pass-mark-and-result
 - https://www.gov.uk/guidance/make-and-sell-driving-theory-test-revision-products
+
+## Evidence from four user-provided competitor screenshots (6 November 2026)
+
+The screenshots show, rather than merely suggest from APK asset names:
+1. Home sections: Theory Test, Hazard Perception, Highway Code, Road Signs and
+   a promotional practical-driving area; separate offers/leaderboard/profile menu.
+2. Theory Test submenu: revision questions, mock, search, flagged questions,
+   progress and advice.
+3. Road Signs submenu: getting started, categories, find a sign, flagged signs,
+   quiz and an optional game, alongside advertising.
+4. Hazard Perception instructions: developing hazard definition, one double-hazard
+   clip, up-to-five-point scoring, click-pattern warning and visual click feedback.
+
+The screenshot also shows **Northern Ireland** selected as the competitor's
+question-bank region. This is a region selector, NOT evidence our current GB bank
+can cover NI. DVA is the Northern Ireland test agency; verify local sign/rule
+differences separately before allowing an NI-specific region selection.
+
+Implementation based on the navigation *ideas* rather than assets:
+- Home: an original clean four-module dashboard and separate theory hub, without
+  offers, leaderboard or paid upsell.
+- Theory: offline question search (keyword/topic/source), flagged=bookmarked
+  questions, progress and existing mocks/revision.
+- Road Signs: first independent 12-note text study set; categories, search,
+  locally saved signs and 12-question text quiz. No copied competitor art or
+  misleading illustrated-identification claims.
+- Hazard: original offline explanation of the official format. Explicitly
+  not a functional clip simulator until original or licensed videos exist.
+- Highway Code: transparent starter-note selection derived from our existing
+  original explanations; not marketed as a full Code.
+
+Source evidence for GB sign conventions:
+- https://www.gov.uk/government/publications/know-your-traffic-signs/the-signing-system
+- https://www.gov.uk/government/publications/know-your-traffic-signs/regulatory-signs
+NI theory context:
+- https://www.nidirect.gov.uk/articles/taking-theory-test
+
+Remaining work: curated illustrated sign assets under separately verified licences,
+full original Code coverage, NI editorial dataset, hazard video scoring and
+physical-device UI tests with TalkBack/text scaling.
