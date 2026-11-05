@@ -30,6 +30,9 @@ describe('mock exam engine', () => {
     expect(fullMockReadiness(full).eligible).toBe(true);
     expect(fullMockReadiness(full.slice(0, 49)).eligible).toBe(false);
     expect(fullMockReadiness([...full, full[0]]).questionCount).toBe(50);
+    const mismatchedVideos = full.map((q, index) =>
+      index < 3 ? { ...q, caseStudyVideoAssetId: `unrelated-${index}.mp4` } : q);
+    expect(fullMockReadiness(mismatchedVideos).eligible).toBe(false);
     expect(fullMockReadiness(full.map((q) => ({ ...q, caseStudyVideoAssetId: undefined }))).toEqual({
       eligible: false,
       questionCount: 50,
@@ -63,6 +66,8 @@ describe('mock exam engine', () => {
     const mock = beginMock(makeFullBank(), 'full', sampleTime, () => 0.5);
     expect(mock.questionIds).toHaveLength(50);
     expect(mock.expiresAt - mock.startedAt).toBe(FULL_EXAM_DURATION_MS);
+    const selected = mock.questionIds.map((id) => makeFullBank().find((q) => q.id === id)!);
+    expect(selected.filter((q) => q.caseStudyVideoAssetId)).toHaveLength(3);
     expect(FULL_EXAM_PASS_MARK).toBe(43);
   });
 
