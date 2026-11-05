@@ -1,6 +1,8 @@
 # Product implementation plan (updated 6 November 2026)
 
-Target: UK Theory Test Kit — independent, offline-first Android/iOS theory-test preparation, £0.99 one-time purchase, no ads or subscriptions.
+Target: initial GB Android revision-only MVP, £0.99 one-time purchase, no ads or subscriptions; fuller Android/iOS test kit later.
+
+> **MVP scope update:** The first sellable product is a **GB Android-only £0.99 revision app**, not a complete theory simulator. The first commercial content target is **200 original checked questions across at least 10 topics**; original hazard clips, full 50-question case-study mock, iOS release and full Highway Code move to later phases. See [Android MVP release target](MVP_RELEASE_TARGET.md). The earlier 1,000-question and complete video targets remain **longer-term product goals**, not launch blockers for a clearly described revision-only MVP.
 
 ## Why we are using release gates
 
@@ -84,3 +86,7 @@ A source file or CI configuration does not establish that the app works. Each ph
 ## Competitor-informed enhancements (6 November 2026)
 
 The user-supplied APK was analysed statically, and priorities were compared with official competitor feature descriptions. See [the APK audit](COMPETITOR_APK_AUDIT.md). The immediate revision and flashcard features are implemented in source, but **do not** resolve the large missing bank, hazard-perception videos, or release QA gates. Do not describe the app as equivalent to an official or commercial full theory-test preparation kit.
+
+## Current MVP release condition
+
+Run `npm run check:mvp:content` after building the full original question bank; this must pass **in addition to** all human question verification and device QA. In CI, `--report-only` records progress without claiming that the 21-question sample is commercially ready. Before release, generate a signed Android App Bundle, audit the Play Store listing and privacy policy, then obtain an explicit release decision.
