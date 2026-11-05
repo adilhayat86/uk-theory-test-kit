@@ -139,3 +139,39 @@ NI theory context:
 Remaining work: curated illustrated sign assets under separately verified licences,
 full original Code coverage, NI editorial dataset, hazard video scoring and
 physical-device UI tests with TalkBack/text scaling.
+
+## Five-minute screen recording (user-provided; 6 November 2026)
+
+Source: 313-second Android screen recording of live interaction with the competitor app.
+Unlike static APK filenames, these are features actually visible during the recording.
+Times approximate, seconds from the start:
+
+| Time | Observed interaction | Product implication |
+| --- | --- | --- |
+| 0–25 | Northern Ireland car bank; pass guarantee, exam date and mock history | Keep our GB/NI scope explicit; avoid guarantee/upsell |
+| 30–44 | Browse revision categories (all categories shows 771 total), select categories, set 10-question practice, toggles for next-question, incorrect-alert, answer countdown, voiceover and AI-generated-only | Quick session lengths, transparent settings and properly reviewed content |
+| 45–76 | Mandatory introductory video overlay; practice question shows countdown before answers | No mandatory video gating in our independent app |
+| 80–125 | Four-answer question cards, some illustrated by traffic signs; wrong-answer modal offers reveal or retry; controls for previous, flag, reword, hint, next | Aim for excellent question practice without copying UI/illustrations |
+| 126–144 | End results showing 3/10 and a 30% score, topic strengths and weaknesses, review filters all/correct/incorrect/flagged | Implement session-specific review, retry mistakes and topic scores |
+| 150–182 | Separate mock with 50 multiple-choice questions, 57 minutes, 43/50 pass threshold; hazard instructions | Existing mock engine grounded; complete source/video still needed |
+| 186–258 | Hazard introduction explains CGI clips; download dialogue for a 21-clip package, progressing from 1% to 21% | Competitor is NOT evidence of fully-bundled hazard clips for first-use offline operation |
+| 264–309 | Highway Code chapter browser, rules under named categories, page progress bar, bookmarks and keyword-search field | Full chapterised, searchable offline Code/illustration library is a high-value content milestone |
+
+### Implementation from this additional evidence
+
+- Added 5-question and 10-question configurable quick practice via the existing shuffled selection engine.
+- Added full session answer review with All / Correct / Incorrect / Saved filters.
+- Added per-topic result scores based solely on this practice session, and **Retry incorrect** using those exact questions.
+- Recorded time-coded research so roadmap decisions do not depend on proprietary APK assets.
+
+### Remaining limitations
+
+- Current practice-session review state is in memory. Answer attempts are recorded
+  offline in SQLite, but interrupted ad hoc practice sessions are not yet resumable;
+  the timed mock already has a separate persistence model.
+- No force-watch video, AI-only question setting, automatic answer countdown, live
+  native voiceover, question rewording or interactive hazard playback was added.
+- Question images, original hazard clips and full Highway Code coverage require
+  verified content rights and independent editorial work.
+- The recorded 21-clip hazard download is one package in the recorded session;
+  it is **not** evidence that the competitor has only 21 clips overall.
