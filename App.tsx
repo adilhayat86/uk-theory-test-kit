@@ -42,8 +42,6 @@ function AppContent() {
   const [practiceQuestions, setPracticeQuestions] = useState<TheoryQuestion[]>(questions);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [sessionCorrect, setSessionCorrect] = useState(0);
-  const [sessionAnswered, setSessionAnswered] = useState(0);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, number>>({});
   const [progress, setProgress] = useState<ProgressSummary>(EMPTY_PROGRESS);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
@@ -106,8 +104,6 @@ function AppContent() {
     setPracticeQuestions(selection);
     setQuestionIndex(0);
     setSelectedAnswer(null);
-    setSessionCorrect(0);
-    setSessionAnswered(0);
     setSessionAnswers({});
     setStorageMessage(null);
     setTab('practice');
@@ -119,9 +115,6 @@ function AppContent() {
     answerLockedRef.current = true;
     setSelectedAnswer(index);
     setSessionAnswers((previous) => ({ ...previous, [currentQuestion.id]: index }));
-    setSessionAnswered((value) => value + 1);
-    const correct = index === currentQuestion.correctIndex;
-    if (correct) setSessionCorrect((value) => value + 1);
 
     setIsSaving(true);
     try {
