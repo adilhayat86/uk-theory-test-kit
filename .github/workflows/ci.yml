@@ -34,6 +34,8 @@ jobs:
         run: npm test -- --coverage
       - name: Report Android MVP content readiness (not a release approval)
         run: npm run check:mvp:content -- --report-only
+      - name: Report human editorial sign-off status (not release approval)
+        run: npm run check:mvp:editorial -- --report-only
 
   javascript-bundles:
     name: Export Android and iOS JavaScript bundles
