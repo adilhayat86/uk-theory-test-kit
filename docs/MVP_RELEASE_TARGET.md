@@ -115,3 +115,19 @@ before store publication. Highway Code/official sign content can be reused
 subject to the applicable Open Government Licence conditions.
 
 Review evidence: [200-question editorial audit](QUESTION_BANK_EDITORIAL_AUDIT.md) and [per-question review tracker](QUESTION_REVIEW_TRACKER.csv).
+
+## Reliability & release work committed (6 November 2026)
+
+- SQLite-backed ordinary practice session resume on restart, including final
+  result review; answer and progress update committed together transactionally.
+- Duplicate answer taps rejected by domain logic and database-backed session
+  validation; native Android hardware Back returns to study navigation.
+- CI builds a debug APK **and a release-mode AAB for inspection only**.
+  Production signing and Play submission remain separate.
+- Pre-release version `0.1.0`, Android versionCode `1`.
+- [Physical-device smoke-test checklist](ANDROID_RELEASE_SMOKE_TEST.md) and
+  [draft privacy notice](PRIVACY_POLICY_DRAFT.md) prepared; not approved.
+
+**Still blocked:** all 200 questions need independent source/editorial approval,
+real-device offline QA has not been performed, and developer contact, Play
+privacy disclosures and production upload-key signing are missing.
