@@ -47,7 +47,7 @@ describe('mock exam engine', () => {
     expect(chosen).toHaveLength(3);
     expect(new Set(chosen.map((q) => q.id)).size).toBe(3);
     expect(questions.map((question) => question.id)).toEqual(idsBefore);
-    expect(() => chooseQuestions(questions, 6)).toThrow();
+    expect(() => chooseQuestions(questions, questions.length + 1)).toThrow();
     expect(() => chooseQuestions(questions, 3, () => 1)).toThrow();
   });
 
