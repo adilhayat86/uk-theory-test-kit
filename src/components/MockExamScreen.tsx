@@ -13,9 +13,9 @@ import {
   getMockResults, saveMockSession,
 } from '../storage/database';
 
-type Props = { onBack: () => void };
+type Props = { onBack: () => void; onFinished?: () => Promise<void> };
 
-export default function MockExamScreen({ onBack }: Props) {
+export default function MockExamScreen({ onBack, onFinished }: Props) {
   const [session, setSession] = useState<MockSession | null>(null);
   const sessionRef = useRef<MockSession | null>(null);
   const [result, setResult] = useState<MockResult | null>(null);
@@ -82,6 +82,8 @@ export default function MockExamScreen({ onBack }: Props) {
     try {
       const report = finishMock(current, questions, Date.now(), reason);
       await finishStoredMock(current, report);
+      // Refresh the dashboard: answered mock questions now contribute to learning progress.
+      await onFinished?.();
       sessionRef.current = null;
       setSession(null);
       setResult(report);
