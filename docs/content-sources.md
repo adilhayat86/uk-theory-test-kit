@@ -1,6 +1,6 @@
-# Initial question content references
+# Question content references (200-question draft)
 
-The following official material was checked when preparing the original sample questions. The question wording and answer options in the app are independently written and are not copied from a DVSA question bank.
+The following official material guided the 21 original starter questions. The question wording and answer options in the app are independently written and are not copied from a DVSA question bank.
 
 | Question ID | Subject | Official reference |
 | --- | --- | --- |
@@ -33,3 +33,9 @@ The following official material was checked when preparing the original sample q
 - Make the distinction between legal requirements (MUST/MUST NOT) and advisory guidance (should) explicit in explanations.
 - Keep a source reference on every question so a reviewer can audit the answer.
 - This app is an independent educational product and is not affiliated with or endorsed by DVSA.
+
+## Expanded 200-question bank
+
+An additional 179 original question-and-answer sets were written for the Android MVP, bringing the total to **200 across 12 topics**. Each has a direct GOV.UK `sourceUrl` and reference. See [full editorial audit](QUESTION_BANK_EDITORIAL_AUDIT.md) and the [200-row pending review tracker](QUESTION_REVIEW_TRACKER.csv).
+
+**Status:** sourced authoring draft only; a separate named, independent editorial reviewer must inspect every answer and distractor against the linked primary rule before publication.
