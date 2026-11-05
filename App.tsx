@@ -14,6 +14,8 @@ import MockExamScreen from './src/components/MockExamScreen';
 import FlashcardsScreen from './src/components/FlashcardsScreen';
 import QuestionSearchScreen from './src/components/QuestionSearchScreen';
 import RoadSignsScreen from './src/components/RoadSignsScreen';
+import PracticeResultsScreen from './src/components/PracticeResultsScreen';
+import { chooseQuestions } from './src/domain/mockExam';
 import type { TheoryQuestion } from './src/data/questions';
 import {
   getBookmarkedQuestionIds,
@@ -42,6 +44,7 @@ function AppContent() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [sessionCorrect, setSessionCorrect] = useState(0);
   const [sessionAnswered, setSessionAnswered] = useState(0);
+  const [sessionAnswers, setSessionAnswers] = useState<Record<string, number>>({});
   const [progress, setProgress] = useState<ProgressSummary>(EMPTY_PROGRESS);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [progressRecords, setProgressRecords] = useState<QuestionProgressDetail[]>([]);
@@ -90,18 +93,22 @@ function AppContent() {
     return () => { mounted = false; };
   }, []);
 
-  function startPractice(items: TheoryQuestion[] = questions) {
+  function startPractice(items: TheoryQuestion[] = questions, questionLimit?: number) {
     if (items.length === 0) {
       setStorageMessage('There are no saved questions yet. Save a question while practising.');
       setTab('saved');
       return;
     }
     answerLockedRef.current = false;
-    setPracticeQuestions(items);
+    // Limited sessions shuffle uniquely; full topic and saved sessions preserve the supplied order.
+    const selection = questionLimit === undefined ? items
+      : chooseQuestions(items, Math.min(questionLimit, items.length));
+    setPracticeQuestions(selection);
     setQuestionIndex(0);
     setSelectedAnswer(null);
     setSessionCorrect(0);
     setSessionAnswered(0);
+    setSessionAnswers({});
     setStorageMessage(null);
     setTab('practice');
   }
@@ -111,6 +118,7 @@ function AppContent() {
     // Lock synchronously, before React can render disabled answer buttons.
     answerLockedRef.current = true;
     setSelectedAnswer(index);
+    setSessionAnswers((previous) => ({ ...previous, [currentQuestion.id]: index }));
     setSessionAnswered((value) => value + 1);
     const correct = index === currentQuestion.correctIndex;
     if (correct) setSessionCorrect((value) => value + 1);
@@ -261,6 +269,20 @@ function AppContent() {
               </Pressable>
               <Text style={styles.pageTitle}>Theory Test</Text>
               <Text style={styles.pageSubtitle}>Choose how to study. The current question bank is an independent GB sample, not the complete official bank.</Text>
+              <Text style={styles.sectionTitle}>Quick practice</Text>
+              <View style={styles.studyModeRow}>
+                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(questions, 5)}>
+                  <Text style={styles.studyModeKicker}>SHORT SESSION</Text>
+                  <Text style={styles.studyModeTitle}>5 questions ›</Text>
+                  <Text style={styles.studyModeBody}>A quick mixed revision session</Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(questions, 10)}>
+                  <Text style={styles.studyModeKicker}>STANDARD SESSION</Text>
+                  <Text style={styles.studyModeTitle}>10 questions ›</Text>
+                  <Text style={styles.studyModeBody}>Review mistakes after finishing</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.sectionTitle}>All theory test tools</Text>
               <MenuCard index="01" title="Practise Revision Questions" detail={questions.length + ' original sample questions'} onPress={() => startPractice()} />
               <MenuCard index="02" title="Timed Mock Test" detail="Resumable five-question sample; full simulator locked" onPress={() => setTab('mock')} />
               <MenuCard index="03" title="Search Questions" detail="Find questions by word, topic or rule" onPress={() => setTab('search')} />
@@ -274,15 +296,14 @@ function AppContent() {
           {tab === 'practice' && (
             <>
               {!currentQuestion ? (
-                <View style={styles.completionCard}>
-                  <Text style={styles.completionEmoji}>✓</Text>
-                  <Text style={styles.completionTitle}>Practice complete</Text>
-                  <Text style={styles.completionBody}>You answered {sessionAnswered} question{sessionAnswered === 1 ? '' : 's'} and got {sessionCorrect} correct.</Text>
-                  <Text style={styles.completionScore}>{sessionAnswered === 0 ? 0 : Math.round(sessionCorrect / sessionAnswered * 100)}% correct</Text>
-                  <Pressable style={styles.primaryButton} onPress={() => setTab('home')}>
-                    <Text style={styles.primaryButtonText}>Back to home</Text>
-                  </Pressable>
-                </View>
+                <PracticeResultsScreen
+                  questions={practiceQuestions}
+                  answers={sessionAnswers}
+                  savedIds={bookmarkedIds}
+                  onFinish={() => setTab('theory')}
+                  onRetry={startPractice}
+                  onRestart={() => startPractice(practiceQuestions)}
+                />
               ) : (
                 <>
                   <View style={styles.practiceTop}>
