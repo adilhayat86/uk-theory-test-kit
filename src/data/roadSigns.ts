@@ -208,7 +208,7 @@ export const roadSigns: RoadSign[] = [
   },
   {
     "id": "one-way",
-    "category": "Information",
+    "category": "Orders",
     "artwork": "one-way",
     "label": "One-way traffic",
     "meaning": "Traffic moves only in the direction indicated.",
