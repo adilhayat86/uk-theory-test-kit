@@ -28,8 +28,8 @@ export function getMistakeQuestions(
 
 /**
  * Adaptive practice without a server or personal profile.
- * First revisit latest mistakes, then weaker learned items, then new material,
- * finally mastered questions. Sorting is deterministic to allow test coverage.
+ * First revisit latest mistakes, then weaker learned items, then rotate
+ * across new topics. Successfully learned questions come last. Sorting is deterministic to allow test coverage.
  */
 export function getSmartRevision(
   bank: readonly TheoryQuestion[],
@@ -53,6 +53,30 @@ export function getSmartRevision(
     return accuracyX - accuracyY || a.id.localeCompare(b.id);
   });
   for (const q of previouslySeen) seen.add(q.id);
-  const unseen = bank.filter((q) => !seen.has(q.id)).sort((a, b) => a.id.localeCompare(b.id));
-  return [...mistakes, ...previouslySeen, ...unseen].slice(0, limit);
+  const weak = previouslySeen.filter((q) => {
+    const row = byId.get(q.id)!;
+    return row.correctAttempts / row.attempts < 0.8;
+  });
+  const mastered = previouslySeen.filter((q) => {
+    const row = byId.get(q.id)!;
+    return row.correctAttempts / row.attempts >= 0.8;
+  });
+
+  // Rotate across topics to avoid serving ten nearly identical new questions.
+  const buckets = new Map<string, TheoryQuestion[]>();
+  for (const q of bank) {
+    if (seen.has(q.id)) continue;
+    const bucket = buckets.get(q.topic) ?? [];
+    bucket.push(q);
+    buckets.set(q.topic, bucket);
+  }
+  const unseen: TheoryQuestion[] = [];
+  while ([...buckets.values()].some((items) => items.length > 0)) {
+    for (const bucket of buckets.values()) {
+      const next = bucket.shift();
+      if (next) unseen.push(next);
+    }
+  }
+  // Learned items never block exploration of material the learner has not seen.
+  return [...mistakes, ...weak, ...unseen, ...mastered].slice(0, limit);
 }
