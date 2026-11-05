@@ -82,8 +82,8 @@ export default function MockExamScreen({ onBack, onFinished }: Props) {
     try {
       const report = finishMock(current, questions, Date.now(), reason);
       await finishStoredMock(current, report);
-      // Refresh the dashboard: answered mock questions now contribute to learning progress.
-      await onFinished?.();
+      // A dashboard refresh failure must not misreport a successfully saved result.
+      void onFinished?.().catch(() => undefined);
       sessionRef.current = null;
       setSession(null);
       setResult(report);
