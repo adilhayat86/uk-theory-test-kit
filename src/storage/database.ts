@@ -9,12 +9,6 @@ type StoredProgressRow = {
   correct_attempts: number;
 };
 
-type ProgressRow = {
-  questions_answered: number;
-  total_attempts: number;
-  correct_attempts: number;
-};
-
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
