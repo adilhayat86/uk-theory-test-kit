@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "UK Theory Test Kit",
+    "slug": "uk-theory-test-kit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.adilhayat.uktheorytestkit"
+    },
+    "android": {
+      "package": "com.adilhayat.uktheorytestkit",
+      "edgeToEdgeEnabled": true
+    }
+  }
+}
