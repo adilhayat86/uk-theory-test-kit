@@ -11,16 +11,20 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
 import MockExamScreen from './src/components/MockExamScreen';
+import FlashcardsScreen from './src/components/FlashcardsScreen';
 import type { TheoryQuestion } from './src/data/questions';
 import {
   getBookmarkedQuestionIds,
   getProgressSummary,
+  getQuestionProgressRecords,
   recordAnswer,
   toggleBookmark,
 } from './src/storage/database';
 import type { ProgressSummary } from './src/domain/progress';
+import { getQuestionsToRetry, getTopicReview, selectSmartPractice } from './src/domain/revision';
+import type { QuestionProgressDetail } from './src/domain/revision';
 
-type Tab = 'home' | 'practice' | 'mock' | 'saved' | 'progress';
+type Tab = 'home' | 'practice' | 'mock' | 'saved' | 'progress' | 'flashcards';
 
 const EMPTY_PROGRESS: ProgressSummary = {
   questionsAnswered: 0,
@@ -38,6 +42,7 @@ function AppContent() {
   const [sessionAnswered, setSessionAnswered] = useState(0);
   const [progress, setProgress] = useState<ProgressSummary>(EMPTY_PROGRESS);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [progressRecords, setProgressRecords] = useState<QuestionProgressDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [storageMessage, setStorageMessage] = useState<string | null>(null);
@@ -50,22 +55,29 @@ function AppContent() {
     [bookmarkedIds],
   );
 
+  const retryQuestions = useMemo(() => getQuestionsToRetry(questions, progressRecords), [progressRecords]);
+  const smartQuestions = useMemo(() => selectSmartPractice(questions, progressRecords, 10), [progressRecords]);
+  const topicStats = useMemo(() => getTopicReview(questions, progressRecords), [progressRecords]);
+
   const refreshLocalData = useCallback(async () => {
-    const [nextProgress, nextBookmarks] = await Promise.all([
+    const [nextProgress, nextBookmarks, nextRecords] = await Promise.all([
       getProgressSummary(),
       getBookmarkedQuestionIds(),
+      getQuestionProgressRecords(),
     ]);
     setProgress(nextProgress);
     setBookmarkedIds(nextBookmarks);
+    setProgressRecords(nextRecords);
   }, []);
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([getProgressSummary(), getBookmarkedQuestionIds()])
-      .then(([nextProgress, nextBookmarks]) => {
+    Promise.all([getProgressSummary(), getBookmarkedQuestionIds(), getQuestionProgressRecords()])
+      .then(([nextProgress, nextBookmarks, nextRecords]) => {
         if (!mounted) return;
         setProgress(nextProgress);
         setBookmarkedIds(nextBookmarks);
+        setProgressRecords(nextRecords);
       })
       .catch(() => {
         if (mounted) setStorageMessage('Local storage could not be opened. Your current practice screen is still available.');
@@ -186,6 +198,19 @@ function AppContent() {
                 <Text style={styles.mockBannerBody}>5-question sample • resume offline • review results</Text>
               </Pressable>
 
+              <View style={styles.studyModeRow}>
+                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(smartQuestions)}>
+                  <Text style={styles.studyModeKicker}>SMART REVISION</Text>
+                  <Text style={styles.studyModeTitle}>Your next 10 ›</Text>
+                  <Text style={styles.studyModeBody}>Retry mistakes, then explore new questions</Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => setTab('flashcards')}>
+                  <Text style={styles.studyModeKicker}>MEMORY PRACTICE</Text>
+                  <Text style={styles.studyModeTitle}>Flashcards ›</Text>
+                  <Text style={styles.studyModeBody}>Recall each answer before revealing it</Text>
+                </Pressable>
+              </View>
+
               <Text style={styles.sectionTitle}>Your progress</Text>
               <View style={styles.statsRow}>
                 <StatCard value={String(progress.questionsAnswered)} label="Questions tried" />
@@ -295,6 +320,7 @@ function AppContent() {
           )}
 
           {tab === 'mock' && <MockExamScreen onBack={() => setTab('home')} />}
+          {tab === 'flashcards' && <FlashcardsScreen onBack={() => setTab('home')} onPractise={startPractice} />}
 
           {tab === 'saved' && (
             <>
@@ -340,6 +366,31 @@ function AppContent() {
                 <StatCard value={String(progress.totalAttempts)} label="Total attempts" />
                 <StatCard value={String(progress.correctAttempts)} label="Correct answers" />
               </View>
+              <Text style={styles.sectionTitle}>Your personal study plan</Text>
+              <View style={styles.infoCard}>
+                <Text style={styles.infoTitle}>{retryQuestions.length} question{retryQuestions.length === 1 ? '' : 's'} to retry</Text>
+                <Text style={styles.infoBody}>Smart revision starts with your most recent wrong answers and then questions you have not tried. This is guidance, not a pass prediction.</Text>
+                <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={() => startPractice(smartQuestions)}>
+                  <Text style={styles.primaryButtonText}>Start smart revision</Text>
+                </Pressable>
+                {retryQuestions.length > 0 ? (
+                  <Pressable accessibilityRole="button" style={styles.secondaryAction} onPress={() => startPractice(retryQuestions)}>
+                    <Text style={styles.secondaryActionText}>Retry only mistakes ({retryQuestions.length})</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+              <Text style={styles.sectionTitle}>Study by topic</Text>
+              {topicStats.map((item) => (
+                <Pressable accessibilityRole="button" key={item.topic}
+                  style={styles.topicReviewCard}
+                  onPress={() => startPractice(questions.filter((question) => question.topic === item.topic))}>
+                  <View style={styles.topicReviewHeading}>
+                    <Text style={styles.topicReviewTitle}>{item.topic}</Text>
+                    <Text style={styles.topicReviewAccuracy}>{item.accuracyPercent === null ? 'Not tried' : item.accuracyPercent + '% accurate'}</Text>
+                  </View>
+                  <Text style={styles.infoBody}>{item.questionsTried}/{item.totalQuestions} questions tried · {item.recentMistakes} need retry</Text>
+                </Pressable>
+              ))}
               <Text style={styles.sectionTitle}>Current content</Text>
               <View style={styles.infoCard}>
                 <Text style={styles.infoTitle}>{questions.length} original sample questions</Text>
@@ -484,6 +535,17 @@ const styles = StyleSheet.create({
   completionTitle: { color: colors.ink, fontSize: 22, fontWeight: '900', marginTop: 10 },
   completionBody: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: 'center', marginTop: 8 },
   completionScore: { color: colors.blue, fontSize: 28, fontWeight: '900', marginTop: 14 },
+  studyModeRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  studyModeCard: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 15, backgroundColor: '#FFFFFF', padding: 14, minHeight: 124 },
+  studyModeKicker: { color: colors.blue, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
+  studyModeTitle: { color: colors.ink, fontSize: 16, fontWeight: '900', marginTop: 10 },
+  studyModeBody: { color: colors.muted, fontSize: 11, lineHeight: 16, marginTop: 5 },
+  secondaryAction: { padding: 12, alignItems: 'center' },
+  secondaryActionText: { color: colors.blue, fontSize: 13, fontWeight: '800' },
+  topicReviewCard: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 15, backgroundColor: '#FFFFFF', marginBottom: 10 },
+  topicReviewHeading: { flexDirection: 'row', justifyContent: 'space-between', gap: 6 },
+  topicReviewTitle: { color: colors.ink, fontWeight: '800', fontSize: 14, flexShrink: 1 },
+  topicReviewAccuracy: { color: colors.blue, fontWeight: '800', fontSize: 11 },
   mockBanner: { backgroundColor: '#E5EDFD', borderRadius: 15, padding: 16, marginBottom: 22 },
   mockBannerTitle: { color: '#183D8A', fontSize: 16, fontWeight: '900' },
   mockBannerBody: { color: '#526B9A', fontSize: 12, marginTop: 5 },
