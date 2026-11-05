@@ -105,3 +105,9 @@ This question bank is independent editorial work. Do not add DVSA licensed
 question wording, videos, proprietary commercial competitor graphics or
 brand marks without a separate grant of permission. Any government assets
 should be checked against the applicable Open Government Licence terms.
+
+## Mechanical independent-review gate
+
+Run `npm run check:mvp:editorial` locally before preparing a paid Android release. The command checks that every current ID has a matching tracker row with source metadata, an explicit `APPROVED` status, a reviewer name and a valid review date. This is not a substitute for real editorial work; it only ensures that the work has been recorded. It **intentionally fails now** (0/200 approved).
+
+GitHub CI runs the same script with `--report-only` while the bank is under review. Passing CI therefore does not mean this commercial-release sign-off is complete.
