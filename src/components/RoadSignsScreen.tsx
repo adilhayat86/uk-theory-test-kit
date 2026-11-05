@@ -143,7 +143,7 @@ export default function RoadSignsScreen({ onBack }: Props) {
                 <Text style={styles.signName}>{sign.label}</Text>
                 <Text style={styles.signMeaning}>{sign.meaning}</Text>
                 <Text style={styles.signTip}>{sign.tip}</Text>
-                <Pressable accessibilityRole="link" onPress={() => { void Linking.openURL(sign.sourceUrl); }} style={styles.sourceButton}>
+                <Pressable accessibilityRole="link" onPress={() => { void Linking.openURL(sign.sourceUrl).catch(() => undefined); }} style={styles.sourceButton}>
                   <Text style={styles.sourceLink}>DfT source ↗</Text>
                 </Pressable>
               </View>
