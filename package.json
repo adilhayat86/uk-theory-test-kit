@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "test": "jest --runInBand",
     "typecheck": "tsc --noEmit",
-    "doctor": "expo-doctor",
+    "doctor": "npx expo-doctor@latest",
     "export:android": "expo export --platform android --output-dir dist/android",
     "export:ios": "expo export --platform ios --output-dir dist/ios"
   },
