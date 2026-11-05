@@ -92,16 +92,25 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Generate Android native project
         run: npx expo prebuild --platform android --non-interactive
-      - name: Build debug APK
+      - name: Build debug APK and release-mode Android App Bundle
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug bundleRelease --no-daemon
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: android-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+      # The generated bundle is CI verification ONLY. A production Play release
+      # must use the owner's upload key/Play App Signing, not a build-machine key.
+      - name: Upload CI-only release App Bundle (NOT for Play publishing)
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-ci-only-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7
 
