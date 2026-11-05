@@ -5,9 +5,8 @@ An independent, offline-first Great Britain car theory revision prototype, targe
 ## Android-first MVP scope (current launch target)
 
 **Target paid product:** £0.99 / Google Play for Great Britain car revision,
-fully offline with no ads, account or subscription. The first release must
-contain at least **200 independently authored, checked questions** across
-10 or more topics; today's 21-question sample is development-only.
+fully offline with no ads, account or subscription. The first release requires at least **200 independently authored, checked questions** across
+10 or more topics. **All 200 are drafted, but independent editorial approval is pending.**
 See [MVP release target](docs/MVP_RELEASE_TARGET.md) and run
 `npm run check:mvp:content` to enforce the structural release gate.
 
@@ -24,7 +23,7 @@ Do not describe it as an official test simulator or complete 4-in-1 app.
 - React Native + Expo + TypeScript
 - Target price: £0.99 one-time purchase; no ads or subscriptions
 - Core study content and user progress stored locally on the device
-- Original educational questions, explanations, illustrations and hazard-perception scenarios
+- Original educational questions and explanations; hazard-perception media is future scope
 - Not affiliated with or endorsed by DVSA
 
 ## Tech stack
@@ -54,19 +53,19 @@ npx expo start
 - **Retry mistakes**: repeat only questions answered incorrectly most recently.
 - **Revision flashcards**: choose a topic, recall/reveal the answer, browse cards and launch practice.
 - **Per-topic dashboard**: view attempted-question coverage, accuracy and mistakes to retry; all calculated locally.
-- **Screenshot-informed study hub**: clearly separated Theory Test, Hazard Perception guide, Highway Code starter notes and Road Signs, with unique independent styling.
+- **Screenshot-informed study hub**: clear Theory Revision and Road Sign Notes navigation for MVP, with unique independent styling.
 - **Offline question search**: keyword and topic filtering across the local original bank, tap one result or practise all matches.
 - **Road Signs preview**: twelve original, source-referenced text explanations with category browsing, search, SQLite bookmarks and a twelve-question text quiz. Visual road-sign identification is not yet included.
-- **Hazard Perception starter guide**: offline scoring-format explanation, clearly marked as a guide without video clips.
+- **Deferred:** hazard-perception playback and full Highway Code are not exposed in the MVP navigation.
 - **Competitor-recording-informed practice**: choose a shuffled 5- or 10-question session from the Theory hub; after practice, filter your actual session answers by correct/incorrect/saved, review explanations and topic scores, and retry mistakes.
-- **Timed five-question sample mock** (six minutes), with flagging, changing answers, question jumping, submission, timeout, answer review and saved offline mock history.
+- **Timed five-question mini test** (six minutes), with flagging, changing answers, question jumping, submission, timeout, answer review and saved offline mock history.
 - Mock session resumes from SQLite after leaving and returning to the screen, including after an app restart. The timer is anchored to wall-clock time, not a paused app timer.
 - A full 50-question / 57-minute exam engine with 43/50 pass criteria is implemented and tested, but **the full-exam button is intentionally locked** pending the full source-reviewed question bank and actual local video case-study playback.
 - Android debug APK and iOS simulator build jobs in GitHub Actions.
 
 ## Quality gates
 
-Use the [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [audit](docs/audit-2026-11-06.md) for remaining blockers. The app is **not yet a complete commercial theory-test product**. The current sample is not an official-style full mock; hazard perception and video case studies are not yet available.
+Use the [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [audit](docs/audit-2026-11-06.md) for remaining blockers. The app is **not yet a complete commercial theory-test product**. The current revision bank is not an official-style full mock; hazard perception and video case studies are not yet available.
 
 ## Navigate the screenshot-informed modules
 
@@ -88,4 +87,8 @@ All question wording, explanations, road-sign artwork and hazard-perception scen
 
 A static audit of a user-supplied Theory Test 4 in 1 Kit APK informs our priorities without copying any competitor assets or licensed question banks. See [APK competitor audit](docs/COMPETITOR_APK_AUDIT.md).
 
-**Try the new features:** From Home tap **Your next 10** or **Flashcards**. On **Progress**, see topic-level coverage and use **Retry only mistakes** when available. All features run offline using our original sample questions and existing local SQLite records. The bank is still a limited sample, not release-ready.
+**Try the new features:** From Home tap **Your next 10** or **Flashcards**. On **Progress**, see topic-level coverage and use **Retry only mistakes** when available. All features run offline using our original sample questions and existing local SQLite records. The bank now has 200 authored questions, but independent editorial review and on-device QA remain mandatory.
+
+## Question-bank evidence
+
+All 200 current draft questions include four answer choices, explanations and direct primary GOV.UK rule links. Read the [editorial audit](docs/QUESTION_BANK_EDITORIAL_AUDIT.md) and [200-row review tracker](docs/QUESTION_REVIEW_TRACKER.csv). The automated structure checks do **not** constitute human fact checking or approval to sell the app.
