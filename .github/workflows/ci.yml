@@ -1,4 +1,4 @@
-name: App CI
+name: Mobile CI
 
 on:
   push:
@@ -6,103 +6,131 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  validate:
-    name: TypeScript and unit tests
-    runs-on: ubuntu-latest
+  quality:
+    name: TypeScript, tests and Expo diagnostics
+    runs-on: ubuntu-24.04
     steps:
-      - name: Check out repository
+      - name: Check out source
         uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
+          node-version: 22.13.1
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
+      - name: Check Expo dependency compatibility
+        run: npm run doctor
       - name: Type-check
         run: npm run typecheck
-      - name: Run unit tests
+      - name: Run domain tests
         run: npm test -- --coverage
 
-  expo-export:
-    name: Android and iOS bundle export
-    runs-on: ubuntu-latest
-    needs: validate
+  javascript-bundles:
+    name: Export Android and iOS JavaScript bundles
+    runs-on: ubuntu-24.04
+    needs: quality
     steps:
-      - name: Check out repository
+      - name: Check out source
         uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
+          node-version: 22.13.1
       - name: Install dependencies
-        run: npm install
-      - name: Export Android and iOS bundles
-        run: npx expo export --platform all
-      - name: Upload export artifact
+        run: npm install --no-audit --no-fund
+      - name: Export Android bundle
+        run: npm run export:android
+      - name: Export iOS bundle
+        run: npm run export:ios
+      - name: Upload bundles
         uses: actions/upload-artifact@v4
         with:
-          name: expo-export
+          name: mobile-js-bundles
           path: dist/
           if-no-files-found: error
+          retention-days: 7
 
-  android-build:
-    name: Android debug APK build
-    runs-on: ubuntu-latest
-    needs: validate
+  android-debug:
+    name: Build Android debug APK
+    runs-on: ubuntu-24.04
+    needs: quality
     steps:
-      - name: Check out repository
+      - name: Check out source
         uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
+          node-version: 22.13.1
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
       - name: Generate Android native project
         run: npx expo prebuild --platform android --non-interactive
       - name: Build debug APK
+        working-directory: android
         run: |
-          cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: android-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          retention-days: 7
 
   ios-simulator:
-    name: iOS simulator build validation
-    runs-on: macos-15
-    needs: validate
+    name: Build iOS simulator app
+    runs-on: macos-26
+    needs: quality
     steps:
-      - name: Check out repository
+      - name: Check out source
         uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
+          node-version: 22.13.1
       - name: Install dependencies
-        run: npm install
-      - name: Install CocoaPods dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate iOS native project and install Pods
         run: npx expo prebuild --platform ios --non-interactive
-      - name: Build for iOS simulator
+      - name: Build for iOS Simulator
+        shell: bash
         run: |
+          set -euo pipefail
+          WORKSPACE="$(find ios -maxdepth 1 -name '*.xcworkspace' -print -quit)"
+          if [[ -z "$WORKSPACE" ]]; then
+            echo "Expo did not generate an Xcode workspace."
+            exit 1
+          fi
+          SCHEME="$(xcodebuild -list -json -workspace "$WORKSPACE" | node -e 'let s=""; process.stdin.on("data", d => s += d); process.stdin.on("end", () => { const data = JSON.parse(s); const schemes = data.workspace?.schemes ?? []; if (!schemes.length) process.exit(2); process.stdout.write(schemes[0]); });')"
+          echo "Building workspace: $WORKSPACE"
+          echo "Using scheme: $SCHEME"
           xcodebuild \
-            -workspace ios/UKTheoryTestKit.xcworkspace \
-            -scheme UKTheoryTestKit \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
             -sdk iphonesimulator \
             -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build/ios \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      - name: Upload iOS simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: build/ios/Build/Products/Debug-iphonesimulator/*.app
+          if-no-files-found: error
+          retention-days: 7
