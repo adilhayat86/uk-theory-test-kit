@@ -55,7 +55,7 @@ describe('offline adaptive revision', () => {
   });
 
   test('ignores progress for questions that no longer exist', () => {
-    expect(selectSmartPractice([makeQuestion('new')], [record('removed', 1, 0, 1)]).toHaveLength(1);
+    expect(selectSmartPractice([makeQuestion('new')], [record('removed', 1, 0, 1)])).toHaveLength(1);
   });
 
   test('reports topic totals, coverage, accuracy and recent mistakes', () => {
