@@ -184,7 +184,7 @@ function AppContent() {
           </Pressable>
         ) : null}
 
-        <ScrollView ref={contentScrollRef} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {tab === 'home' && (
             <>
               <View style={styles.hero}>
