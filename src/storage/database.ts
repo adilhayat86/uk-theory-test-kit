@@ -4,11 +4,16 @@ import type { MockSession, MockResult } from '../domain/mockExam';
 import type { TheoryQuestion } from '../data/questions';
 import { summarizeProgress } from '../domain/progress';
 import type { ProgressSummary } from '../domain/progress';
+import type { QuestionProgressDetail } from '../domain/revision';
 
 type StoredProgressRow = {
   question_id: string;
   attempts: number;
   correct_attempts: number;
+};
+
+type StoredProgressDetailRow = StoredProgressRow & {
+  last_selected_index: number;
 };
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
@@ -85,6 +90,20 @@ export async function getProgressSummary(): Promise<ProgressSummary> {
     attempts: row.attempts,
     correctAttempts: row.correct_attempts,
   })));
+}
+
+/** Keep all revision decisions on the device, using data already in SQLite. */
+export async function getQuestionProgressRecords(): Promise<QuestionProgressDetail[]> {
+  const db = await openDatabase();
+  const rows = await db.getAllAsync<StoredProgressDetailRow>(
+    'SELECT question_id, attempts, correct_attempts, last_selected_index FROM question_progress',
+  );
+  return rows.map((row) => ({
+    questionId: row.question_id,
+    attempts: row.attempts,
+    correctAttempts: row.correct_attempts,
+    lastSelectedIndex: row.last_selected_index,
+  }));
 }
 
 export async function getBookmarkedQuestionIds(): Promise<string[]> {
