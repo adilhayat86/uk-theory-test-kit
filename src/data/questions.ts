@@ -28,6 +28,7 @@ export const questions: TheoryQuestion[] = [
     correctIndex: 1,
     explanation: 'You should give way to pedestrians waiting to cross at a zebra crossing. Never wave or signal them across because another vehicle may not have seen them.',
     reference: 'Highway Code, Rule 195',
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203'
   },
   {
     id: 'motorway-001',
@@ -43,6 +44,7 @@ export const questions: TheoryQuestion[] = [
     correctIndex: 2,
     explanation: 'You must not use a hard shoulder except in an emergency or when directed by the police, traffic officers or a traffic sign. Some motorways have a hard shoulder that can be opened as a running lane when signs permit.',
     reference: 'Highway Code, Rule 269',
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/motorways-253-to-273'
   },
   {
     id: 'safety-001',
@@ -58,6 +60,7 @@ export const questions: TheoryQuestion[] = [
     correctIndex: 1,
     explanation: 'A correctly adjusted head restraint helps reduce the risk of neck injury, particularly whiplash, in a collision.',
     reference: 'Highway Code, vehicle safety guidance',
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security'
   },
   {
     id: 'weather-001',
@@ -73,6 +76,7 @@ export const questions: TheoryQuestion[] = [
     correctIndex: 1,
     explanation: 'The Highway Code advises that the gap should be at least doubled on wet roads. Wet conditions also increase stopping distances.',
     reference: 'Highway Code, Rule 126',
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/general-rules-techniques-and-advice-for-all-drivers-and-riders-103-to-158'
   },
   {
     id: 'signs-001',
@@ -88,6 +92,7 @@ export const questions: TheoryQuestion[] = [
     correctIndex: 0,
     explanation: 'Circular signs generally give orders. Red circles are commonly used for prohibitions and restrictions.',
     reference: 'Know Your Traffic Signs, regulatory signs',
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/traffic-signs'
   },
   {
     "id": "junction-001",
@@ -102,7 +107,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 0,
     "explanation": "You must stop behind the solid white line at a STOP sign, then wait until there is a safe gap before moving off.",
-    "reference": "Highway Code, Rule 171"
+    "reference": "Highway Code, Rule 171",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203'
   },
   {
     "id": "junction-002",
@@ -117,7 +123,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 1,
     "explanation": "When turning at a junction, you should give way to pedestrians crossing or waiting to cross the road into which you are turning.",
-    "reference": "Highway Code, Rule 170"
+    "reference": "Highway Code, Rule 170",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203'
   },
   {
     "id": "roundabout-001",
@@ -132,7 +139,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 1,
     "explanation": "Give priority to traffic approaching from your right unless road signs, signals or markings direct otherwise.",
-    "reference": "Highway Code, Rule 185"
+    "reference": "Highway Code, Rule 185",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203'
   },
   {
     "id": "roundabout-002",
@@ -147,7 +155,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 2,
     "explanation": "For the first exit left, normally signal left and approach in the left-hand lane; continue signalling left to leave.",
-    "reference": "Highway Code, Rule 186"
+    "reference": "Highway Code, Rule 186",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203'
   },
   {
     "id": "overtaking-001",
@@ -162,7 +171,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 2,
     "explanation": "Do not overtake if you cannot see far enough ahead to be sure it is safe, such as near a bend or the brow of a hill.",
-    "reference": "Highway Code, Rule 166"
+    "reference": "Highway Code, Rule 166",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203'
   },
   {
     "id": "overtaking-002",
@@ -177,7 +187,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 1,
     "explanation": "Do not obstruct a driver who is overtaking you. Maintain a steady course and speed, and slow down if needed to let them pass safely.",
-    "reference": "Highway Code, Rule 168"
+    "reference": "Highway Code, Rule 168",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203'
   },
   {
     "id": "crossings-001",
@@ -192,7 +203,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 0,
     "explanation": "You must not park on the crossing or its zig-zag lines, or overtake the moving vehicle nearest the crossing or one stopped for pedestrians.",
-    "reference": "Highway Code, Rule 191"
+    "reference": "Highway Code, Rule 191",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203'
   },
   {
     "id": "pedestrians-001",
@@ -207,7 +219,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 0,
     "explanation": "Drive slowly and carefully near bus and tram stops: pedestrians may appear suddenly from behind or in front of the vehicle.",
-    "reference": "Highway Code, Rule 206"
+    "reference": "Highway Code, Rule 206",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/road-users-requiring-extra-care-204-to-225'
   },
   {
     "id": "pedestrians-002",
@@ -222,7 +235,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 1,
     "explanation": "When crossing a pavement, cycle lane or cycle track to reach a driveway, give way to pedestrians and cyclists using those facilities.",
-    "reference": "Highway Code, Rule 206"
+    "reference": "Highway Code, Rule 206",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/road-users-requiring-extra-care-204-to-225'
   },
   {
     "id": "weather-002",
@@ -237,7 +251,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 0,
     "explanation": "You must use headlights when visibility is seriously reduced, generally when you cannot see farther than 100 metres.",
-    "reference": "Highway Code, Rule 226"
+    "reference": "Highway Code, Rule 226",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237'
   },
   {
     "id": "weather-003",
@@ -252,7 +267,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 1,
     "explanation": "Water can prevent tyres gripping the road. The Highway Code advises easing off the accelerator and slowing down gradually.",
-    "reference": "Highway Code, Rule 227"
+    "reference": "Highway Code, Rule 227",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237'
   },
   {
     "id": "winter-001",
@@ -267,7 +283,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 2,
     "explanation": "Stopping distances on icy or snowy roads can be ten times greater than in dry conditions. Increase separation and avoid harsh controls.",
-    "reference": "Highway Code, Rule 230"
+    "reference": "Highway Code, Rule 230",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237'
   },
   {
     "id": "parking-001",
@@ -282,7 +299,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 0,
     "explanation": "Double yellow lines indicate a prohibition of waiting at any time even without an upright sign, subject to legal exemptions.",
-    "reference": "Highway Code, Rule 238"
+    "reference": "Highway Code, Rule 238",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/waiting-and-parking-238-to-252'
   },
   {
     "id": "parking-002",
@@ -297,7 +315,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 2,
     "explanation": "Rule 243 advises drivers not to stop or park opposite or within 10 metres of a junction, except in an authorised parking space.",
-    "reference": "Highway Code, Rule 243"
+    "reference": "Highway Code, Rule 243",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/waiting-and-parking-238-to-252'
   },
   {
     "id": "parking-003",
@@ -312,7 +331,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 1,
     "explanation": "You must not park on a road at night facing against the flow of traffic unless you are in a recognised parking space.",
-    "reference": "Highway Code, Rule 248"
+    "reference": "Highway Code, Rule 248",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/waiting-and-parking-238-to-252'
   },
   {
     "id": "wind-001",
@@ -327,7 +347,8 @@ export const questions: TheoryQuestion[] = [
     ],
     "correctIndex": 1,
     "explanation": "Strong gusts can blow cars and other road users off course, especially on exposed roads and near gaps in hedges or bridges.",
-    "reference": "Highway Code, Rule 232"
+    "reference": "Highway Code, Rule 232",
+    sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237'
   },
   {"id":"gb-rules-001","topic":"Road rules","difficulty":"easy","prompt":"You plan to turn just after a side street. When should you indicate?","options":["Well before the side street regardless of confusion","After passing the side street, when your signal cannot mislead anyone","Only while making the turn","Only after you have stopped"],"correctIndex":1,"explanation":"Signalling too early could suggest you intend to enter the side street; time the signal so your intention is clear.","reference":"Highway Code, Rule 103","sourceUrl":"https://www.gov.uk/guidance/the-highway-code/general-rules-techniques-and-advice-for-all-drivers-and-riders-103-to-158"},
   {"id":"gb-rules-002","topic":"Road rules","difficulty":"standard","prompt":"A car ahead is signalling left but continuing straight. How should you respond?","options":["Pull out because the indicator gives you priority","Sound your horn and pass on the left","Do not assume it will turn; wait until its actual movement makes the situation safe","Assume the driver has deliberately cancelled a turn"],"correctIndex":2,"explanation":"Indicators can remain on by mistake. Look for the vehicle's position and movement rather than trusting a signal alone.","reference":"Highway Code, Rule 104","sourceUrl":"https://www.gov.uk/guidance/the-highway-code/general-rules-techniques-and-advice-for-all-drivers-and-riders-103-to-158"},
