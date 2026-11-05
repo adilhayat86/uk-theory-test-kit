@@ -3,7 +3,7 @@ import { gradeAnswer } from '../domain/progress';
 
 describe('starter theory question bank', () => {
   it('contains unique, complete questions with four answer options', () => {
-    expect(questions.length).toBeGreaterThan(0);
+    expect(questions.length).toBeGreaterThanOrEqual(50);
     expect(new Set(questions.map((question) => question.id)).size).toBe(questions.length);
 
     for (const question of questions) {
