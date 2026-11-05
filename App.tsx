@@ -9,14 +9,15 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { questions, TheoryQuestion } from './src/data/questions';
+import { questions } from './src/data/questions';
+import type { TheoryQuestion } from './src/data/questions';
 import {
   getBookmarkedQuestionIds,
   getProgressSummary,
   recordAnswer,
   toggleBookmark,
 } from './src/storage/database';
-import { ProgressSummary } from './src/domain/progress';
+import type { ProgressSummary } from './src/domain/progress';
 
 type Tab = 'home' | 'practice' | 'saved' | 'progress';
 
@@ -120,7 +121,7 @@ function AppContent() {
 
   function goToNextQuestion() {
     if (questionIndex + 1 >= practiceQuestions.length) {
-      setTab('progress');
+      setQuestionIndex(practiceQuestions.length);
       setSelectedAnswer(null);
       return;
     }
@@ -258,8 +259,13 @@ function AppContent() {
                         </Text>
                         <Text style={styles.explanationBody}>{currentQuestion.explanation}</Text>
                         <Text style={styles.referenceText}>{currentQuestion.reference}</Text>
-                        <Pressable style={styles.primaryButton} onPress={goToNextQuestion}>
-                          <Text style={styles.primaryButtonText}>{questionIndex + 1 === practiceQuestions.length ? 'Finish practice' : 'Next question  ›'}</Text>
+                        <Pressable
+                          accessibilityRole="button"
+                          disabled={isSaving}
+                          style={[styles.primaryButton, isSaving && styles.disabledButton]}
+                          onPress={goToNextQuestion}
+                        >
+                          <Text style={styles.primaryButtonText}>{isSaving ? 'Saving answer…' : questionIndex + 1 === practiceQuestions.length ? 'Finish practice' : 'Next question  ›'}</Text>
                         </Pressable>
                       </View>
                     ) : (
@@ -394,6 +400,7 @@ const styles = StyleSheet.create({
   heroBody: { color: '#D5DFF2', fontSize: 13, lineHeight: 19, marginTop: 10, marginBottom: 18 },
   primaryButton: { backgroundColor: colors.blue, borderRadius: 13, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, marginTop: 12 },
   primaryButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
+  disabledButton: { opacity: 0.55 },
   buttonArrow: { fontSize: 18 },
   sectionTitle: { color: colors.ink, fontWeight: '800', fontSize: 17, marginBottom: 12 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 22 },
