@@ -46,13 +46,19 @@ export function fullMockReadiness(bank: TheoryQuestion[]): {
 } {
   // The real exam includes three questions tied to a silent video.
   // Do not label a random 50-question quiz a faithful full exam.
-  const validVideos = bank.filter((question) => Boolean(question.caseStudyVideoAssetId));
-  const hasVideoCaseStudy = new Set(validVideos.map((q) => q.caseStudyVideoAssetId)).size >= 1 &&
-    validVideos.length >= 3;
-  const questionCount = new Set(bank.map((question) => question.id)).size;
+  const unique = [...new Map(bank.map((q) => [q.id, q])).values()];
+  const groupedVideoQuestions = new Map<string, TheoryQuestion[]>();
+  for (const question of unique) {
+    if (!question.caseStudyVideoAssetId) continue;
+    const group = groupedVideoQuestions.get(question.caseStudyVideoAssetId) ?? [];
+    group.push(question);
+    groupedVideoQuestions.set(question.caseStudyVideoAssetId, group);
+  }
+  const hasVideoCaseStudy = [...groupedVideoQuestions.values()].some((group) => group.length >= 3);
+  const nonVideoCount = unique.filter((q) => !q.caseStudyVideoAssetId).length;
   return {
-    eligible: questionCount >= FULL_EXAM_QUESTION_COUNT && hasVideoCaseStudy,
-    questionCount,
+    eligible: unique.length >= FULL_EXAM_QUESTION_COUNT && nonVideoCount >= 47 && hasVideoCaseStudy,
+    questionCount: unique.length,
     hasVideoCaseStudy,
   };
 }
@@ -93,8 +99,25 @@ export function beginMock(
   if (mode === 'full' && !fullMockReadiness(bank).eligible) {
     throw new Error('Full mock requires 50 reviewed questions and a video case study.');
   }
-  const count = mode === 'full' ? FULL_EXAM_QUESTION_COUNT : Math.min(5, bank.length);
-  const questionIds = chooseQuestions(bank, count, random).map((question) => question.id);
+  let selected: TheoryQuestion[];
+  if (mode === 'full') {
+    // Reserve exactly three linked questions for ONE video case study, plus 47 standard questions.
+    const videoGroups = new Map<string, TheoryQuestion[]>();
+    for (const item of bank) {
+      if (!item.caseStudyVideoAssetId) continue;
+      const items = videoGroups.get(item.caseStudyVideoAssetId) ?? [];
+      items.push(item);
+      videoGroups.set(item.caseStudyVideoAssetId, items);
+    }
+    const videoGroup = [...videoGroups.values()].find((group) => new Set(group.map((q) => q.id)).size >= 3);
+    if (!videoGroup) throw new Error('A three-question video case study is required.');
+    const caseQuestions = chooseQuestions(videoGroup, 3, random);
+    const regularQuestions = chooseQuestions(bank.filter((q) => !q.caseStudyVideoAssetId), 47, random);
+    selected = chooseQuestions([...regularQuestions, ...caseQuestions], 50, random);
+  } else {
+    selected = chooseQuestions(bank, Math.min(5, bank.length), random);
+  }
+  const questionIds = selected.map((question) => question.id);
   return {
     version: 1,
     id: `mock-${Math.trunc(now)}-${Math.floor(random() * 1_000_000_000)}`,
