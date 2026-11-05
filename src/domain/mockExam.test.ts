@@ -33,7 +33,7 @@ describe('mock exam engine', () => {
     const mismatchedVideos = full.map((q, index) =>
       index < 3 ? { ...q, caseStudyVideoAssetId: `unrelated-${index}.mp4` } : q);
     expect(fullMockReadiness(mismatchedVideos).eligible).toBe(false);
-    expect(fullMockReadiness(full.map((q) => ({ ...q, caseStudyVideoAssetId: undefined }))).toEqual({
+    expect(fullMockReadiness(full.map((q) => ({ ...q, caseStudyVideoAssetId: undefined })))).toEqual({
       eligible: false,
       questionCount: 50,
       hasVideoCaseStudy: false,
