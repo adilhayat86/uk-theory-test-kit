@@ -30,9 +30,24 @@ npm test
 npx expo start
 ```
 
-## Current scope
+## Working features
 
-The repository currently contains the app shell, a small sample question set, local progress/bookmark storage and automated build validation. It is not yet a complete commercial theory-test product.
+- Offline study topics, answer explanations and bookmarked questions.
+- Saved answer counts and accuracy over repeated attempts.
+- **Timed five-question sample mock** (six minutes), with flagging, changing answers, question jumping, submission, timeout, answer review and saved offline mock history.
+- Mock session resumes from SQLite after leaving and returning to the screen, including after an app restart. The timer is anchored to wall-clock time, not a paused app timer.
+- A full 50-question / 57-minute exam engine with 43/50 pass criteria is implemented and tested, but **the full-exam button is intentionally locked** pending the full source-reviewed question bank and actual local video case-study playback.
+- Android debug APK and iOS simulator build jobs in GitHub Actions.
+
+## Quality gates
+
+Use the [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [audit](docs/audit-2026-11-06.md) for remaining blockers. The app is **not yet a complete commercial theory-test product**. The current sample is not an official-style full mock; hazard perception and video case studies are not yet available.
+
+## How to try the mock
+
+Open the app, select **Mock**, then **Start 5-question sample**. Tap an answer, flag questions, navigate with Previous/Next or question numbers, and submit to get explanations. Leaving and returning to **Mock** restores the active timed session. Finished attempts appear in history.
+
+
 
 ## Content and compliance
 

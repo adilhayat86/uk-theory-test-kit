@@ -10,6 +10,22 @@ The following official material was checked when preparing the original sample q
 | `safety-001` | Head restraints | [Highway Code, vehicle safety guidance](https://www.gov.uk/guidance/the-highway-code) |
 | `signs-001` | Regulatory road signs | [Know Your Traffic Signs](https://www.gov.uk/government/publications/know-your-traffic-signs) |
 
+| `junction-001` | Stop line at STOP sign | [Highway Code, Rule 171](https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203) |
+| `junction-002` | Pedestrians waiting at turning junctions | [Highway Code, Rule 170](https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203) |
+| `roundabout-001` | Priority from the right | [Highway Code, Rule 185](https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203) |
+| `roundabout-002` | First exit left | [Highway Code, Rule 186](https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203) |
+| `overtaking-001` | Blind bends and hills | [Highway Code, Rule 166](https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203) |
+| `overtaking-002` | When another driver overtakes | [Highway Code, Rule 168](https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203) |
+| `crossings-001` | Crossing zig-zag lines | [Highway Code, Rule 191](https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203) |
+| `pedestrians-001`, `pedestrians-002` | Vulnerable road users and driveways | [Highway Code, Rule 206](https://www.gov.uk/guidance/the-highway-code/road-users-requiring-extra-care-204-to-225) |
+| `weather-002` | Reduced visibility and headlights | [Highway Code, Rule 226](https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237) |
+| `weather-003` | Loss of grip in wet weather | [Highway Code, Rule 227](https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237) |
+| `winter-001` | Snow and ice stopping distance | [Highway Code, Rule 230](https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237) |
+| `parking-001` | Double yellow lines | [Highway Code, Rule 238](https://www.gov.uk/guidance/the-highway-code/waiting-and-parking-238-to-252) |
+| `parking-002` | Distance from junctions | [Highway Code, Rule 243](https://www.gov.uk/guidance/the-highway-code/waiting-and-parking-238-to-252) |
+| `parking-003` | Night parking against traffic flow | [Highway Code, Rule 248](https://www.gov.uk/guidance/the-highway-code/waiting-and-parking-238-to-252) |
+| `wind-001` | Crosswinds | [Highway Code, Rule 232](https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237) |
+
 ## Editorial rules
 
 - Write original questions and explanations; do not reproduce protected DVSA test questions or hazard-perception clips.
