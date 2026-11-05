@@ -50,12 +50,6 @@ function AppContent() {
   const [storageMessage, setStorageMessage] = useState<string | null>(null);
   const answerLockedRef = useRef(false);
   const pendingBookmarksRef = useRef<Set<string>>(new Set());
-  const contentScrollRef = useRef<ScrollView>(null);
-
-  // Screen transitions should open at the top of their own content.
-  useEffect(() => {
-    contentScrollRef.current?.scrollTo({ y: 0, animated: false });
-  }, [tab]);
 
   const currentQuestion = practiceQuestions[questionIndex];
   const savedQuestions = useMemo(
