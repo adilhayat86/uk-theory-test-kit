@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 22.13.1
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Check Expo dependency compatibility
         run: npm run doctor
       - name: Type-check
@@ -45,7 +45,7 @@ jobs:
         with:
           node-version: 22.13.1
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Export Android bundle
         run: npm run export:android
       - name: Export iOS bundle
@@ -85,7 +85,7 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --channel=3 "platforms;android-37.0" "build-tools;37.0.0"
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Generate Android native project
         run: npx expo prebuild --platform android --non-interactive
       - name: Build debug APK
@@ -113,7 +113,7 @@ jobs:
         with:
           node-version: 22.13.1
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Generate iOS native project and install Pods
         run: npx expo prebuild --platform ios --non-interactive
       - name: Build for iOS Simulator
