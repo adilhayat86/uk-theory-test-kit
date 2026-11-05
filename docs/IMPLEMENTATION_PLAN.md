@@ -24,7 +24,7 @@ A source file or CI configuration does not establish that the app works. Each ph
 ## Phase 2 — Offline mock-exam workflow (engine and UI implemented in this PR)
 
 - [x] Pure, tested 57-minute / 50-question exam engine with 43/50 pass threshold.
-- [x] Six-minute / five-question **sample**, explicitly labelled non-predictive; original practice bank expanded to 21 source-referenced questions.
+- [x] Six-minute / five-question **sample**, explicitly labelled non-predictive; original practice bank expanded to 200 authored questions; independent editorial review still pending.
 - [x] Answer changes, flags, navigation, jump-to-question and expiry.
 - [x] User-confirmed submit, timeout handling and result review.
 - [x] SQLite session snapshots, resume and historical attempt storage.
@@ -41,7 +41,9 @@ A source file or CI configuration does not establish that the app works. Each ph
 
 ## Phase 3 — Complete independent editorial content (major outstanding work)
 
-- [ ] Author, fact-check, copyedit and source-reference at least 1,000 original questions across UK car theory topics.
+- [ ] Long-term full kit: author, fact-check, copyedit and reference at least 1,000 questions (beyond the 200-question Android revision MVP).
+- [x] Android MVP: 200 independently worded draft questions across 12 topics; all include rule references and GOV.UK source URLs.
+- [ ] Human independent editorial fact-check and approval for each of the 200 MVP questions; see [editorial tracker](QUESTION_REVIEW_TRACKER.csv).
 - [ ] Include reviewed local silent video case studies and their three linked questions; check their use in the 50-question exam selector.
 - [ ] Create road-sign study library with appropriately licensed government assets and Open Government Licence attribution where applicable.
 - [ ] Create 14 original hazard perception practice clips per full simulation (one double-hazard clip), accurately timed hazard windows and separate 44/75 pass criteria.
@@ -85,7 +87,7 @@ A source file or CI configuration does not establish that the app works. Each ph
 
 ## Competitor-informed enhancements (6 November 2026)
 
-The user-supplied APK was analysed statically, and priorities were compared with official competitor feature descriptions. See [the APK audit](COMPETITOR_APK_AUDIT.md). The immediate revision and flashcard features are implemented in source, but **do not** resolve the large missing bank, hazard-perception videos, or release QA gates. Do not describe the app as equivalent to an official or commercial full theory-test preparation kit.
+The user-supplied APK was analysed statically, and priorities were compared with official competitor feature descriptions. See [the APK audit](COMPETITOR_APK_AUDIT.md). The revision features and 200-question draft bank are implemented, but **do not** resolve independent editorial approval, hazard-perception videos or release QA gates. Do not describe the app as equivalent to an official or commercial full theory-test preparation kit.
 
 ## Current MVP release condition
 
