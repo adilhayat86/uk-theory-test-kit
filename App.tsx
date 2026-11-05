@@ -445,7 +445,14 @@ function AppContent() {
 
         <View style={styles.bottomNav}>
           <NavItem label="Home" icon="⌂" active={tab === 'home'} onPress={() => setTab('home')} />
-          <NavItem label="Practice" icon="✓" active={tab === 'practice'} onPress={() => { if (tab !== 'practice') startPractice(); }} />
+          <NavItem label="Practice" icon="✓" active={tab === 'practice'} onPress={() => {
+            if (tab === 'practice') return;
+            if (Object.keys(sessionAnswers).length > 0 && questionIndex < practiceQuestions.length) {
+              setTab('practice');
+            } else {
+              startPractice();
+            }
+          }} />
           <NavItem label="Mock" icon="◷" active={tab === 'mock'} onPress={() => setTab('mock')} />
           <NavItem label="Saved" icon="☆" active={tab === 'saved'} onPress={() => setTab('saved')} />
           <NavItem label="Progress" icon="▥" active={tab === 'progress'} onPress={() => setTab('progress')} />
