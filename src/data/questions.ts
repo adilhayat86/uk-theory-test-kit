@@ -1,3 +1,5 @@
+import { additionalQuestions } from './additionalQuestions';
+
 export type TheoryQuestion = {
   id: string;
   topic: string;
@@ -327,4 +329,5 @@ export const questions: TheoryQuestion[] = [
     "explanation": "Strong gusts can blow cars and other road users off course, especially on exposed roads and near gaps in hedges or bridges.",
     "reference": "Highway Code, Rule 232"
   },
+  ...additionalQuestions,
 ];
