@@ -3,9 +3,12 @@
     "name": "UK Theory Test Kit",
     "slug": "uk-theory-test-kit",
     "version": "1.0.0",
+    "description": "Independent offline practice for the UK car theory test.",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "platforms": ["ios", "android"],
+    "plugins": ["expo-sqlite"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.adilhayat.uktheorytestkit"
