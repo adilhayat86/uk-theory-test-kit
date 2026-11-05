@@ -38,6 +38,10 @@ npx expo start
 - **Retry mistakes**: repeat only questions answered incorrectly most recently.
 - **Revision flashcards**: choose a topic, recall/reveal the answer, browse cards and launch practice.
 - **Per-topic dashboard**: view attempted-question coverage, accuracy and mistakes to retry; all calculated locally.
+- **Screenshot-informed study hub**: clearly separated Theory Test, Hazard Perception guide, Highway Code starter notes and Road Signs, with unique independent styling.
+- **Offline question search**: keyword and topic filtering across the local original bank, tap one result or practise all matches.
+- **Road Signs preview**: twelve original, source-referenced text explanations with category browsing, search, SQLite bookmarks and a twelve-question text quiz. Visual road-sign identification is not yet included.
+- **Hazard Perception starter guide**: offline scoring-format explanation, clearly marked as a guide without video clips.
 - **Timed five-question sample mock** (six minutes), with flagging, changing answers, question jumping, submission, timeout, answer review and saved offline mock history.
 - Mock session resumes from SQLite after leaving and returning to the screen, including after an app restart. The timer is anchored to wall-clock time, not a paused app timer.
 - A full 50-question / 57-minute exam engine with 43/50 pass criteria is implemented and tested, but **the full-exam button is intentionally locked** pending the full source-reviewed question bank and actual local video case-study playback.
@@ -46,6 +50,12 @@ npx expo start
 ## Quality gates
 
 Use the [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [audit](docs/audit-2026-11-06.md) for remaining blockers. The app is **not yet a complete commercial theory-test product**. The current sample is not an official-style full mock; hazard perception and video case studies are not yet available.
+
+## Navigate the screenshot-informed modules
+
+From **Home**, choose **Theory Test** for a dedicated hub with practice, timed sample mock, search, saved/flagged questions, progress, flashcards and Smart Revision. Choose **Road Signs** to browse categories, search and save explanatory notes or complete a text-based mini quiz. The **Hazard Perception** section is educational only, and **Highway Code Notes** are a sample of original local notes, not a full book.
+
+All new sample features work locally, but a full sign illustration bank, original hazard clips and source-reviewed 50-question mock are still required before launch.
 
 ## How to try the mock
 
