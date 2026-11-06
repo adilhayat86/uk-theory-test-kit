@@ -39,3 +39,13 @@ The following official material guided the 21 original starter questions. The qu
 An additional 179 original question-and-answer sets were written for the Android MVP, bringing the total to **200 across 12 topics**. Each has a direct GOV.UK `sourceUrl` and reference. See [full editorial audit](QUESTION_BANK_EDITORIAL_AUDIT.md) and the [200-row pending review tracker](QUESTION_REVIEW_TRACKER.csv).
 
 **Status:** sourced authoring draft only; a separate named, independent editorial reviewer must inspect every answer and distractor against the linked primary rule before publication.
+
+## New illustration-based sign practice — pending editorial approval
+
+Eight independently written image-recognition questions (`sign-recognition-001` through `008`) were added with original offline PNG diagrams. These are educational approximations, not licensed official DVSA imagery, and should be checked against the Department for Transport's current signs before release:
+
+- [The Highway Code: Traffic signs](https://www.gov.uk/guidance/the-highway-code/traffic-signs)
+- [Know your traffic signs: signing system](https://www.gov.uk/government/publications/know-your-traffic-signs/the-signing-system)
+- [Know your traffic signs: warning signs](https://www.gov.uk/government/publications/know-your-traffic-signs/warning-signs)
+
+Automated validation confirms references and asset IDs only; it **does not** constitute independent editorial approval or legal certification. Review each image, answer and explanation before any public release.
