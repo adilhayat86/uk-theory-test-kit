@@ -1,6 +1,8 @@
 # Product implementation plan (updated 6 November 2026)
 
-Target: UK Theory Test Kit — independent, offline-first Android/iOS theory-test preparation, £0.99 one-time purchase, no ads or subscriptions.
+Target: initial GB Android revision-only MVP, £0.99 one-time purchase, no ads or subscriptions; fuller Android/iOS test kit later.
+
+> **MVP scope update:** The first sellable product is a **GB Android-only £0.99 revision app**, not a complete theory simulator. The first commercial content target is **200 original checked questions across at least 10 topics**; original hazard clips, full 50-question case-study mock, iOS release and full Highway Code move to later phases. See [Android MVP release target](MVP_RELEASE_TARGET.md). The earlier 1,000-question and complete video targets remain **longer-term product goals**, not launch blockers for a clearly described revision-only MVP.
 
 ## Why we are using release gates
 
@@ -22,10 +24,14 @@ A source file or CI configuration does not establish that the app works. Each ph
 ## Phase 2 — Offline mock-exam workflow (engine and UI implemented in this PR)
 
 - [x] Pure, tested 57-minute / 50-question exam engine with 43/50 pass threshold.
-- [x] Six-minute / five-question **sample**, explicitly labelled non-predictive; original practice bank expanded to 21 source-referenced questions.
+- [x] Six-minute / five-question **sample**, explicitly labelled non-predictive; original practice bank expanded to 200 authored questions; independent editorial review still pending.
 - [x] Answer changes, flags, navigation, jump-to-question and expiry.
 - [x] User-confirmed submit, timeout handling and result review.
 - [x] SQLite session snapshots, resume and historical attempt storage.
+- [x] Offline adaptive revision using most recent wrong answers, unseen questions and weaker topics.
+- [x] Local per-topic attempts, accuracy and last-mistake counts.
+- [x] Topic-filtered, on-device flashcards (existing original questions; no audio or copied content).
+- [ ] Verify new revision flows on a physical Android device and via CI checks.
 - [x] Block full mock until the question count and video-case-study requirement are met.
 - [ ] SQLite integration test on a native device and forced app termination/resume test.
 - [ ] Review bug resilience: lost storage, changing question banks, device clock jumps.
@@ -35,7 +41,9 @@ A source file or CI configuration does not establish that the app works. Each ph
 
 ## Phase 3 — Complete independent editorial content (major outstanding work)
 
-- [ ] Author, fact-check, copyedit and source-reference at least 1,000 original questions across UK car theory topics.
+- [ ] Long-term full kit: author, fact-check, copyedit and reference at least 1,000 questions (beyond the 200-question Android revision MVP).
+- [x] Android MVP: 200 independently worded draft questions across 12 topics; all include rule references and GOV.UK source URLs.
+- [ ] Human independent editorial fact-check and approval for each of the 200 MVP questions; see [editorial tracker](QUESTION_REVIEW_TRACKER.csv).
 - [ ] Include reviewed local silent video case studies and their three linked questions; check their use in the 50-question exam selector.
 - [ ] Create road-sign study library with appropriately licensed government assets and Open Government Licence attribution where applicable.
 - [ ] Create 14 original hazard perception practice clips per full simulation (one double-hazard clip), accurately timed hazard windows and separate 44/75 pass criteria.
@@ -76,3 +84,11 @@ A source file or CI configuration does not establish that the app works. Each ph
 6. Validate poor-network and airplane-mode behavior throughout.
 7. Check screen readers, touch targets, text sizing and low-end Android performance.
 8. All release content and copyrights reviewed.
+
+## Competitor-informed enhancements (6 November 2026)
+
+The user-supplied APK was analysed statically, and priorities were compared with official competitor feature descriptions. See [the APK audit](COMPETITOR_APK_AUDIT.md). The revision features and 200-question draft bank are implemented, but **do not** resolve independent editorial approval, hazard-perception videos or release QA gates. Do not describe the app as equivalent to an official or commercial full theory-test preparation kit.
+
+## Current MVP release condition
+
+Run `npm run check:mvp:content` after building the full original question bank; this must pass **in addition to** all human question verification and device QA. In CI, `--report-only` records progress without claiming that the 21-question sample is commercially ready. Before release, generate a signed Android App Bundle, audit the Play Store listing and privacy policy, then obtain an explicit release decision.

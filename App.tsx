@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
+  BackHandler,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,16 +14,29 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
 import MockExamScreen from './src/components/MockExamScreen';
 import QuestionIllustration from './src/components/QuestionIllustration';
+import FlashcardsScreen from './src/components/FlashcardsScreen';
+import QuestionSearchScreen from './src/components/QuestionSearchScreen';
+import RoadSignsScreen from './src/components/RoadSignsScreen';
+import PracticeResultsScreen from './src/components/PracticeResultsScreen';
+import { chooseQuestions } from './src/domain/mockExam';
+import { beginPractice, practiceIsCompatible } from './src/domain/practiceSession';
+import type { PracticeSession } from './src/domain/practiceSession';
 import type { TheoryQuestion } from './src/data/questions';
 import {
   getBookmarkedQuestionIds,
   getProgressSummary,
-  recordAnswer,
+  getQuestionProgressRecords,
+  getSavedPracticeSession,
+  replaceSavedPractice,
+  recordSavedPracticeAnswer,
+  advanceSavedPractice,
   toggleBookmark,
 } from './src/storage/database';
 import type { ProgressSummary } from './src/domain/progress';
+import { getQuestionsToRetry, getTopicReview, selectSmartPractice } from './src/domain/revision';
+import type { QuestionProgressDetail } from './src/domain/revision';
 
-type Tab = 'home' | 'practice' | 'mock' | 'saved' | 'progress';
+type Tab = 'home' | 'theory' | 'practice' | 'mock' | 'saved' | 'progress' | 'flashcards' | 'search' | 'roadSigns';
 
 const EMPTY_PROGRESS: ProgressSummary = {
   questionsAnswered: 0,
@@ -32,41 +47,69 @@ const EMPTY_PROGRESS: ProgressSummary = {
 
 function AppContent() {
   const [tab, setTab] = useState<Tab>('home');
-  const [practiceQuestions, setPracticeQuestions] = useState<TheoryQuestion[]>(questions);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [sessionCorrect, setSessionCorrect] = useState(0);
-  const [sessionAnswered, setSessionAnswered] = useState(0);
+  const [practiceSession, setPracticeSession] = useState<PracticeSession | null>(null);
+  const practiceRef = useRef<PracticeSession | null>(null);
+  const practiceSavingRef = useRef(false);
   const [progress, setProgress] = useState<ProgressSummary>(EMPTY_PROGRESS);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [progressRecords, setProgressRecords] = useState<QuestionProgressDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [storageMessage, setStorageMessage] = useState<string | null>(null);
   const answerLockedRef = useRef(false);
   const pendingBookmarksRef = useRef<Set<string>>(new Set());
 
+  const practiceQuestions = useMemo(() => {
+    if (!practiceSession) return questions;
+    const indexed = new Map(questions.map((question) => [question.id, question]));
+    return practiceSession.questionIds.flatMap((id) => {
+      const match = indexed.get(id);
+      return match ? [match] : [];
+    });
+  }, [practiceSession?.id]);
+  const questionIndex = practiceSession?.currentIndex ?? 0;
   const currentQuestion = practiceQuestions[questionIndex];
+  const selectedAnswer = practiceSession && currentQuestion
+    ? (practiceSession.answers[currentQuestion.id] ?? null) : null;
+  const sessionAnswers = practiceSession?.answers ?? {};
   const savedQuestions = useMemo(
     () => questions.filter((question) => bookmarkedIds.includes(question.id)),
     [bookmarkedIds],
   );
 
+  const retryQuestions = useMemo(() => getQuestionsToRetry(questions, progressRecords), [progressRecords]);
+  const smartQuestions = useMemo(() => selectSmartPractice(questions, progressRecords, 10), [progressRecords]);
+  const topicStats = useMemo(() => getTopicReview(questions, progressRecords), [progressRecords]);
+
   const refreshLocalData = useCallback(async () => {
-    const [nextProgress, nextBookmarks] = await Promise.all([
+    const [nextProgress, nextBookmarks, nextRecords] = await Promise.all([
       getProgressSummary(),
       getBookmarkedQuestionIds(),
+      getQuestionProgressRecords(),
     ]);
     setProgress(nextProgress);
     setBookmarkedIds(nextBookmarks);
+    setProgressRecords(nextRecords);
   }, []);
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([getProgressSummary(), getBookmarkedQuestionIds()])
-      .then(([nextProgress, nextBookmarks]) => {
+    Promise.all([
+      getProgressSummary(),
+      getBookmarkedQuestionIds(),
+      getQuestionProgressRecords(),
+      getSavedPracticeSession(),
+    ]).then(([nextProgress, nextBookmarks, nextRecords, savedPractice]) => {
         if (!mounted) return;
         setProgress(nextProgress);
         setBookmarkedIds(nextBookmarks);
+        setProgressRecords(nextRecords);
+        if (savedPractice && practiceIsCompatible(savedPractice, questions)) {
+          practiceRef.current = savedPractice;
+          setPracticeSession(savedPractice);
+        } else if (savedPractice) {
+          setStorageMessage('Saved practice uses outdated questions. Start a new session to continue.');
+        }
       })
       .catch(() => {
         if (mounted) setStorageMessage('Local storage could not be opened. Your current practice screen is still available.');
@@ -77,39 +120,80 @@ function AppContent() {
     return () => { mounted = false; };
   }, []);
 
-  function startPractice(items: TheoryQuestion[] = questions) {
+  function startPractice(items: TheoryQuestion[] = questions, questionLimit?: number) {
+    if (practiceSavingRef.current) return;
     if (items.length === 0) {
-      setStorageMessage('There are no saved questions yet. Save a question while practising.');
+      setStorageMessage('There are no questions in this selection yet.');
       setTab('saved');
       return;
     }
-    answerLockedRef.current = false;
-    setPracticeQuestions(items);
-    setQuestionIndex(0);
-    setSelectedAnswer(null);
-    setSessionCorrect(0);
-    setSessionAnswered(0);
-    setStorageMessage(null);
-    setTab('practice');
+
+    async function createSession() {
+      if (practiceSavingRef.current) return;
+      practiceSavingRef.current = true;
+      setIsSaving(true);
+      try {
+        const selected = questionLimit === undefined ? items
+          : chooseQuestions(items, Math.min(questionLimit, items.length));
+        const started = beginPractice(
+          selected,
+          Date.now(),
+          'practice-' + Date.now() + '-' + Math.floor(Math.random() * 1_000_000_000),
+        );
+        await replaceSavedPractice(started);
+        practiceRef.current = started;
+        setPracticeSession(started);
+        answerLockedRef.current = false;
+        setStorageMessage(null);
+        setTab('practice');
+      } catch {
+        setStorageMessage('Could not create an offline practice session. Please try again.');
+      } finally {
+        practiceSavingRef.current = false;
+        setIsSaving(false);
+      }
+    }
+
+    const unfinished = practiceRef.current;
+    if (unfinished && unfinished.currentIndex < unfinished.questionIds.length &&
+        (unfinished.currentIndex > 0 || Object.keys(unfinished.answers).length > 0)) {
+      Alert.alert(
+        'Replace unfinished practice?',
+        'Your current answers are saved. Start a new session or continue where you left off.',
+        [
+          { text: 'Continue existing', onPress: () => setTab('practice') },
+          { text: 'Start new', style: 'destructive', onPress: () => { void createSession(); } },
+        ],
+      );
+      return;
+    }
+    void createSession();
   }
 
   async function chooseAnswer(index: number) {
-    if (!currentQuestion || selectedAnswer !== null || isSaving || answerLockedRef.current) return;
-    // Lock synchronously, before React can render disabled answer buttons.
+    const active = practiceRef.current;
+    if (!active || !currentQuestion || selectedAnswer !== null ||
+        practiceSavingRef.current || answerLockedRef.current) return;
     answerLockedRef.current = true;
-    setSelectedAnswer(index);
-    setSessionAnswered((value) => value + 1);
-    const correct = index === currentQuestion.correctIndex;
-    if (correct) setSessionCorrect((value) => value + 1);
-
+    practiceSavingRef.current = true;
     setIsSaving(true);
     try {
-      await recordAnswer(currentQuestion, index);
-      await refreshLocalData();
+      const persisted = await recordSavedPracticeAnswer(active, currentQuestion, index);
+      practiceRef.current = persisted;
+      setPracticeSession(persisted);
       setStorageMessage(null);
+      try {
+        await refreshLocalData();
+      } catch {
+        setStorageMessage('Your answer was saved, but progress could not be refreshed.');
+      }
     } catch {
-      setStorageMessage('This answer could not be saved on the device. Please try again later.');
+      // Neither the answer nor the accuracy counter changes if the SQLite
+      // transaction fails. Allow the learner to tap again rather than lose it.
+      answerLockedRef.current = false;
+      setStorageMessage('Answer not saved. Tap your answer again to retry.');
     } finally {
+      practiceSavingRef.current = false;
       setIsSaving(false);
     }
   }
@@ -130,17 +214,33 @@ function AppContent() {
     }
   }
 
-  function goToNextQuestion() {
-    if (isSaving) return;
-    answerLockedRef.current = false;
-    if (questionIndex + 1 >= practiceQuestions.length) {
-      setQuestionIndex(practiceQuestions.length);
-      setSelectedAnswer(null);
-      return;
+  async function goToNextQuestion() {
+    const current = practiceRef.current;
+    if (!current || practiceSavingRef.current) return;
+    practiceSavingRef.current = true;
+    setIsSaving(true);
+    try {
+      const persisted = await advanceSavedPractice(current);
+      practiceRef.current = persisted;
+      setPracticeSession(persisted);
+      answerLockedRef.current = false;
+      setStorageMessage(null);
+    } catch {
+      setStorageMessage('Could not save the next position. Try again.');
+    } finally {
+      practiceSavingRef.current = false;
+      setIsSaving(false);
     }
-    setQuestionIndex((value) => value + 1);
-    setSelectedAnswer(null);
   }
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (tab === 'home') return false;
+      setTab(tab === 'practice' || tab === 'search' || tab === 'mock' ? 'theory' : 'home');
+      return true;
+    });
+    return () => subscription.remove();
+  }, [tab]);
 
   if (isLoading) {
     return (
@@ -156,11 +256,11 @@ function AppContent() {
       <StatusBar style="dark" />
       <View style={styles.appShell}>
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerCopy}>
             <Text style={styles.headerEyebrow}>INDEPENDENT UK CAR THEORY PRACTICE</Text>
             <Text style={styles.headerTitle}>Theory Test Kit</Text>
           </View>
-          <View style={styles.headerMark}><Text style={styles.headerMarkText}>UK</Text></View>
+          <View style={styles.headerMark} accessible={false}><Text allowFontScaling={false} style={styles.headerMarkText}>UK</Text></View>
         </View>
 
         {storageMessage ? (
@@ -170,22 +270,51 @@ function AppContent() {
           </Pressable>
         ) : null}
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView key={tab === 'practice' ? tab + '-' + questionIndex : tab}
+          contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {tab === 'home' && (
             <>
               <View style={styles.hero}>
                 <Text style={styles.heroKicker}>YOUR NEXT STEP</Text>
                 <Text style={styles.heroTitle}>Learn the rules. Build confidence.</Text>
-                <Text style={styles.heroBody}>Short practice sessions, clear explanations and progress saved on this device.</Text>
-                <Pressable style={styles.primaryButton} onPress={() => startPractice()}>
-                  <Text style={styles.primaryButtonText}>Start practice <Text style={styles.buttonArrow}>›</Text></Text>
+                <Text style={styles.heroBody}>Original UK road-rule revision for Great Britain. Practise without an account or internet connection.</Text>
+                <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={() => startPractice(questions, 10)}>
+                  <Text style={styles.primaryButtonText}>Start 10-question practice <Text style={styles.buttonArrow}>›</Text></Text>
                 </Pressable>
               </View>
 
+              {practiceSession ? (
+                <Pressable accessibilityRole="button" style={styles.resumeBanner}
+                  onPress={() => setTab('practice')}>
+                  <Text style={styles.resumeTitle}>{practiceSession.currentIndex < practiceSession.questionIds.length
+                    ? 'Continue saved practice ›' : 'Review your last practice result ›'}</Text>
+                  <Text style={styles.resumeBody}>{practiceSession.currentIndex < practiceSession.questionIds.length
+                    ? 'Question ' + (practiceSession.currentIndex + 1) + ' of ' + practiceSession.questionIds.length
+                    : Object.keys(practiceSession.answers).length + ' answers saved'} · available offline</Text>
+                </Pressable>
+              ) : null}
+              <Text style={styles.sectionTitle}>Learn and practise</Text>
+              <MenuCard index="01" title="Theory Revision" detail="Practice questions, quick sessions, search and saved questions" onPress={() => setTab('theory')} />
+              <MenuCard index="02" title="Road Sign Notes" detail="Text-based sign study, saved notes and quiz preview" onPress={() => setTab('roadSigns')} />
+              <Text style={styles.scopeNote}>GB car theory preparation. NI-specific questions are not yet provided.</Text>
+
               <Pressable accessibilityRole="button" style={styles.mockBanner} onPress={() => setTab('mock')}>
-                <Text style={styles.mockBannerTitle}>Timed mock exams  ›</Text>
-                <Text style={styles.mockBannerBody}>5-question sample • resume offline • review results</Text>
+                <Text style={styles.mockBannerTitle}>Timed 5-question practice  ›</Text>
+                <Text style={styles.mockBannerBody}>Short sample only • resume offline • review answers</Text>
               </Pressable>
+
+              <View style={styles.studyModeRow}>
+                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(smartQuestions)}>
+                  <Text style={styles.studyModeKicker}>SMART REVISION</Text>
+                  <Text style={styles.studyModeTitle}>Your next 10 ›</Text>
+                  <Text style={styles.studyModeBody}>Retry mistakes, then explore new questions</Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => setTab('flashcards')}>
+                  <Text style={styles.studyModeKicker}>MEMORY PRACTICE</Text>
+                  <Text style={styles.studyModeTitle}>Flashcards ›</Text>
+                  <Text style={styles.studyModeBody}>Recall each answer before revealing it</Text>
+                </Pressable>
+              </View>
 
               <Text style={styles.sectionTitle}>Your progress</Text>
               <View style={styles.statsRow}>
@@ -196,7 +325,7 @@ function AppContent() {
 
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Study by topic</Text>
-                <Text style={styles.sectionHint}>{questions.length} sample questions</Text>
+                <Text style={styles.sectionHint}>{questions.length} original questions · editorial review pending</Text>
               </View>
               <View style={styles.topicGrid}>
                 {Array.from(new Set(questions.map((question) => question.topic))).map((topic, index) => {
@@ -221,29 +350,60 @@ function AppContent() {
             </>
           )}
 
+          {tab === 'theory' && (
+            <>
+              <Pressable accessibilityRole="button" style={styles.backButton} onPress={() => setTab('home')}>
+                <Text style={styles.backText}>‹ Home</Text>
+              </Pressable>
+              <Text style={styles.pageTitle}>Theory Test</Text>
+              <Text style={styles.pageSubtitle}>Choose how to study from {questions.length} original GB practice questions. This draft bank is awaiting independent fact-checking.</Text>
+              <Text style={styles.sectionTitle}>Quick practice</Text>
+              <View style={styles.studyModeRow}>
+                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(questions, 5)}>
+                  <Text style={styles.studyModeKicker}>SHORT SESSION</Text>
+                  <Text style={styles.studyModeTitle}>5 questions ›</Text>
+                  <Text style={styles.studyModeBody}>A quick mixed revision session</Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(questions, 10)}>
+                  <Text style={styles.studyModeKicker}>STANDARD SESSION</Text>
+                  <Text style={styles.studyModeTitle}>10 questions ›</Text>
+                  <Text style={styles.studyModeBody}>Review mistakes after finishing</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.sectionTitle}>All theory test tools</Text>
+              <MenuCard index="01" title="Practise 20 Questions" detail={'20 mixed questions drawn from ' + questions.length + ' original drafts'} onPress={() => startPractice(questions, 20)} />
+              <MenuCard index="02" title="Timed Mini Test" detail="Resumable 5-question sample; not an official exam simulation" onPress={() => setTab('mock')} />
+              <MenuCard index="03" title="Search Questions" detail="Find questions by word, topic or rule" onPress={() => setTab('search')} />
+              <MenuCard index="04" title="Flagged Questions" detail={bookmarkedIds.length + ' saved for later practice'} onPress={() => setTab('saved')} />
+              <MenuCard index="05" title="Progress Monitor" detail="Topic coverage, recent mistakes and accuracy" onPress={() => setTab('progress')} />
+              <MenuCard index="06" title="Flashcards" detail="Recall then reveal original answers" onPress={() => setTab('flashcards')} />
+              <MenuCard index="07" title="Smart Revision" detail="Your next 10 questions, prioritised offline" onPress={() => startPractice(smartQuestions)} />
+            </>
+          )}
+
           {tab === 'practice' && (
             <>
               {!currentQuestion ? (
-                <View style={styles.completionCard}>
-                  <Text style={styles.completionEmoji}>✓</Text>
-                  <Text style={styles.completionTitle}>Practice complete</Text>
-                  <Text style={styles.completionBody}>You answered {sessionAnswered} question{sessionAnswered === 1 ? '' : 's'} and got {sessionCorrect} correct.</Text>
-                  <Text style={styles.completionScore}>{sessionAnswered === 0 ? 0 : Math.round(sessionCorrect / sessionAnswered * 100)}% correct</Text>
-                  <Pressable style={styles.primaryButton} onPress={() => setTab('home')}>
-                    <Text style={styles.primaryButtonText}>Back to home</Text>
-                  </Pressable>
-                </View>
+                <PracticeResultsScreen
+                  questions={practiceQuestions}
+                  answers={sessionAnswers}
+                  savedIds={bookmarkedIds}
+                  onFinish={() => setTab('theory')}
+                  onRetry={startPractice}
+                  onRestart={() => startPractice(practiceQuestions)}
+                />
               ) : (
                 <>
                   <View style={styles.practiceTop}>
-                    <Pressable onPress={() => setTab('home')} style={styles.backButton}><Text style={styles.backText}>‹  Home</Text></Pressable>
+                    <Pressable accessibilityRole="button" onPress={() => setTab('theory')} style={styles.backButton}><Text style={styles.backText}>‹  Theory</Text></Pressable>
                     <Text style={styles.practiceCounter}>QUESTION {questionIndex + 1} OF {practiceQuestions.length}</Text>
                   </View>
                   <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${((questionIndex + (selectedAnswer === null ? 0 : 1)) / practiceQuestions.length) * 100}%` }]} /></View>
                   <View style={styles.questionCard}>
                     <View style={styles.questionMeta}>
                       <Text style={styles.topicPill}>{currentQuestion.topic.toUpperCase()}</Text>
-                      <Pressable onPress={() => handleBookmark(currentQuestion.id)} style={styles.bookmarkButton}>
+                      <Pressable accessibilityRole="button" accessibilityLabel={bookmarkedIds.includes(currentQuestion.id) ? 'Remove saved question' : 'Save question'}
+                        onPress={() => { void handleBookmark(currentQuestion.id); }} style={styles.bookmarkButton}>
                         <Text style={styles.bookmarkText}>{bookmarkedIds.includes(currentQuestion.id) ? '★ Saved' : '☆ Save'}</Text>
                       </Pressable>
                     </View>
@@ -257,8 +417,8 @@ function AppContent() {
                           key={`${currentQuestion.id}-${index}`}
                           accessibilityRole="button"
                           accessibilityState={{ selected: isChosen, disabled: selectedAnswer !== null }}
-                          disabled={selectedAnswer !== null}
-                          onPress={() => chooseAnswer(index)}
+                          disabled={selectedAnswer !== null || isSaving}
+                          onPress={() => { void chooseAnswer(index); }}
                           style={[
                             styles.answerOption,
                             isChosen && (isCorrectOption ? styles.answerCorrect : styles.answerIncorrect),
@@ -282,13 +442,13 @@ function AppContent() {
                           accessibilityRole="button"
                           disabled={isSaving}
                           style={[styles.primaryButton, isSaving && styles.disabledButton]}
-                          onPress={goToNextQuestion}
+                          onPress={() => { void goToNextQuestion(); }}
                         >
                           <Text style={styles.primaryButtonText}>{isSaving ? 'Saving answer…' : questionIndex + 1 === practiceQuestions.length ? 'Finish practice' : 'Next question  ›'}</Text>
                         </Pressable>
                       </View>
                     ) : (
-                      <Text style={styles.selectHint}>Choose one answer to see the explanation.</Text>
+                      <Text style={styles.selectHint}>{isSaving ? 'Saving your answer on this device…' : 'Choose one answer to see the explanation.'}</Text>
                     )}
                   </View>
                 </>
@@ -296,7 +456,10 @@ function AppContent() {
             </>
           )}
 
-          {tab === 'mock' && <MockExamScreen onBack={() => setTab('home')} />}
+          {tab === 'mock' && <MockExamScreen onBack={() => setTab('theory')} />}
+          {tab === 'search' && <QuestionSearchScreen onBack={() => setTab('theory')} onPractise={startPractice} />}
+          {tab === 'roadSigns' && <RoadSignsScreen onBack={() => setTab('home')} />}
+          {tab === 'flashcards' && <FlashcardsScreen onBack={() => setTab('home')} onPractise={startPractice} />}
 
           {tab === 'saved' && (
             <>
@@ -342,10 +505,35 @@ function AppContent() {
                 <StatCard value={String(progress.totalAttempts)} label="Total attempts" />
                 <StatCard value={String(progress.correctAttempts)} label="Correct answers" />
               </View>
+              <Text style={styles.sectionTitle}>Your personal study plan</Text>
+              <View style={styles.infoCard}>
+                <Text style={styles.infoTitle}>{retryQuestions.length} question{retryQuestions.length === 1 ? '' : 's'} to retry</Text>
+                <Text style={styles.infoBody}>Smart revision starts with your most recent wrong answers and then questions you have not tried. This is guidance, not a pass prediction.</Text>
+                <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={() => startPractice(smartQuestions)}>
+                  <Text style={styles.primaryButtonText}>Start smart revision</Text>
+                </Pressable>
+                {retryQuestions.length > 0 ? (
+                  <Pressable accessibilityRole="button" style={styles.secondaryAction} onPress={() => startPractice(retryQuestions)}>
+                    <Text style={styles.secondaryActionText}>Retry only mistakes ({retryQuestions.length})</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+              <Text style={styles.sectionTitle}>Study by topic</Text>
+              {topicStats.map((item) => (
+                <Pressable accessibilityRole="button" key={item.topic}
+                  style={styles.topicReviewCard}
+                  onPress={() => startPractice(questions.filter((question) => question.topic === item.topic))}>
+                  <View style={styles.topicReviewHeading}>
+                    <Text style={styles.topicReviewTitle}>{item.topic}</Text>
+                    <Text style={styles.topicReviewAccuracy}>{item.accuracyPercent === null ? 'Not tried' : item.accuracyPercent + '% accurate'}</Text>
+                  </View>
+                  <Text style={styles.infoBody}>{item.questionsTried}/{item.totalQuestions} questions tried · {item.recentMistakes} need retry</Text>
+                </Pressable>
+              ))}
               <Text style={styles.sectionTitle}>Current content</Text>
               <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>{questions.length} original sample questions</Text>
-                <Text style={styles.infoBody}>This is an early content sample, not yet the complete question bank or a full timed mock exam.</Text>
+                <Text style={styles.infoTitle}>{questions.length} original draft questions</Text>
+                <Text style={styles.infoBody}>All {questions.length} are available for revision. Independent editorial approval is still pending, and the full official-style mock is not included.</Text>
               </View>
               <Pressable style={styles.primaryButton} onPress={() => startPractice()}>
                 <Text style={styles.primaryButtonText}>Continue practising</Text>
@@ -356,13 +544,33 @@ function AppContent() {
 
         <View style={styles.bottomNav}>
           <NavItem label="Home" icon="⌂" active={tab === 'home'} onPress={() => setTab('home')} />
-          <NavItem label="Practice" icon="✓" active={tab === 'practice'} onPress={() => { if (tab !== 'practice') startPractice(); }} />
+          <NavItem label="Practice" icon="✓" active={tab === 'practice'} onPress={() => {
+            if (tab === 'practice') return;
+            if (practiceRef.current && practiceRef.current.currentIndex < practiceRef.current.questionIds.length) {
+              setTab('practice');
+            } else {
+              startPractice(questions, 10);
+            }
+          }} />
           <NavItem label="Mock" icon="◷" active={tab === 'mock'} onPress={() => setTab('mock')} />
           <NavItem label="Saved" icon="☆" active={tab === 'saved'} onPress={() => setTab('saved')} />
           <NavItem label="Progress" icon="▥" active={tab === 'progress'} onPress={() => setTab('progress')} />
         </View>
       </View>
     </SafeAreaView>
+  );
+}
+
+function MenuCard({ index, title, detail, onPress }: { index: string; title: string; detail: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" style={styles.moduleCard} onPress={onPress}>
+      <View style={styles.moduleNumber}><Text style={styles.moduleNumberText}>{index}</Text></View>
+      <View style={styles.moduleContent}>
+        <Text style={styles.moduleTitle}>{title}</Text>
+        <Text style={styles.moduleDetail}>{detail}</Text>
+      </View>
+      <Text style={styles.moduleChevron}>›</Text>
+    </Pressable>
   );
 }
 
@@ -384,7 +592,7 @@ function NavItem({ label, icon, active, onPress }: { label: string; icon: string
   );
 }
 
-function App() {
+export default function App() {
   return (
     <SafeAreaProvider>
       <AppContent />
@@ -408,9 +616,10 @@ const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F7FB' },
   loadingText: { color: colors.muted, marginTop: 12, fontSize: 13 },
   header: { backgroundColor: '#FFFFFF', paddingHorizontal: 22, paddingTop: 10, paddingBottom: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: colors.border },
+  headerCopy: { flex: 1, minWidth: 0, marginRight: 12 },
   headerEyebrow: { color: colors.blue, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
   headerTitle: { color: colors.ink, fontSize: 23, fontWeight: '800', marginTop: 4 },
-  headerMark: { width: 42, height: 42, borderRadius: 14, backgroundColor: colors.paleBlue, alignItems: 'center', justifyContent: 'center' },
+  headerMark: { flexShrink: 0, width: 42, height: 42, borderRadius: 14, backgroundColor: colors.paleBlue, alignItems: 'center', justifyContent: 'center' },
   headerMarkText: { color: colors.blue, fontSize: 14, fontWeight: '900' },
   notice: { marginHorizontal: 16, marginTop: 10, padding: 12, backgroundColor: '#FFF7E6', borderRadius: 12, borderWidth: 1, borderColor: '#F3D89E' },
   noticeText: { color: '#795A1A', fontSize: 12, lineHeight: 17 },
@@ -486,6 +695,32 @@ const styles = StyleSheet.create({
   completionTitle: { color: colors.ink, fontSize: 22, fontWeight: '900', marginTop: 10 },
   completionBody: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: 'center', marginTop: 8 },
   completionScore: { color: colors.blue, fontSize: 28, fontWeight: '900', marginTop: 14 },
+  studyModeRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  studyModeCard: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 15, backgroundColor: '#FFFFFF', padding: 14, minHeight: 124 },
+  studyModeKicker: { color: colors.blue, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
+  studyModeTitle: { color: colors.ink, fontSize: 16, fontWeight: '900', marginTop: 10 },
+  studyModeBody: { color: colors.muted, fontSize: 11, lineHeight: 16, marginTop: 5 },
+  secondaryAction: { padding: 12, alignItems: 'center' },
+  secondaryActionText: { color: colors.blue, fontSize: 13, fontWeight: '800' },
+  topicReviewCard: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 15, backgroundColor: '#FFFFFF', marginBottom: 10 },
+  topicReviewHeading: { flexDirection: 'row', justifyContent: 'space-between', gap: 6 },
+  topicReviewTitle: { color: colors.ink, fontWeight: '800', fontSize: 14, flexShrink: 1 },
+  topicReviewAccuracy: { color: colors.blue, fontWeight: '800', fontSize: 11 },
+  moduleCard: { flexDirection: 'row', alignItems: 'center', minHeight: 86,
+    borderRadius: 15, borderWidth: 1, borderColor: colors.border,
+    backgroundColor: '#FFFFFF', padding: 14, marginBottom: 10 },
+  moduleNumber: { width: 38, height: 38, borderRadius: 12,
+    backgroundColor: '#EDF3FF', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  moduleNumberText: { fontSize: 12, fontWeight: '900', color: colors.blue },
+  moduleContent: { flex: 1 },
+  moduleTitle: { fontSize: 15, fontWeight: '800', color: colors.ink },
+  moduleDetail: { fontSize: 12, lineHeight: 17, color: colors.muted, marginTop: 5 },
+  moduleChevron: { fontWeight: '900', fontSize: 24, color: colors.blue, marginLeft: 4 },
+  scopeNote: { color: colors.muted, fontSize: 11, lineHeight: 17, marginTop: 4, marginBottom: 18 },
+  resumeBanner: { backgroundColor: '#EBF6EE', borderWidth: 1, borderColor: '#B7DBC5',
+    padding: 16, borderRadius: 15, marginBottom: 18 },
+  resumeTitle: { color: '#176840', fontSize: 15, fontWeight: '900' },
+  resumeBody: { color: '#437057', fontSize: 12, marginTop: 6 },
   mockBanner: { backgroundColor: '#E5EDFD', borderRadius: 15, padding: 16, marginBottom: 22 },
   mockBannerTitle: { color: '#183D8A', fontSize: 16, fontWeight: '900' },
   mockBannerBody: { color: '#526B9A', fontSize: 12, marginTop: 5 },

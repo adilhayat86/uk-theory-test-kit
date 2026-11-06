@@ -22,6 +22,32 @@ describe('starter theory question bank', () => {
     }
   });
 
+  it('meets the Android MVP scope of 200 questions across ten or more topics', () => {
+    expect(questions.length).toBeGreaterThanOrEqual(200);
+    const counts = new Map<string, number>();
+    for (const question of questions) {
+      counts.set(question.topic, (counts.get(question.topic) ?? 0) + 1);
+    }
+    expect(counts.size).toBeGreaterThanOrEqual(10);
+    for (const count of counts.values()) {
+      expect(count).toBeGreaterThanOrEqual(10);
+    }
+  });
+
+  it('has unique question prompts and traceable primary rule URLs', () => {
+    const prompts = questions.map((question) => question.prompt.trim().toLocaleLowerCase('en-GB'));
+    expect(new Set(prompts).size).toBe(prompts.length);
+    for (const question of questions) {
+      expect(question.sourceUrl).toMatch(/^https:\/\/www\.gov\.uk\//);
+      expect(question.reference).toBeTruthy();
+    }
+  });
+
+  it('uses all four possible correct-answer positions', () => {
+    expect(new Set(questions.map((question) => question.correctIndex)))
+      .toEqual(new Set([0, 1, 2, 3]));
+  });
+
   it('grades only the correct selected answer as correct', () => {
     for (const question of questions) {
       expect(gradeAnswer(question.correctIndex, question.correctIndex)).toBe(true);

@@ -2,8 +2,8 @@
   "expo": {
     "name": "UK Theory Test Kit",
     "slug": "uk-theory-test-kit",
-    "version": "1.0.0",
-    "description": "Independent offline practice for the UK car theory test.",
+    "version": "0.1.0",
+    "description": "Independent offline revision questions for Great Britain car learners. Not affiliated with DVSA.",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "platforms": [
@@ -18,7 +18,8 @@
       "bundleIdentifier": "com.adilhayat.uktheorytestkit"
     },
     "android": {
-      "package": "com.adilhayat.uktheorytestkit"
+      "package": "com.adilhayat.uktheorytestkit",
+      "versionCode": 1
     }
   }
 }

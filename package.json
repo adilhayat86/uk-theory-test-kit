@@ -2,7 +2,7 @@
   "name": "uk-theory-test-kit",
   "version": "1.0.0",
   "private": true,
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "doctor": "npx expo-doctor@latest",
     "export:android": "expo export --platform android --output-dir dist/android",
-    "export:ios": "expo export --platform ios --output-dir dist/ios"
+    "export:ios": "expo export --platform ios --output-dir dist/ios",
+    "check:mvp:content": "node scripts/check-mvp-content.cjs",
+    "check:mvp:editorial": "node scripts/check-editorial-review.cjs"
   },
   "dependencies": {
     "expo": "~58.0.0",
