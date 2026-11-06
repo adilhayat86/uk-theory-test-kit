@@ -33,3 +33,13 @@ The following official material was checked when preparing the original sample q
 - Make the distinction between legal requirements (MUST/MUST NOT) and advisory guidance (should) explicit in explanations.
 - Keep a source reference on every question so a reviewer can audit the answer.
 - This app is an independent educational product and is not affiliated with or endorsed by DVSA.
+
+## New illustration-based sign practice — pending editorial approval
+
+Eight independently written image-recognition questions (`sign-recognition-001` through `008`) were added with original offline PNG diagrams. These are educational approximations, not licensed official DVSA imagery, and should be checked against the Department for Transport's current signs before release:
+
+- [The Highway Code: Traffic signs](https://www.gov.uk/guidance/the-highway-code/traffic-signs)
+- [Know your traffic signs: signing system](https://www.gov.uk/government/publications/know-your-traffic-signs/the-signing-system)
+- [Know your traffic signs: warning signs](https://www.gov.uk/government/publications/know-your-traffic-signs/warning-signs)
+
+Automated validation confirms references and asset IDs only; it **does not** constitute independent editorial approval or legal certification. Review each image, answer and explanation before any public release.

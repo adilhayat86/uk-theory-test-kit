@@ -7,7 +7,7 @@ export type TheoryQuestion = {
   correctIndex: 0 | 1 | 2 | 3;
   explanation: string;
   reference: string;
-  imageAssetId?: 'zebra-crossing' | 'no-entry' | 'stop-sign';
+  imageAssetId?: 'zebra-crossing' | 'no-entry' | 'stop-sign' | 'give-way' | 'speed-limit-30' | 'speed-limit-50' | 'national-speed-limit' | 'keep-left' | 'signals-ahead';
   /** Locally bundled video asset linking a three-question case study; future content. */
   caseStudyVideoAssetId?: string;
 };
@@ -330,5 +330,93 @@ export const questions: TheoryQuestion[] = [
     "correctIndex": 1,
     "explanation": "Strong gusts can blow cars and other road users off course, especially on exposed roads and near gaps in hedges or bridges.",
     "reference": "Highway Code, Rule 232"
+  },
+  {
+    id: 'sign-recognition-001',
+    topic: 'Road signs',
+    difficulty: 'easy',
+    imageAssetId: 'stop-sign',
+    prompt: "What does the illustrated STOP sign require you to do?",
+    options: ["Stop at the line and give way before proceeding","Slow down only if another car is approaching","Stop only when pedestrians are nearby","Give way without coming to a complete stop"],
+    correctIndex: 0,
+    explanation: "You must stop at a STOP sign and solid white line. Proceed only when it is safe.",
+    reference: "Highway Code, Rule 171",
+  },
+  {
+    id: 'sign-recognition-002',
+    topic: 'Road signs',
+    difficulty: 'easy',
+    imageAssetId: 'no-entry',
+    prompt: "What does the illustrated red sign with a horizontal white bar mean?",
+    options: ["No stopping","No entry for vehicular traffic","End of restriction","One-way traffic ahead"],
+    correctIndex: 1,
+    explanation: "The no-entry sign prohibits vehicular traffic from entering that road from your direction.",
+    reference: "Highway Code, Traffic signs: signs giving orders",
+  },
+  {
+    id: 'sign-recognition-003',
+    topic: 'Road signs',
+    difficulty: 'easy',
+    imageAssetId: 'give-way',
+    prompt: "What does the illustrated inverted triangular sign mean?",
+    options: ["You have priority over traffic on the main road","Stop for three seconds regardless of traffic","Give way to traffic on the major road","End of all traffic restrictions"],
+    correctIndex: 2,
+    explanation: "The give-way sign instructs you to give way to traffic on the major road. Stop if necessary.",
+    reference: "Highway Code, Traffic signs: signs giving orders",
+  },
+  {
+    id: 'sign-recognition-004',
+    topic: 'Road signs',
+    difficulty: 'easy',
+    imageAssetId: 'speed-limit-30',
+    prompt: "What is the maximum speed indicated by the illustrated sign?",
+    options: ["30 kilometres per hour","30 miles per hour","50 miles per hour","The national speed limit"],
+    correctIndex: 1,
+    explanation: "A red-bordered circular 30 sign indicates a maximum speed of 30 mph unless another lawful instruction applies.",
+    reference: "Highway Code, Traffic signs: signs giving orders",
+  },
+  {
+    id: 'sign-recognition-005',
+    topic: 'Road signs',
+    difficulty: 'easy',
+    imageAssetId: 'speed-limit-50',
+    prompt: "What is the maximum speed indicated by the illustrated sign?",
+    options: ["50 miles per hour","50 kilometres per hour","60 miles per hour","A minimum speed of 50 mph"],
+    correctIndex: 0,
+    explanation: "The red-bordered 50 sign indicates a maximum permitted speed of 50 mph, not a target speed.",
+    reference: "Highway Code, Traffic signs: signs giving orders",
+  },
+  {
+    id: 'sign-recognition-006',
+    topic: 'Road signs',
+    difficulty: 'easy',
+    imageAssetId: 'national-speed-limit',
+    prompt: "What does the illustrated white circle with a diagonal black stripe mean?",
+    options: ["Maximum speed 50 mph everywhere","The national speed limit applies","No overtaking","End of a motorway"],
+    correctIndex: 1,
+    explanation: "The national speed limit applies. The actual maximum depends on the vehicle and type of road.",
+    reference: "Highway Code, Traffic signs: signs giving orders",
+  },
+  {
+    id: 'sign-recognition-007',
+    topic: 'Road signs',
+    difficulty: 'easy',
+    imageAssetId: 'keep-left',
+    prompt: "What instruction does this blue circular sign give?",
+    options: ["Turn left at the next junction","Keep to the left of the obstruction","There is a one-way road to the left","Left lane closed ahead"],
+    correctIndex: 1,
+    explanation: "A blue circular keep-left sign requires traffic to pass to the left of the sign or obstruction.",
+    reference: "Highway Code, Traffic signs: signs giving orders",
+  },
+  {
+    id: 'sign-recognition-008',
+    topic: 'Road signs',
+    difficulty: 'easy',
+    imageAssetId: 'signals-ahead',
+    prompt: "What hazard does this red triangular warning sign indicate?",
+    options: ["Traffic signals ahead","A railway level crossing","A mandatory stop at this sign","Parking controls begin"],
+    correctIndex: 0,
+    explanation: "A red triangular sign depicting traffic lights warns that traffic signals are ahead. Adjust your speed and be ready to stop.",
+    reference: "Know Your Traffic Signs, Warning signs",
   },
 ];
