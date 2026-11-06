@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
 import MockExamScreen from './src/components/MockExamScreen';
+import QuestionIllustration from './src/components/QuestionIllustration';
 import type { TheoryQuestion } from './src/data/questions';
 import {
   getBookmarkedQuestionIds,
@@ -247,6 +248,7 @@ function AppContent() {
                       </Pressable>
                     </View>
                     <Text style={styles.questionPrompt}>{currentQuestion.prompt}</Text>
+                     <QuestionIllustration question={currentQuestion} />
                     {currentQuestion.options.map((option, index) => {
                       const isChosen = selectedAnswer === index;
                       const isCorrectOption = selectedAnswer !== null && index === currentQuestion.correctIndex;

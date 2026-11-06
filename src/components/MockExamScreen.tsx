@@ -3,6 +3,7 @@ import {
   ActivityIndicator, Alert, Pressable, StyleSheet, Text, View,
 } from 'react-native';
 import { questions } from '../data/questions';
+import QuestionIllustration from './QuestionIllustration';
 import {
   answerQuestion, beginMock, finishMock, flagQuestion, formattedTimeLeft,
   fullMockReadiness, goToQuestion, isExpired, timeLeftMs,
@@ -218,6 +219,7 @@ export default function MockExamScreen({ onBack }: Props) {
               </View>
               <Text style={styles.number}>QUESTION {session.currentIndex + 1} / {session.questionIds.length}</Text>
               <Text style={styles.prompt}>{question.prompt}</Text>
+              <QuestionIllustration question={question} />
               {question.options.map((option, index) => {
                 const selected = session.answers[question.id] === index;
                 return (
@@ -288,6 +290,7 @@ export default function MockExamScreen({ onBack }: Props) {
               <View key={id} style={styles.reviewCard}>
                 <Text style={styles.number}>QUESTION {index + 1} · {correct ? 'CORRECT' : 'REVIEW'}</Text>
                 <Text style={styles.reviewPrompt}>{item.prompt}</Text>
+                <QuestionIllustration question={item} />
                 <Text style={styles.body}>Your answer: {selected === undefined ? 'Unanswered' : item.options[selected]}</Text>
                 <Text style={styles.correctAnswer}>Correct: {item.options[item.correctIndex]}</Text>
                 <Text style={styles.body}>{item.explanation}</Text>

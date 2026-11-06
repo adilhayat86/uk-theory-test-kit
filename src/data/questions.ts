@@ -7,6 +7,7 @@ export type TheoryQuestion = {
   correctIndex: 0 | 1 | 2 | 3;
   explanation: string;
   reference: string;
+  imageAssetId?: 'zebra-crossing' | 'no-entry' | 'stop-sign';
   /** Locally bundled video asset linking a three-question case study; future content. */
   caseStudyVideoAssetId?: string;
 };
@@ -14,6 +15,7 @@ export type TheoryQuestion = {
 export const questions: TheoryQuestion[] = [
   {
     id: 'rules-001',
+    "imageAssetId": "zebra-crossing",
     topic: 'Road rules',
     difficulty: 'easy',
     prompt: 'You are approaching a zebra crossing and a pedestrian is waiting to cross. What should you do?',
@@ -74,6 +76,7 @@ export const questions: TheoryQuestion[] = [
   },
   {
     id: 'signs-001',
+    "imageAssetId": "no-entry",
     topic: 'Road signs',
     difficulty: 'easy',
     prompt: 'What does a red circular road sign generally indicate?',
@@ -89,6 +92,7 @@ export const questions: TheoryQuestion[] = [
   },
   {
     "id": "junction-001",
+    "imageAssetId": "stop-sign",
     "topic": "Road junctions",
     "difficulty": "standard",
     "prompt": "You reach a STOP sign and a solid white line at a junction. What must you do?",
