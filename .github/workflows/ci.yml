@@ -63,7 +63,7 @@ jobs:
           retention-days: 7
 
   android-debug:
-    name: Build Android debug APK
+    name: Build Android device-test APK and bundles
     runs-on: ubuntu-24.04
     needs: quality
     steps:
@@ -96,8 +96,25 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug bundleRelease --no-daemon
-      - name: Upload debug APK
+          ./gradlew assembleDebug assembleRelease bundleRelease --no-daemon
+      - name: Verify standalone APK contains the offline JavaScript bundle
+        run: |
+          python3 - <<'PY'
+          import zipfile
+          with zipfile.ZipFile("android/app/build/outputs/apk/release/app-release.apk") as apk:
+              bundle = apk.getinfo("assets/index.android.bundle")
+              assert bundle.file_size > 0, "Offline JavaScript bundle is empty"
+          PY
+      # Expo's generated release signing uses the development key here.
+      # This APK is for physical-device QA only, never Play publishing.
+      - name: Upload standalone device-test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-offline-test-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload debug APK (requires Metro, not for offline QA)
         uses: actions/upload-artifact@v4
         with:
           name: android-debug-apk
