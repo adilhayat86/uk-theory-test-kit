@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
 import MockExamScreen from './src/components/MockExamScreen';
+import QuestionIllustration from './src/components/QuestionIllustration';
 import FlashcardsScreen from './src/components/FlashcardsScreen';
 import QuestionSearchScreen from './src/components/QuestionSearchScreen';
 import RoadSignsScreen from './src/components/RoadSignsScreen';
@@ -407,6 +408,7 @@ function AppContent() {
                       </Pressable>
                     </View>
                     <Text style={styles.questionPrompt}>{currentQuestion.prompt}</Text>
+                     <QuestionIllustration question={currentQuestion} />
                     {currentQuestion.options.map((option, index) => {
                       const isChosen = selectedAnswer === index;
                       const isCorrectOption = selectedAnswer !== null && index === currentQuestion.correctIndex;
