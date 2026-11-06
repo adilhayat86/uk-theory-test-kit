@@ -255,11 +255,11 @@ function AppContent() {
       <StatusBar style="dark" />
       <View style={styles.appShell}>
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerCopy}>
             <Text style={styles.headerEyebrow}>INDEPENDENT UK CAR THEORY PRACTICE</Text>
             <Text style={styles.headerTitle}>Theory Test Kit</Text>
           </View>
-          <View style={styles.headerMark}><Text style={styles.headerMarkText}>UK</Text></View>
+          <View style={styles.headerMark} accessible={false}><Text allowFontScaling={false} style={styles.headerMarkText}>UK</Text></View>
         </View>
 
         {storageMessage ? (
@@ -614,9 +614,10 @@ const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F7FB' },
   loadingText: { color: colors.muted, marginTop: 12, fontSize: 13 },
   header: { backgroundColor: '#FFFFFF', paddingHorizontal: 22, paddingTop: 10, paddingBottom: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: colors.border },
+  headerCopy: { flex: 1, minWidth: 0, marginRight: 12 },
   headerEyebrow: { color: colors.blue, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
   headerTitle: { color: colors.ink, fontSize: 23, fontWeight: '800', marginTop: 4 },
-  headerMark: { width: 42, height: 42, borderRadius: 14, backgroundColor: colors.paleBlue, alignItems: 'center', justifyContent: 'center' },
+  headerMark: { flexShrink: 0, width: 42, height: 42, borderRadius: 14, backgroundColor: colors.paleBlue, alignItems: 'center', justifyContent: 'center' },
   headerMarkText: { color: colors.blue, fontSize: 14, fontWeight: '900' },
   notice: { marginHorizontal: 16, marginTop: 10, padding: 12, backgroundColor: '#FFF7E6', borderRadius: 12, borderWidth: 1, borderColor: '#F3D89E' },
   noticeText: { color: '#795A1A', fontSize: 12, lineHeight: 17 },
