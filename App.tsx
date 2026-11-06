@@ -590,7 +590,7 @@ function NavItem({ label, icon, active, onPress }: { label: string; icon: string
   );
 }
 
-function App() {
+export default function App() {
   return (
     <SafeAreaProvider>
       <AppContent />
