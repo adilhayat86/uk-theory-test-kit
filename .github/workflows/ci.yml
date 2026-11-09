@@ -41,6 +41,8 @@ jobs:
     name: Export Android and iOS JavaScript bundles
     runs-on: ubuntu-24.04
     needs: quality
+    env:
+      EXPO_PUBLIC_IMAGE_REVIEW: 'false'
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -54,6 +56,16 @@ jobs:
         run: npm run export:android
       - name: Export iOS bundle
         run: npm run export:ios
+      - name: Verify learner exports exclude draft artwork
+        run: |
+          node scripts/check-export-assets.cjs dist/android android learner
+          node scripts/check-export-assets.cjs dist/ios ios learner
+      - name: Export internal offline artwork review bundle
+        env:
+          EXPO_PUBLIC_IMAGE_REVIEW: 'true'
+        run: npx expo export --platform android --output-dir dist/android-artwork-review --clear
+      - name: Verify all draft artwork is available offline for review
+        run: node scripts/check-export-assets.cjs dist/android-artwork-review android review
       - name: Upload bundles
         uses: actions/upload-artifact@v4
         with:

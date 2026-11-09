@@ -53,4 +53,21 @@ These references establish intended meanings, not certification of the artwork's
 
 Automated integrity tests cover source paths, PNG dimensions, hashes, duplicate bytes, pending tracker rows, separation from scored questions, original image metadata and hidden quiz captions. Android Metro export must include 130 local image assets (121 drafts plus nine existing diagrams) in an artwork-review build.
 
+The continuation found that a hidden review menu still pulled all draft masters
+into ordinary exports through its static import. Metro now substitutes an empty
+review component for production learner builds. Explicit review builds and
+development retain the full reviewer. The export verifier checks actual asset
+hashes: all original learner diagrams must remain, all drafts must be absent in
+learner exports, and all drafts must be present in review exports. CI runs both
+Android modes plus the iOS learner export. The original master files, manifests,
+question records and SQLite formats are unchanged.
+
+Local continuation verification: TypeScript and all 53 tests pass. Android and
+iOS learner exports each contain nine PNGs (0.39 MiB); the Android review export
+contains 130 PNGs (146.18 MiB). All three pass packaged-byte verification. These
+are JavaScript/asset export results, not native APK or physical-device results.
+The branch upload was blocked by automatic approval review pending explicit
+permission to upload the source and draft pack to the GitHub repository, so CI
+for this branch and its standalone APK are not yet verified.
+
 Native Android airplane-mode cold start, all-image browsing, force-stop/resume, TalkBack, 200% fonts and low-memory QA must be repeated on the new build. Earlier device results apply to the older APK. This environment does not have a connected Android phone. CI builds provide a release-mode device-test APK; production signing and commercial release remain separate work.

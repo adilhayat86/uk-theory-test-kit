@@ -133,5 +133,21 @@ loads one draft at a time and supports description/category/ID search. Ordinary
 release navigation hides this entry. Do not enable it for a commercial build.
 
 The full-resolution review pack adds approximately 146 MiB of PNG masters to
-an artwork-review bundle. Produce optimised device derivatives after editorial
+an artwork-review bundle. Ordinary production exports replace the review screen
+at Metro resolution time and exclude all 121 draft masters; merely hiding a
+menu does not exclude its imported assets. The existing nine learner diagrams
+remain packaged. Restart Metro when changing `EXPO_PUBLIC_IMAGE_REVIEW`.
+
+Verify both packaging modes locally:
+
+```bash
+EXPO_PUBLIC_IMAGE_REVIEW=false npx expo export --platform android --output-dir dist/android --clear
+node scripts/check-export-assets.cjs dist/android android learner
+EXPO_PUBLIC_IMAGE_REVIEW=true npx expo export --platform android --output-dir dist/android-artwork-review --clear
+node scripts/check-export-assets.cjs dist/android-artwork-review android review
+```
+
+CI checks Android/iOS learner exports and the Android artwork-review export
+against the actual packaged PNG hashes. The standalone internal device-test APK
+enables artwork review; it is a QA build. Produce optimised device derivatives after editorial
 approval; retain the master checksums. No runtime network downloads are used.

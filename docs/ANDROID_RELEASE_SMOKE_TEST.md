@@ -10,8 +10,10 @@ one lower-memory Android model.
 ## Before testing
 
 1. Use the exact final Git SHA. Download the GitHub Actions
-   `android-debug-apk` artifact (development testing only).
-2. Install the debug APK and note the Android OS version, device model,
+   `android-offline-test-apk` artifact (standalone internal QA build).
+   The `android-debug-apk` artifact requires Metro and is unsuitable for
+   airplane-mode cold-start testing.
+2. Install the standalone APK and note the Android OS version, device model,
    installation method, app version and Git SHA.
 3. Leave mobile data and Wi-Fi **disabled** during offline tests.
 4. Do not claim test success without the device action and observed result.
@@ -36,6 +38,10 @@ one lower-memory Android model.
 - [ ] Start 5-question timed mini-test, flag and answer, background/force-stop,
       resume and verify clock and answers, then submit.
 - [ ] All features above work with airplane mode and no login.
+- [ ] Internal QA build: Home → Artwork review shows all 121 pending images
+      offline; search and Previous/Next work without changing saved practice.
+- [ ] Ordinary learner build: Artwork review is hidden and export verification
+      confirms draft masters are excluded while existing diagrams remain.
 - [ ] Android system Back from a nested screen returns to study menu;
       system Back from Home exits normally.
 - [ ] Increase system font scaling to 200%, verify answer texts and actions
