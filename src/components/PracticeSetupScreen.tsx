@@ -73,18 +73,18 @@ export default function PracticeSetupScreen({ records, savedIds, initialTopic, o
 }
 
 const styles = StyleSheet.create({
-  title: { color: '#14233B', fontSize: 26, fontWeight: '900', marginTop: 8 },
-  heading: { color: '#14233B', fontSize: 17, fontWeight: '800', marginBottom: 8, marginTop: 6 },
+  title: { color: '#132B3A', fontSize: 26, fontWeight: '900', marginTop: 8 },
+  heading: { color: '#132B3A', fontSize: 17, fontWeight: '800', marginBottom: 8, marginTop: 6 },
   length: { flex: 1, minHeight: 44, padding: 11, alignItems: 'center', borderWidth: 1, borderColor: '#CBD6E6', borderRadius: 12, backgroundColor: '#FFFFFF' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   chip: { borderWidth: 1, borderColor: '#CBD6E6', borderRadius: 22, backgroundColor: '#FFFFFF', paddingHorizontal: 14, paddingVertical: 12, minHeight: 46 },
   chipText: { color: '#40516A', fontWeight: '700', fontSize: 13 },
-  selected: { borderColor: '#2456C7', backgroundColor: '#EDF3FF' },
-  activeText: { color: '#2456C7' },
-  summary: { backgroundColor: '#142B55', borderRadius: 16, padding: 16, marginTop: 2 },
+  selected: { borderColor: '#087E8B', backgroundColor: '#E6F5F3' },
+  activeText: { color: '#087E8B' },
+  summary: { backgroundColor: '#132B3A', borderRadius: 16, padding: 16, marginTop: 2 },
   summaryTitle: { color: '#FFFFFF', fontWeight: '800', fontSize: 21 },
-  summaryBody: { color: '#D5DFF2', fontSize: 13, lineHeight: 20, marginTop: 6 },
-  primary: { minHeight: 50, borderRadius: 13, backgroundColor: '#2456C7', alignItems: 'center', justifyContent: 'center', padding: 14, marginTop: 15 },
+  summaryBody: { color: '#D6E9E6', fontSize: 13, lineHeight: 20, marginTop: 6 },
+  primary: { minHeight: 50, borderRadius: 13, backgroundColor: '#087E8B', alignItems: 'center', justifyContent: 'center', padding: 14, marginTop: 15 },
   primaryText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   disabled: { opacity: 0.45 }
 });

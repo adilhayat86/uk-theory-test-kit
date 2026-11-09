@@ -84,24 +84,24 @@ export default function FlashcardsScreen({ onPractise, onPageChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: { color: '#14233B', fontWeight: '900', fontSize: 25, marginTop: 8 },
+  title: { color: '#132B3A', fontWeight: '900', fontSize: 25, marginTop: 8 },
   subtitle: { color: '#66758B', fontSize: 13, lineHeight: 19, marginTop: 8, marginBottom: 14 },
-  card: { borderWidth: 1, borderColor: '#E4EAF2', borderRadius: 18, backgroundColor: '#FFFFFF', padding: 20 },
-  counter: { color: '#2456C7', fontWeight: '900', fontSize: 10, letterSpacing: 0.7 },
-  prompt: { color: '#14233B', fontWeight: '800', fontSize: 22, lineHeight: 30, marginTop: 16, marginBottom: 16 },
+  card: { borderWidth: 1, borderColor: '#DFE8E6', borderRadius: 18, backgroundColor: '#FFFFFF', padding: 20 },
+  counter: { color: '#087E8B', fontWeight: '900', fontSize: 10, letterSpacing: 0.7 },
+  prompt: { color: '#132B3A', fontWeight: '800', fontSize: 22, lineHeight: 30, marginTop: 16, marginBottom: 16 },
   hint: { color: '#66758B', fontStyle: 'italic', fontSize: 13, marginBottom: 10 },
   answer: { backgroundColor: '#F1F8F5', padding: 15, borderRadius: 12, marginBottom: 10 },
   answerLabel: { color: '#16834A', fontWeight: '900', fontSize: 10 },
-  answerText: { color: '#14233B', fontWeight: '800', fontSize: 17, marginTop: 8, lineHeight: 24 },
+  answerText: { color: '#132B3A', fontWeight: '800', fontSize: 17, marginTop: 8, lineHeight: 24 },
   explanation: { color: '#40516A', fontSize: 13, lineHeight: 19, marginTop: 10 },
   source: { color: '#66758B', fontSize: 11, marginTop: 10 },
-  primary: { backgroundColor: '#2456C7', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 10, minHeight: 48 },
+  primary: { backgroundColor: '#087E8B', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 10, minHeight: 48 },
   primaryText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   navigation: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  navButton: { flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 12, backgroundColor: '#EAF1FF' },
-  navText: { color: '#2456C7', fontWeight: '800', fontSize: 13 },
+  navButton: { flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 12, backgroundColor: '#E6F5F3' },
+  navText: { color: '#087E8B', fontWeight: '800', fontSize: 13 },
   disabled: { opacity: 0.4 },
   secondary: { paddingVertical: 14, alignItems: 'center', marginTop: 10 },
-  secondaryText: { color: '#2456C7', fontWeight: '800', fontSize: 13 },
+  secondaryText: { color: '#087E8B', fontWeight: '800', fontSize: 13 },
   disclaimer: { textAlign: 'center', color: '#66758B', fontSize: 11, marginTop: 2 }
 });

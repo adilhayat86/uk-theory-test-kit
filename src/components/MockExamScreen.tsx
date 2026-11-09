@@ -137,7 +137,7 @@ export default function MockExamScreen() {
   }
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator color="#2256C9" /><Text style={styles.dim}>Loading your saved mock…</Text></View>;
+    return <View style={styles.center}><ActivityIndicator color="#087E8B" /><Text style={styles.dim}>Loading your saved mock…</Text></View>;
   }
 
   const currentId = session?.questionIds[session.currentIndex];
@@ -299,20 +299,20 @@ const styles = StyleSheet.create({
   root: { paddingBottom: 24 },
   center: { alignItems: 'center', padding: 36, gap: 8 },
   headingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  link: { color: '#2456C7', fontWeight: '800', fontSize: 13 },
-  eyebrow: { color: '#2456C7', fontWeight: '900', fontSize: 10, letterSpacing: 1 },
-  title: { color: '#14233B', fontSize: 25, fontWeight: '900', marginBottom: 8 },
+  link: { color: '#087E8B', fontWeight: '800', fontSize: 13 },
+  eyebrow: { color: '#087E8B', fontWeight: '900', fontSize: 10, letterSpacing: 1 },
+  title: { color: '#132B3A', fontSize: 25, fontWeight: '900', marginBottom: 8 },
   body: { color: '#4D5C70', fontSize: 14, lineHeight: 21, marginTop: 5 },
   dim: { color: '#6B7788', fontSize: 12, marginTop: 4 },
   note: { color: '#71819A', fontSize: 12, lineHeight: 18, marginTop: 12 },
   warning: { padding: 12, backgroundColor: '#FFF5E6', color: '#895B1F', borderRadius: 12, marginVertical: 8, fontSize: 13, lineHeight: 19 },
   info: { marginTop: 18, backgroundColor: 'white', padding: 18, borderRadius: 18, borderColor: '#E1E8F1', borderWidth: 1 },
-  infoTitle: { color: '#14233B', fontSize: 18, fontWeight: '900' },
-  sectionTitle: { color: '#14233B', fontWeight: '900', fontSize: 17, marginTop: 24, marginBottom: 12 },
-  primary: { backgroundColor: '#2456C7', borderRadius: 12, minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16, marginTop: 15 },
+  infoTitle: { color: '#132B3A', fontSize: 18, fontWeight: '900' },
+  sectionTitle: { color: '#132B3A', fontWeight: '900', fontSize: 17, marginTop: 24, marginBottom: 12 },
+  primary: { backgroundColor: '#087E8B', borderRadius: 12, minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16, marginTop: 15 },
   primaryText: { color: 'white', fontSize: 14, fontWeight: '800', textAlign: 'center' },
   secondary: { backgroundColor: '#E9EFFB', borderRadius: 12, minHeight: 42, paddingHorizontal: 15, justifyContent: 'center', alignItems: 'center', flex: 1 },
-  secondaryText: { color: '#2456C7', fontSize: 13, fontWeight: '800', textAlign: 'center' },
+  secondaryText: { color: '#087E8B', fontSize: 13, fontWeight: '800', textAlign: 'center' },
   disabled: { opacity: 0.4 },
   timerCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: '#E9F0FD', borderRadius: 16 },
   timerRight: { alignItems: 'flex-end' },
@@ -321,11 +321,11 @@ const styles = StyleSheet.create({
   timerDanger: { color: '#C73236' },
   questionCard: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 18, marginTop: 15, borderWidth: 1, borderColor: '#E1E8F1' },
   inline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  topic: { color: '#2456C7', fontWeight: '900', fontSize: 10, flexShrink: 1 },
+  topic: { color: '#087E8B', fontWeight: '900', fontSize: 10, flexShrink: 1 },
   number: { color: '#72819C', fontSize: 11, fontWeight: '900', marginTop: 14, marginBottom: 7 },
-  prompt: { color: '#14233B', fontSize: 19, lineHeight: 26, fontWeight: '800', marginBottom: 15 },
+  prompt: { color: '#132B3A', fontSize: 19, lineHeight: 26, fontWeight: '800', marginBottom: 15 },
   option: { flexDirection: 'row', padding: 14, borderWidth: 1, borderColor: '#E1E8F1', borderRadius: 12, marginBottom: 10, gap: 12, alignItems: 'center' },
-  optionSelected: { borderColor: '#2456C7', backgroundColor: '#EAF0FF' },
+  optionSelected: { borderColor: '#087E8B', backgroundColor: '#EAF0FF' },
   optionLetter: { color: '#64748B', fontSize: 13, fontWeight: '900' },
   optionText: { flex: 1, fontSize: 14, lineHeight: 20, color: '#35485F' },
   selectedText: { color: '#1945A7', fontWeight: '800' },
@@ -333,18 +333,18 @@ const styles = StyleSheet.create({
   questionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   questionChip: { width: 47, height: 44, borderRadius: 10, borderWidth: 1, borderColor: '#D4DEEA', backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
   answeredChip: { borderColor: '#7EB69A', backgroundColor: '#EDF9F2' },
-  activeChip: { borderColor: '#2456C7', backgroundColor: '#2456C7' },
+  activeChip: { borderColor: '#087E8B', backgroundColor: '#087E8B' },
   chipText: { color: '#415571', fontSize: 12, fontWeight: '800' },
   activeChipText: { color: 'white' },
   discardButton: { padding: 15, alignItems: 'center', marginTop: 6 },
   discardText: { color: '#B9414D', fontSize: 13, fontWeight: '800' },
   resultCard: { backgroundColor: 'white', borderWidth: 1, borderColor: '#E1E8F1', borderRadius: 18, padding: 22 },
-  resultValue: { color: '#2456C7', fontSize: 48, fontWeight: '900', marginTop: 8 },
+  resultValue: { color: '#087E8B', fontSize: 48, fontWeight: '900', marginTop: 8 },
   reviewCard: { padding: 15, backgroundColor: '#FFFFFF', borderRadius: 13, marginBottom: 12, borderColor: '#E1E8F1', borderWidth: 1 },
-  reviewPrompt: { color: '#14233B', fontSize: 15, fontWeight: '800', lineHeight: 22 },
+  reviewPrompt: { color: '#132B3A', fontSize: 15, fontWeight: '800', lineHeight: 22 },
   correctAnswer: { color: '#167448', fontWeight: '800', fontSize: 13, lineHeight: 19, marginTop: 8 },
   reference: { color: '#7F8FA6', fontSize: 11, marginTop: 7, fontWeight: '700' },
   historyItem: { padding: 14, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E1E8F1', marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   historyTitle: { color: '#1F2E49', fontWeight: '800', fontSize: 13 },
-  historyScore: { color: '#2456C7', fontWeight: '900', fontSize: 18 }
+  historyScore: { color: '#087E8B', fontWeight: '900', fontSize: 18 }
 });

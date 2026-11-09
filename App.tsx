@@ -4,6 +4,7 @@ import {
   Alert,
   BackHandler,
   Keyboard,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +14,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
+import { brandAssets } from './src/data/brandAssets';
 import HomeScreen from './src/components/HomeScreen';
 import BottomNavigation from './src/components/BottomNavigation';
 import { activeRoot, initialNavigation, navigationReducer, previousScreen, screenTitles } from './src/domain/navigation';
@@ -285,6 +287,7 @@ function AppContent() {
       <StatusBar style="dark" />
       <View style={styles.appShell}>
         <View style={styles.header}>
+          <Image accessible={false} source={brandAssets['brand-mark']} style={styles.brandMark} />
           <View style={styles.headerCopy}>
             <Text style={styles.headerEyebrow}>GB CAR THEORY · OFFLINE</Text>
             <Text style={styles.headerTitle}>Theory Test Kit</Text>
@@ -515,35 +518,36 @@ export default function App() {
 }
 
 const colors = {
-  ink: '#14233B',
+  ink: '#132B3A',
   muted: '#66758B',
-  blue: '#2456C7',
-  paleBlue: '#EDF3FF',
-  border: '#E4EAF2',
+  blue: '#087E8B',
+  paleBlue: '#E6F5F3',
+  border: '#DFE8E6',
   green: '#16834A',
   red: '#C23B42',
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F5F7FB' },
-  appShell: { flex: 1, backgroundColor: '#F5F7FB' },
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F7FB' },
+  safeArea: { flex: 1, backgroundColor: '#F4F7F6' },
+  appShell: { flex: 1, backgroundColor: '#F4F7F6' },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F7F6' },
   loadingText: { color: colors.muted, marginTop: 12, fontSize: 13 },
   header: { backgroundColor: '#FFFFFF', paddingHorizontal: 18, paddingTop: 8, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: colors.border },
+  brandMark: { width: 38, height: 38, marginRight: 10, borderRadius: 11 },
   headerCopy: { flex: 1, minWidth: 0, marginRight: 12 },
   headerEyebrow: { color: colors.blue, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
   headerTitle: { color: colors.ink, fontSize: 18, fontWeight: '800', marginTop: 3 },
   notice: { marginHorizontal: 16, marginTop: 10, padding: 12, backgroundColor: '#FFF7E6', borderRadius: 12, borderWidth: 1, borderColor: '#F3D89E' },
   noticeText: { color: '#795A1A', fontSize: 12, lineHeight: 17 },
   noticeDismiss: { color: '#795A1A', fontWeight: '800', fontSize: 11, marginTop: 5 },
-  headerSearch: { minHeight: 44, minWidth: 60, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EDF3FF', borderRadius: 13 },
-  backBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderColor: '#E4EAF2', gap: 12 },
+  headerSearch: { minHeight: 44, minWidth: 60, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E6F5F3', borderRadius: 13 },
+  backBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderColor: '#DFE8E6', gap: 12 },
   globalBack: { minHeight: 44, justifyContent: 'center', paddingRight: 15 },
   breadcrumb: { color: colors.muted, fontSize: 11, flexShrink: 1 },
   screen: { flex: 1 },
   hiddenScreen: { display: 'none' },
   toolLinks: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  toolLink: { flex: 1, minHeight: 48, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF2', padding: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  toolLink: { flex: 1, minHeight: 48, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DFE8E6', padding: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { padding: 16, paddingBottom: 24 },
   primaryButton: { backgroundColor: colors.blue, borderRadius: 13, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, marginTop: 12 },
   primaryButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
@@ -556,7 +560,7 @@ const styles = StyleSheet.create({
   practiceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   backText: { color: colors.blue, fontSize: 13, fontWeight: '800' },
   practiceCounter: { color: colors.muted, fontSize: 10, letterSpacing: 0.8, fontWeight: '900' },
-  progressTrack: { height: 6, backgroundColor: '#E0E7F2', borderRadius: 5, overflow: 'hidden', marginBottom: 16 },
+  progressTrack: { height: 6, backgroundColor: '#DFE8E6', borderRadius: 5, overflow: 'hidden', marginBottom: 16 },
   progressFill: { height: 6, backgroundColor: colors.blue, borderRadius: 5 },
   questionCard: { backgroundColor: '#FFFFFF', padding: 18, borderRadius: 20, borderWidth: 1, borderColor: colors.border },
   questionMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
@@ -587,9 +591,9 @@ const styles = StyleSheet.create({
   savedQuestionTopic: { color: colors.blue, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   savedQuestionPrompt: { color: colors.ink, fontSize: 14, lineHeight: 20, fontWeight: '700', marginTop: 8 },
   removeSaved: { color: colors.red, fontSize: 11, fontWeight: '800', marginTop: 12 },
-  progressHero: { backgroundColor: '#142B55', borderRadius: 20, padding: 22, alignItems: 'center', marginBottom: 14 },
+  progressHero: { backgroundColor: '#132B3A', borderRadius: 20, padding: 22, alignItems: 'center', marginBottom: 14 },
   progressHeroValue: { color: '#FFFFFF', fontSize: 42, fontWeight: '900' },
-  progressHeroLabel: { color: '#D5DFF2', fontSize: 12, marginTop: 3 },
+  progressHeroLabel: { color: '#D6E9E6', fontSize: 12, marginTop: 3 },
   infoCard: { borderWidth: 1, borderColor: colors.border, borderRadius: 15, padding: 15, backgroundColor: '#FFFFFF', marginBottom: 8 },
   infoTitle: { color: colors.ink, fontSize: 14, fontWeight: '800' },
   infoBody: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 6 },
