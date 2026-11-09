@@ -17,13 +17,19 @@ const pngs = exported.assets.filter((asset) => asset.ext === 'png');
 const hashes = new Set(pngs.map((asset) => hash(fs.readFileSync(path.join(directory, asset.path)))));
 
 // Verify actual packaged bytes, rather than trusting a hidden menu or flag.
-const originalNames = fs.readdirSync(path.join(root, 'src/assets')).filter((name) => name.endsWith('.png'));
-for (const name of originalNames) {
-  assert(hashes.has(hash(fs.readFileSync(path.join(root, 'src/assets', name)))), `Missing learner diagram: ${name}`);
+for (const registry of ['illustrationAssets.ts', 'dftSignAssets.ts', 'teachingImages.ts']) {
+  const file = path.join(root, 'src/data', registry);
+  const requires = fs.readFileSync(file, 'utf8').matchAll(/require\(['"]([^'"]+\.png)['"]\)/g);
+  for (const [, relative] of requires) {
+    assert(hashes.has(hash(fs.readFileSync(path.resolve(path.dirname(file), relative)))),
+      `Missing learner illustration: ${relative}`);
+  }
 }
+const selectedDraftIds = new Set(require('../src/assets/illustrations-v2/learner-selection.json').assetIds);
 for (const asset of manifest.assets) {
-  assert.equal(hashes.has(asset.sha256), mode === 'review',
-    mode === 'review' ? `Missing offline review image: ${asset.id}` : `Draft artwork leaked into learner build: ${asset.id}`);
+  const expected = mode === 'review' || selectedDraftIds.has(asset.id);
+  assert.equal(hashes.has(asset.sha256), expected,
+    expected ? `Missing offline image: ${asset.id}` : `Unselected artwork leaked into learner build: ${asset.id}`);
 }
 const imageBytes = pngs.reduce((sum, asset) => sum + fs.statSync(path.join(directory, asset.path)).size, 0);
 console.log(`${platform} ${mode}: ${pngs.length} packaged PNGs, ${(imageBytes / 1024 / 1024).toFixed(2)} MiB; artwork separation verified.`);

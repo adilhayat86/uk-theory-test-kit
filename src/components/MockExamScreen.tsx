@@ -6,7 +6,7 @@ import { questions } from '../data/questions';
 import QuestionIllustration from './QuestionIllustration';
 import {
   answerQuestion, beginMock, finishMock, flagQuestion, formattedTimeLeft,
-  fullMockReadiness, goToQuestion, isExpired, timeLeftMs,
+  goToQuestion, isExpired, timeLeftMs,
 } from '../domain/mockExam';
 import type { FinishReason, MockResult, MockSession, MockMode } from '../domain/mockExam';
 import {
@@ -26,10 +26,7 @@ export default function MockExamScreen({ onBack }: Props) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const submitting = useRef(false);
-  const readiness = fullMockReadiness(questions);
-  // Do not unlock a full mock until an actual offline video player is implemented.
-  const videoCaseStudyPlayerReady = false;
-  const fullMockCanStart = readiness.eligible && videoCaseStudyPlayerReady;
+
 
   useEffect(() => {
     let mounted = true;
@@ -154,32 +151,23 @@ export default function MockExamScreen({ onBack }: Props) {
         <Pressable accessibilityRole="button" onPress={onBack} style={styles.back}>
           <Text style={styles.link}>‹  Home</Text>
         </Pressable>
-        <Text style={styles.eyebrow}>OFFLINE MOCK EXAMS</Text>
+        <Text style={styles.eyebrow}>OFFLINE TIMED PRACTICE</Text>
       </View>
       {message ? <Text style={styles.warning}>{message}</Text> : null}
 
       {!session && !result ? (
         <>
-          <Text style={styles.title}>Timed mock practice</Text>
+          <Text style={styles.title}>Timed practice</Text>
           <Text style={styles.body}>Practise answering under time pressure. Answers can be reviewed and changed, questions can be flagged, and your session is saved locally.</Text>
           <View style={styles.info}>
-            <Text style={styles.infoTitle}>Sample timed mock</Text>
+            <Text style={styles.infoTitle}>A short timed session</Text>
             <Text style={styles.body}>5 original questions · 6 minutes · saved results</Text>
             <Text style={styles.note}>This short sample does not predict a pass in the official exam.</Text>
             <Pressable accessibilityRole="button" disabled={busy} style={styles.primary} onPress={() => { void start('sample'); }}>
-              <Text style={styles.primaryText}>Start 5-question sample</Text>
+              <Text style={styles.primaryText}>Start 5-question timed practice</Text>
             </Pressable>
           </View>
-          <View style={styles.info}>
-            <Text style={styles.infoTitle}>Full GB car theory mock</Text>
-            <Text style={styles.body}>50 questions · 57 minutes · 43/50 pass mark · video case study</Text>
-            <Text style={styles.note}>{fullMockCanStart
-              ? 'All content and playback requirements are met.'
-              : `Locked until 50 reviewed questions, locally playable video case study and video playback are included. Current bank: ${readiness.questionCount} questions.`}</Text>
-            <Pressable accessibilityRole="button" disabled={!fullMockCanStart || busy} style={[styles.primary, !fullMockCanStart && styles.disabled]} onPress={() => { void start('full'); }}>
-              <Text style={styles.primaryText}>{fullMockCanStart ? 'Start full mock' : 'Full mock not yet available'}</Text>
-            </Pressable>
-          </View>
+          <Text style={styles.note}>This MVP includes short revision sessions. A full official-style mock and hazard-perception videos are not included.</Text>
           {history.length > 0 ? (
             <>
               <Text style={styles.sectionTitle}>Previous attempts</Text>

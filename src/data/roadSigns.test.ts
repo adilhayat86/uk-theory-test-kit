@@ -1,4 +1,13 @@
 import { findRoadSignFacts, roadSignFacts, roadSignCategories } from './roadSigns';
+import { illustrationAssets } from './illustrationAssets';
+
+test('every study note has a bundled sign illustration', () => {
+  expect(roadSignFacts).toHaveLength(30);
+  for (const item of roadSignFacts) {
+    expect(item.imageAssetId).toBeTruthy();
+    expect(illustrationAssets[item.imageAssetId!].source).toBeDefined();
+  }
+});
 
 test('sign IDs and quiz choices are valid and unique', () => {
   expect(new Set(roadSignFacts.map((item) => item.id)).size).toBe(roadSignFacts.length);

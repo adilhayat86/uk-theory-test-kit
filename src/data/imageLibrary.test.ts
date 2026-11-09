@@ -6,6 +6,7 @@ import manifest from '../assets/illustrations-v2/image-manifest.json';
 import { draftImageSources } from './draftImageSources';
 import { illustrationAssets, illustrationPresentation } from './illustrationAssets';
 import { questions } from './questions';
+import dftSources from '../assets/dft-signs/sources.json';
 
 const root = join(__dirname, '../assets/illustrations-v2');
 
@@ -24,7 +25,7 @@ test('all 121 imported images have unique IDs, bytes, static sources and matchin
   }
 });
 
-test('drafts retain pending tracker rows and cannot enter the question image registry', () => {
+test('drafts retain pending tracker rows and are not assigned directly to the question bank', () => {
   expect(manifest.readyForRelease).toBe(false);
   const tracker = readFileSync(join(root, 'image-review-tracker.csv'), 'utf8');
   const registry = readFileSync(join(__dirname, 'draftImageSources.ts'), 'utf8');
@@ -50,9 +51,26 @@ test('question captions never expose sign meanings, while review and learning ca
   expect(illustrationPresentation('no-entry', 'question').accessibilityLabel).not.toMatch(/no entry/i);
 });
 
-test('original diagram dimensions describe the actual files', () => {
-  for (const [id, asset] of Object.entries(illustrationAssets)) {
-    const bytes = readFileSync(join(__dirname, `../assets/${id}.png`));
-    expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([asset.width, asset.height]);
+test('static illustration dimensions describe the actual PNG files', () => {
+  for (const registry of ['illustrationAssets.ts', 'dftSignAssets.ts', 'teachingImages.ts']) {
+    const code = readFileSync(join(__dirname, registry), 'utf8');
+    const entries = [...code.matchAll(/require\(['"]([^'"]+\.png)['"]\).*?width: (\d+), height: (\d+)/g)];
+    expect(entries.length).toBeGreaterThan(0);
+    for (const [, file, width, height] of entries) {
+      const bytes = readFileSync(join(__dirname, file));
+      expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([Number(width), Number(height)]);
+    }
+  }
+});
+
+test('DfT artwork retains source, licence and hashes for both vectors and raster images', () => {
+  expect(dftSources.assets).toHaveLength(30);
+  expect(dftSources.licenceUrl).toContain('open-government-licence/version/3');
+  for (const item of dftSources.assets) {
+    expect(item.sourceUrl).toMatch(/^https:\/\/www.gov.uk\//);
+    for (const [extension, digest] of [['svg', item.svgSha256], ['png', item.pngSha256]]) {
+      const bytes = readFileSync(join(__dirname, '../assets/dft-signs', item.id + '.' + extension));
+      expect(createHash('sha256').update(bytes).digest('hex')).toBe(digest);
+    }
   }
 });

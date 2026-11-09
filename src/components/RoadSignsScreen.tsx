@@ -1,18 +1,26 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   findRoadSignFacts, roadSignCategories, roadSignFacts,
 } from '../data/roadSigns';
 import type { RoadSignCategory } from '../data/roadSigns';
 import { Illustration } from './QuestionIllustration';
+import { illustrationAssets } from '../data/illustrationAssets';
 import { getSavedSignIds, toggleSavedSign } from '../storage/database';
 
 type Mode = 'learn' | 'saved' | 'quiz';
-type Props = { onBack: () => void };
+type Props = { onBack: () => void; onPageChange: () => void };
 
-const practiceFacts = roadSignFacts.slice(0, 12);
+function newQuiz() {
+  const pool = [...roadSignFacts];
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 10);
+}
 
-export default function RoadSignsScreen({ onBack }: Props) {
+export default function RoadSignsScreen({ onBack, onPageChange }: Props) {
   const [mode, setMode] = useState<Mode>('learn');
   const [category, setCategory] = useState<RoadSignCategory | undefined>();
   const [query, setQuery] = useState('');
@@ -21,6 +29,8 @@ export default function RoadSignsScreen({ onBack }: Props) {
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState<number | null>(null);
   const [correct, setCorrect] = useState(0);
+  const [practiceFacts, setPracticeFacts] = useState(newQuiz);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const saving = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -52,10 +62,12 @@ export default function RoadSignsScreen({ onBack }: Props) {
   }
 
   function selectMode(next: Mode) {
+    onPageChange();
     setMode(next);
     setCategory(undefined);
     setQuery('');
     if (next === 'quiz') {
+      setPracticeFacts(newQuiz());
       setIndex(0);
       setAnswer(null);
       setCorrect(0);
@@ -75,8 +87,8 @@ export default function RoadSignsScreen({ onBack }: Props) {
         <Text style={styles.link}>‹ Home</Text>
       </Pressable>
       <Text style={styles.title}>Road signs</Text>
-      <Text style={styles.subtitle}>Original GB sign notes with selected teaching illustrations.
-        Practise visual sign recognition in Theory Revision.</Text>
+      <Text style={styles.subtitle}>{roadSignFacts.length} illustrated GB sign notes. Tap a card to learn the meaning,
+        then try a 10-question recognition quiz. Available offline.</Text>
       <View style={styles.modeRow}>
         {([
           ['learn', 'Categories & search'],
@@ -96,8 +108,10 @@ export default function RoadSignsScreen({ onBack }: Props) {
       {mode === 'quiz' ? (
         current ? (
           <View style={styles.card}>
-            <Text style={styles.eyebrow}>TEXT-BASED QUIZ · {index + 1} OF {practiceFacts.length}</Text>
+            <Text style={styles.eyebrow}>SIGN RECOGNITION · {index + 1} OF {practiceFacts.length}</Text>
             <Text style={styles.quizQuestion}>{current.quiz.prompt}</Text>
+            {current.imageAssetId ? <Illustration assetId={current.imageAssetId}
+              context={answer === null ? 'question' : 'review'} /> : null}
             {current.quiz.answers.map((option, choice) => (
               <Pressable key={option} accessibilityRole="button"
                 disabled={answer !== null} accessibilityState={{ disabled: answer !== null }}
@@ -118,6 +132,7 @@ export default function RoadSignsScreen({ onBack }: Props) {
                   <Pressable accessibilityRole="button" style={styles.primary} onPress={() => {
                     setIndex((value) => value + 1);
                     setAnswer(null);
+                    onPageChange();
                   }}>
                     <Text style={styles.primaryText}>Next question ›</Text>
                   </Pressable>
@@ -153,10 +168,16 @@ export default function RoadSignsScreen({ onBack }: Props) {
           ) : filtered.map((item) => (
             <View key={item.id} style={styles.card}>
               <View style={styles.cardHeader}>
-                <View style={styles.cardTitleWrap}>
+                <Pressable accessibilityRole="button" accessibilityLabel={'Learn about ' + item.title}
+                  accessibilityState={{ expanded: expandedId === item.id }}
+                  onPress={() => setExpandedId((previous) => previous === item.id ? null : item.id)}
+                  style={styles.cardTitleWrap}>
+                  {item.imageAssetId ? <Image source={illustrationAssets[item.imageAssetId].source}
+                    style={styles.thumbnail} resizeMode="contain" accessible={false} /> : null}
                   <Text style={styles.eyebrow}>{item.category.toUpperCase()}</Text>
                   <Text style={styles.cardTitle}>{item.title}</Text>
-                </View>
+                  <Text style={styles.expandHint}>{expandedId === item.id ? 'Close details ‹' : 'Learn this sign ›'}</Text>
+                </Pressable>
                 <Pressable accessibilityRole="button"
                   accessibilityLabel={saved.includes(item.id) ? 'Unsave ' + item.title : 'Save ' + item.title}
                   onPress={() => { void toggleSaved(item.id); }}
@@ -164,16 +185,20 @@ export default function RoadSignsScreen({ onBack }: Props) {
                   <Text style={styles.link}>{saved.includes(item.id) ? '★ Saved' : '☆ Save'}</Text>
                 </Pressable>
               </View>
-              <Text style={styles.description}>{item.description}</Text>
-              {item.imageAssetId ? <Illustration assetId={item.imageAssetId} context="learn" /> : null}
-              <Text style={styles.takeaway}>{item.takeaway}</Text>
-              <Text style={styles.reference}>{item.reference}</Text>
+              {expandedId === item.id ? <>
+                {item.imageAssetId ? <Illustration assetId={item.imageAssetId} context="learn" /> : null}
+                <Text style={styles.description}>{item.description}</Text>
+                <Text style={styles.takeaway}>{item.takeaway}</Text>
+                <Text style={styles.reference}>{item.reference}</Text>
+              </> : null}
             </View>
           ))}
         </>
       )}
-      <Text style={styles.footer}>Independent educational notes, not official DVSA artwork.
-        Great Britain content only; Northern Ireland requires separate editorial review.</Text>
+      <Text style={styles.footer}>Independent GB revision notes. Sign illustrations: Department for Transport,
+        Crown copyright 2023. Contains public sector information licensed under the Open Government Licence v3.0.
+        https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+        Human editorial sign-off is pending.</Text>
     </View>
   );
 }
@@ -205,6 +230,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', padding: 16, marginBottom: 12 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
   cardTitleWrap: { flex: 1 },
+  thumbnail: { width: 100, height: 90, marginBottom: 12 },
+  expandHint: { color: '#2456C7', fontSize: 12, fontWeight: '700', paddingVertical: 10 },
   eyebrow: { fontWeight: '900', fontSize: 10, color: '#2456C7', letterSpacing: 0.5 },
   cardTitle: { fontWeight: '800', fontSize: 17, color: '#14233B', marginTop: 6 },
   saveButton: { paddingVertical: 8, paddingHorizontal: 6 },

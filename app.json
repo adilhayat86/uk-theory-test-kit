@@ -2,7 +2,7 @@
   "expo": {
     "name": "UK Theory Test Kit",
     "slug": "uk-theory-test-kit",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Independent offline revision questions for Great Britain car learners. Not affiliated with DVSA.",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -19,7 +19,7 @@
     },
     "android": {
       "package": "com.adilhayat.uktheorytestkit",
-      "versionCode": 1
+      "versionCode": 2
     }
   }
 }

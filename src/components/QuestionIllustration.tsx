@@ -4,6 +4,7 @@ import type { TheoryQuestion } from '../data/questions';
 
 import { illustrationAssets, illustrationPresentation } from '../data/illustrationAssets';
 import type { IllustrationContext, IllustrationId } from '../data/illustrationAssets';
+import { questionTeachingImages } from '../data/teachingImages';
 
 export function Illustration({ assetId, context = 'question' }: {
   assetId: IllustrationId; context?: IllustrationContext;
@@ -21,7 +22,10 @@ export function Illustration({ assetId, context = 'question' }: {
 export default function QuestionIllustration({ question, context = 'question' }: {
   question: TheoryQuestion; context?: IllustrationContext;
 }) {
-  return question.imageAssetId ? <Illustration assetId={question.imageAssetId} context={context} /> : null;
+  const teachingId = questionTeachingImages[question.id as keyof typeof questionTeachingImages];
+  // Teaching diagrams can contain clues. Never show them on an unanswered question.
+  const assetId = question.imageAssetId ?? (context !== 'question' ? teachingId : undefined);
+  return assetId ? <Illustration assetId={assetId} context={context} /> : null;
 }
 const styles = StyleSheet.create({
   frame: { alignItems: 'center', backgroundColor: '#F4F7FB', borderRadius: 12, padding: 12, marginBottom: 14 },

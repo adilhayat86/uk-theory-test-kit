@@ -56,7 +56,7 @@ jobs:
         run: npm run export:android
       - name: Export iOS bundle
         run: npm run export:ios
-      - name: Verify learner exports exclude draft artwork
+      - name: Verify learner exports include selected illustrations only
         run: |
           node scripts/check-export-assets.cjs dist/android android learner
           node scripts/check-export-assets.cjs dist/ios ios learner
@@ -79,8 +79,8 @@ jobs:
     runs-on: ubuntu-24.04
     needs: quality
     env:
-      # Internal QA APK exposes the pending-artwork browser; never a Play build.
-      EXPO_PUBLIC_IMAGE_REVIEW: 'true'
+      # Learner MVP APK. Draft-only gallery remains available in the separate review export.
+      EXPO_PUBLIC_IMAGE_REVIEW: 'false'
     steps:
       - name: Check out source
         uses: actions/checkout@v7

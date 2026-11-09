@@ -16,6 +16,7 @@ import MockExamScreen from './src/components/MockExamScreen';
 import QuestionIllustration from './src/components/QuestionIllustration';
 import FlashcardsScreen from './src/components/FlashcardsScreen';
 import QuestionSearchScreen from './src/components/QuestionSearchScreen';
+import PracticeSetupScreen from './src/components/PracticeSetupScreen';
 import ImageReviewScreen from './src/components/ImageReviewScreen';
 import RoadSignsScreen from './src/components/RoadSignsScreen';
 import PracticeResultsScreen from './src/components/PracticeResultsScreen';
@@ -37,7 +38,7 @@ import type { ProgressSummary } from './src/domain/progress';
 import { getQuestionsToRetry, getTopicReview, selectSmartPractice } from './src/domain/revision';
 import type { QuestionProgressDetail } from './src/domain/revision';
 
-type Tab = 'home' | 'theory' | 'practice' | 'mock' | 'saved' | 'progress' | 'flashcards' | 'search' | 'roadSigns' | 'imageReview';
+type Tab = 'home' | 'theory' | 'practice' | 'mock' | 'saved' | 'progress' | 'flashcards' | 'search' | 'roadSigns' | 'imageReview' | 'setup';
 
 const EMPTY_PROGRESS: ProgressSummary = {
   questionsAnswered: 0,
@@ -48,6 +49,12 @@ const EMPTY_PROGRESS: ProgressSummary = {
 
 function AppContent() {
   const [tab, setTab] = useState<Tab>('home');
+  const [setupTopic, setSetupTopic] = useState<string | undefined>();
+
+  function openPracticeSetup(topic?: string) {
+    setSetupTopic(topic);
+    setTab('setup');
+  }
   const [practiceSession, setPracticeSession] = useState<PracticeSession | null>(null);
   const practiceRef = useRef<PracticeSession | null>(null);
   const practiceSavingRef = useRef(false);
@@ -59,6 +66,9 @@ function AppContent() {
   const [storageMessage, setStorageMessage] = useState<string | null>(null);
   const answerLockedRef = useRef(false);
   const pendingBookmarksRef = useRef<Set<string>>(new Set());
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+
+  const scrollToTop = useCallback(() => scrollRef.current?.scrollTo({ y: 0, animated: false }), []);
 
   const practiceQuestions = useMemo(() => {
     if (!practiceSession) return questions;
@@ -237,7 +247,7 @@ function AppContent() {
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
       if (tab === 'home') return false;
-      setTab(tab === 'practice' || tab === 'search' || tab === 'mock' ? 'theory' : 'home');
+      setTab(tab === 'practice' || tab === 'search' || tab === 'mock' || tab === 'setup' ? 'theory' : 'home');
       return true;
     });
     return () => subscription.remove();
@@ -271,7 +281,7 @@ function AppContent() {
           </Pressable>
         ) : null}
 
-        <ScrollView key={tab === 'practice' ? tab + '-' + questionIndex : tab}
+        <ScrollView ref={scrollRef} key={tab === 'practice' ? tab + '-' + questionIndex : tab}
           contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {tab === 'home' && (
             <>
@@ -295,8 +305,8 @@ function AppContent() {
                 </Pressable>
               ) : null}
               <Text style={styles.sectionTitle}>Learn and practise</Text>
-              <MenuCard index="01" title="Theory Revision" detail="Practice questions, quick sessions, search and saved questions" onPress={() => setTab('theory')} />
-              <MenuCard index="02" title="Road Sign Notes" detail="Sign study with illustrations, saved notes and mini quiz" onPress={() => setTab('roadSigns')} />
+              <MenuCard index="01" title="Theory Revision" detail="Choose topics, focus on mistakes, or start a quick session" onPress={() => setTab('theory')} />
+              <MenuCard index="02" title="Road Signs" detail="30 illustrated notes, saved signs and a recognition quiz" onPress={() => setTab('roadSigns')} />
               {(__DEV__ || process.env.EXPO_PUBLIC_IMAGE_REVIEW === 'true') ? (
                 <MenuCard index="QA" title="Artwork review" detail="Browse 121 pending draft images offline" onPress={() => setTab('imageReview')} />
               ) : null}
@@ -335,7 +345,7 @@ function AppContent() {
                 {Array.from(new Set(questions.map((question) => question.topic))).map((topic, index) => {
                   const topicQuestions = questions.filter((question) => question.topic === topic);
                   return (
-                    <Pressable key={topic} style={styles.topicCard} onPress={() => startPractice(topicQuestions)}>
+                    <Pressable key={topic} style={styles.topicCard} accessibilityRole="button" onPress={() => openPracticeSetup(topic)}>
                       <Text style={styles.topicNumber}>{String(index + 1).padStart(2, '0')}</Text>
                       <Text style={styles.topicName}>{topic}</Text>
                       <Text style={styles.topicCount}>{topicQuestions.length} question{topicQuestions.length === 1 ? '' : 's'}</Text>
@@ -361,6 +371,7 @@ function AppContent() {
               </Pressable>
               <Text style={styles.pageTitle}>Theory Test</Text>
               <Text style={styles.pageSubtitle}>Choose how to study from {questions.length} original GB practice questions. This draft bank is awaiting independent fact-checking.</Text>
+              <MenuCard index="01" title="Build your practice" detail="5, 10 or 20 questions · choose topics and question filters" onPress={() => openPracticeSetup()} />
               <Text style={styles.sectionTitle}>Quick practice</Text>
               <View style={styles.studyModeRow}>
                 <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(questions, 5)}>
@@ -460,10 +471,12 @@ function AppContent() {
             </>
           )}
 
+          {tab === 'setup' && <PracticeSetupScreen key={setupTopic ?? 'all'} initialTopic={setupTopic}
+            records={progressRecords} savedIds={bookmarkedIds} onBack={() => setTab('theory')} onStart={startPractice} />}
           {tab === 'mock' && <MockExamScreen onBack={() => setTab('theory')} />}
           {tab === 'search' && <QuestionSearchScreen onBack={() => setTab('theory')} onPractise={startPractice} />}
           {tab === 'imageReview' && <ImageReviewScreen onBack={() => setTab('home')} />}
-          {tab === 'roadSigns' && <RoadSignsScreen onBack={() => setTab('home')} />}
+          {tab === 'roadSigns' && <RoadSignsScreen onBack={() => setTab('home')} onPageChange={scrollToTop} />}
           {tab === 'flashcards' && <FlashcardsScreen onBack={() => setTab('home')} onPractise={startPractice} />}
 
           {tab === 'saved' && (
@@ -549,15 +562,15 @@ function AppContent() {
 
         <View style={styles.bottomNav}>
           <NavItem label="Home" icon="⌂" active={tab === 'home'} onPress={() => setTab('home')} />
-          <NavItem label="Practice" icon="✓" active={tab === 'practice'} onPress={() => {
+          <NavItem label="Practice" icon="✓" active={tab === 'practice' || tab === 'setup'} onPress={() => {
             if (tab === 'practice') return;
             if (practiceRef.current && practiceRef.current.currentIndex < practiceRef.current.questionIds.length) {
               setTab('practice');
             } else {
-              startPractice(questions, 10);
+              openPracticeSetup();
             }
           }} />
-          <NavItem label="Mock" icon="◷" active={tab === 'mock'} onPress={() => setTab('mock')} />
+          <NavItem label="Timed" icon="◷" active={tab === 'mock'} onPress={() => setTab('mock')} />
           <NavItem label="Saved" icon="☆" active={tab === 'saved'} onPress={() => setTab('saved')} />
           <NavItem label="Progress" icon="▥" active={tab === 'progress'} onPress={() => setTab('progress')} />
         </View>
@@ -639,7 +652,7 @@ const styles = StyleSheet.create({
   disabledButton: { opacity: 0.55 },
   buttonArrow: { fontSize: 18 },
   sectionTitle: { color: colors.ink, fontWeight: '800', fontSize: 17, marginBottom: 12 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 22 },
+  sectionHeader: { alignItems: 'flex-start', marginTop: 22 },
   sectionHint: { color: colors.muted, fontSize: 11, marginBottom: 12 },
   statsRow: { flexDirection: 'row', gap: 9 },
   statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 15, paddingHorizontal: 10, borderWidth: 1, borderColor: colors.border },
