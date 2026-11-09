@@ -9,7 +9,7 @@ import { illustrationAssets } from '../data/illustrationAssets';
 import { getSavedSignIds, toggleSavedSign } from '../storage/database';
 
 type Mode = 'learn' | 'saved' | 'quiz';
-type Props = { onBack: () => void; onPageChange: () => void };
+type Props = { onPageChange: () => void };
 
 function newQuiz() {
   const pool = [...roadSignFacts];
@@ -20,7 +20,7 @@ function newQuiz() {
   return pool.slice(0, 10);
 }
 
-export default function RoadSignsScreen({ onBack, onPageChange }: Props) {
+export default function RoadSignsScreen({ onPageChange }: Props) {
   const [mode, setMode] = useState<Mode>('learn');
   const [category, setCategory] = useState<RoadSignCategory | undefined>();
   const [query, setQuery] = useState('');
@@ -83,17 +83,13 @@ export default function RoadSignsScreen({ onBack, onPageChange }: Props) {
 
   return (
     <View>
-      <Pressable accessibilityRole="button" onPress={onBack} style={styles.back}>
-        <Text style={styles.link}>‹ Home</Text>
-      </Pressable>
       <Text style={styles.title}>Road signs</Text>
-      <Text style={styles.subtitle}>{roadSignFacts.length} illustrated GB sign notes. Tap a card to learn the meaning,
-        then try a 10-question recognition quiz. Available offline.</Text>
+      <Text style={styles.subtitle}>{roadSignFacts.length} illustrated notes · learn, save and test yourself.</Text>
       <View style={styles.modeRow}>
         {([
-          ['learn', 'Categories & search'],
-          ['saved', 'Saved signs'],
-          ['quiz', 'Mini quiz'],
+          ['learn', 'Study'],
+          ['saved', 'Saved'],
+          ['quiz', 'Quiz'],
         ] as [Mode, string][]).map(([key, label]) => (
           <Pressable key={key} accessibilityRole="button"
             accessibilityState={{ selected: mode === key }}
@@ -164,7 +160,7 @@ export default function RoadSignsScreen({ onBack, onPageChange }: Props) {
           </View>
           <Text style={styles.counter}>{filtered.length} {mode === 'saved' ? 'saved' : 'study'} sign note{filtered.length === 1 ? '' : 's'}</Text>
           {filtered.length === 0 ? (
-            <Text style={styles.empty}>{mode === 'saved' ? 'No saved signs match your filters. Save a sign in Categories & search.' : 'No signs found. Try another search.'}</Text>
+            <Text style={styles.empty}>{mode === 'saved' ? 'No saved signs match your filters. Save a sign in Study.' : 'No signs found. Try another search.'}</Text>
           ) : filtered.map((item) => (
             <View key={item.id} style={styles.card}>
               <View style={styles.cardHeader}>
@@ -204,7 +200,6 @@ export default function RoadSignsScreen({ onBack, onPageChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  back: { paddingVertical: 10, alignSelf: 'flex-start' },
   link: { color: '#2456C7', fontSize: 13, fontWeight: '800' },
   title: { color: '#14233B', fontSize: 25, fontWeight: '900', marginTop: 5 },
   subtitle: { color: '#66758B', fontSize: 13, lineHeight: 20, marginTop: 7, marginBottom: 16 },
@@ -250,5 +245,5 @@ const styles = StyleSheet.create({
   primary: { backgroundColor: '#2456C7', borderRadius: 12, alignItems: 'center',
     justifyContent: 'center', minHeight: 48, marginTop: 16 },
   primaryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  footer: { color: '#8492A7', fontSize: 11, lineHeight: 17, marginTop: 12 },
+  footer: { color: '#8492A7', fontSize: 11, lineHeight: 17, marginTop: 12 }
 });

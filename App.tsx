@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   BackHandler,
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +13,10 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
+import HomeScreen from './src/components/HomeScreen';
+import BottomNavigation from './src/components/BottomNavigation';
+import { activeRoot, initialNavigation, navigationReducer, previousScreen, screenTitles } from './src/domain/navigation';
+import type { Screen, RootScreen } from './src/domain/navigation';
 import MockExamScreen from './src/components/MockExamScreen';
 import QuestionIllustration from './src/components/QuestionIllustration';
 import FlashcardsScreen from './src/components/FlashcardsScreen';
@@ -38,8 +43,6 @@ import type { ProgressSummary } from './src/domain/progress';
 import { getQuestionsToRetry, getTopicReview, selectSmartPractice } from './src/domain/revision';
 import type { QuestionProgressDetail } from './src/domain/revision';
 
-type Tab = 'home' | 'theory' | 'practice' | 'mock' | 'saved' | 'progress' | 'flashcards' | 'search' | 'roadSigns' | 'imageReview' | 'setup';
-
 const EMPTY_PROGRESS: ProgressSummary = {
   questionsAnswered: 0,
   totalAttempts: 0,
@@ -48,12 +51,27 @@ const EMPTY_PROGRESS: ProgressSummary = {
 };
 
 function AppContent() {
-  const [tab, setTab] = useState<Tab>('home');
+  const [navigation, dispatchNavigation] = useReducer(navigationReducer, initialNavigation);
+  const tab = navigation.stack[navigation.stack.length - 1];
+  const returnScreen = previousScreen(navigation);
+  const backLabel = returnScreen ? screenTitles[returnScreen] : 'Home';
+  const navigate = useCallback((screen: Screen) => {
+    Keyboard.dismiss();
+    dispatchNavigation({ type: 'open', screen });
+  }, []);
+  const goBack = useCallback(() => {
+    Keyboard.dismiss();
+    dispatchNavigation({ type: 'back' });
+  }, []);
+  const selectTab = useCallback((screen: RootScreen) => {
+    Keyboard.dismiss();
+    dispatchNavigation({ type: 'tab', screen });
+  }, []);
   const [setupTopic, setSetupTopic] = useState<string | undefined>();
 
   function openPracticeSetup(topic?: string) {
     setSetupTopic(topic);
-    setTab('setup');
+    navigate('setup');
   }
   const [practiceSession, setPracticeSession] = useState<PracticeSession | null>(null);
   const practiceRef = useRef<PracticeSession | null>(null);
@@ -135,7 +153,7 @@ function AppContent() {
     if (practiceSavingRef.current) return;
     if (items.length === 0) {
       setStorageMessage('There are no questions in this selection yet.');
-      setTab('saved');
+      navigate('saved');
       return;
     }
 
@@ -156,7 +174,7 @@ function AppContent() {
         setPracticeSession(started);
         answerLockedRef.current = false;
         setStorageMessage(null);
-        setTab('practice');
+        navigate('practice');
       } catch {
         setStorageMessage('Could not create an offline practice session. Please try again.');
       } finally {
@@ -172,7 +190,7 @@ function AppContent() {
         'Replace unfinished practice?',
         'Your current answers are saved. Start a new session or continue where you left off.',
         [
-          { text: 'Continue existing', onPress: () => setTab('practice') },
+          { text: 'Continue existing', onPress: () => navigate('practice') },
           { text: 'Start new', style: 'destructive', onPress: () => { void createSession(); } },
         ],
       );
@@ -246,12 +264,12 @@ function AppContent() {
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (tab === 'home') return false;
-      setTab(tab === 'practice' || tab === 'search' || tab === 'mock' || tab === 'setup' ? 'theory' : 'home');
+      if (returnScreen === null) return false;
+      goBack();
       return true;
     });
     return () => subscription.remove();
-  }, [tab]);
+  }, [returnScreen, goBack]);
 
   if (isLoading) {
     return (
@@ -268,11 +286,19 @@ function AppContent() {
       <View style={styles.appShell}>
         <View style={styles.header}>
           <View style={styles.headerCopy}>
-            <Text style={styles.headerEyebrow}>INDEPENDENT UK CAR THEORY PRACTICE</Text>
+            <Text style={styles.headerEyebrow}>GB CAR THEORY · OFFLINE</Text>
             <Text style={styles.headerTitle}>Theory Test Kit</Text>
           </View>
-          <View style={styles.headerMark} accessible={false}><Text allowFontScaling={false} style={styles.headerMarkText}>UK</Text></View>
+          {tab !== 'search' ? <Pressable accessibilityRole="button" accessibilityLabel="Search questions"
+            onPress={() => navigate('search')} style={styles.headerSearch}><Text style={styles.backText}>Search</Text></Pressable> : null}
         </View>
+
+        {navigation.stack.length > 1 ? <View style={styles.backBar}>
+          <Pressable accessibilityRole="button" accessibilityLabel={'Back to ' + backLabel} onPress={goBack} style={styles.globalBack}>
+            <Text style={styles.backText}>‹ {backLabel}</Text>
+          </Pressable>
+          <Text style={styles.breadcrumb}>{screenTitles[tab]}</Text>
+        </View> : null}
 
         {storageMessage ? (
           <Pressable style={styles.notice} onPress={() => setStorageMessage(null)}>
@@ -281,120 +307,19 @@ function AppContent() {
           </Pressable>
         ) : null}
 
-        <ScrollView ref={scrollRef} key={tab === 'practice' ? tab + '-' + questionIndex : tab}
-          contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {tab === 'home' && (
-            <>
-              <View style={styles.hero}>
-                <Text style={styles.heroKicker}>YOUR NEXT STEP</Text>
-                <Text style={styles.heroTitle}>Learn the rules. Build confidence.</Text>
-                <Text style={styles.heroBody}>Original UK road-rule revision for Great Britain. Practise without an account or internet connection.</Text>
-                <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={() => startPractice(questions, 10)}>
-                  <Text style={styles.primaryButtonText}>Start 10-question practice <Text style={styles.buttonArrow}>›</Text></Text>
-                </Pressable>
-              </View>
-
-              {practiceSession ? (
-                <Pressable accessibilityRole="button" style={styles.resumeBanner}
-                  onPress={() => setTab('practice')}>
-                  <Text style={styles.resumeTitle}>{practiceSession.currentIndex < practiceSession.questionIds.length
-                    ? 'Continue saved practice ›' : 'Review your last practice result ›'}</Text>
-                  <Text style={styles.resumeBody}>{practiceSession.currentIndex < practiceSession.questionIds.length
-                    ? 'Question ' + (practiceSession.currentIndex + 1) + ' of ' + practiceSession.questionIds.length
-                    : Object.keys(practiceSession.answers).length + ' answers saved'} · available offline</Text>
-                </Pressable>
-              ) : null}
-              <Text style={styles.sectionTitle}>Learn and practise</Text>
-              <MenuCard index="01" title="Theory Revision" detail="Choose topics, focus on mistakes, or start a quick session" onPress={() => setTab('theory')} />
-              <MenuCard index="02" title="Road Signs" detail="30 illustrated notes, saved signs and a recognition quiz" onPress={() => setTab('roadSigns')} />
-              {(__DEV__ || process.env.EXPO_PUBLIC_IMAGE_REVIEW === 'true') ? (
-                <MenuCard index="QA" title="Artwork review" detail="Browse 121 pending draft images offline" onPress={() => setTab('imageReview')} />
-              ) : null}
-              <Text style={styles.scopeNote}>GB car theory preparation. NI-specific questions are not yet provided.</Text>
-
-              <Pressable accessibilityRole="button" style={styles.mockBanner} onPress={() => setTab('mock')}>
-                <Text style={styles.mockBannerTitle}>Timed 5-question practice  ›</Text>
-                <Text style={styles.mockBannerBody}>Short sample only • resume offline • review answers</Text>
-              </Pressable>
-
-              <View style={styles.studyModeRow}>
-                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(smartQuestions)}>
-                  <Text style={styles.studyModeKicker}>SMART REVISION</Text>
-                  <Text style={styles.studyModeTitle}>Your next 10 ›</Text>
-                  <Text style={styles.studyModeBody}>Retry mistakes, then explore new questions</Text>
-                </Pressable>
-                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => setTab('flashcards')}>
-                  <Text style={styles.studyModeKicker}>MEMORY PRACTICE</Text>
-                  <Text style={styles.studyModeTitle}>Flashcards ›</Text>
-                  <Text style={styles.studyModeBody}>Recall each answer before revealing it</Text>
-                </Pressable>
-              </View>
-
-              <Text style={styles.sectionTitle}>Your progress</Text>
-              <View style={styles.statsRow}>
-                <StatCard value={String(progress.questionsAnswered)} label="Questions tried" />
-                <StatCard value={`${progress.accuracyPercent}%`} label="Accuracy" />
-                <StatCard value={String(bookmarkedIds.length)} label="Saved" />
-              </View>
-
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Study by topic</Text>
-                <Text style={styles.sectionHint}>{questions.length} original questions · editorial review pending</Text>
-              </View>
-              <View style={styles.topicGrid}>
-                {Array.from(new Set(questions.map((question) => question.topic))).map((topic, index) => {
-                  const topicQuestions = questions.filter((question) => question.topic === topic);
-                  return (
-                    <Pressable key={topic} style={styles.topicCard} accessibilityRole="button" onPress={() => openPracticeSetup(topic)}>
-                      <Text style={styles.topicNumber}>{String(index + 1).padStart(2, '0')}</Text>
-                      <Text style={styles.topicName}>{topic}</Text>
-                      <Text style={styles.topicCount}>{topicQuestions.length} question{topicQuestions.length === 1 ? '' : 's'}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              <Pressable style={styles.savedBanner} onPress={() => setTab('saved')}>
-                <View>
-                  <Text style={styles.savedTitle}>Saved for later</Text>
-                  <Text style={styles.savedSubtitle}>Review questions you have bookmarked</Text>
-                </View>
-                <Text style={styles.savedCount}>{bookmarkedIds.length}  ›</Text>
-              </Pressable>
-            </>
-          )}
-
-          {tab === 'theory' && (
-            <>
-              <Pressable accessibilityRole="button" style={styles.backButton} onPress={() => setTab('home')}>
-                <Text style={styles.backText}>‹ Home</Text>
-              </Pressable>
-              <Text style={styles.pageTitle}>Theory Test</Text>
-              <Text style={styles.pageSubtitle}>Choose how to study from {questions.length} original GB practice questions. This draft bank is awaiting independent fact-checking.</Text>
-              <MenuCard index="01" title="Build your practice" detail="5, 10 or 20 questions · choose topics and question filters" onPress={() => openPracticeSetup()} />
-              <Text style={styles.sectionTitle}>Quick practice</Text>
-              <View style={styles.studyModeRow}>
-                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(questions, 5)}>
-                  <Text style={styles.studyModeKicker}>SHORT SESSION</Text>
-                  <Text style={styles.studyModeTitle}>5 questions ›</Text>
-                  <Text style={styles.studyModeBody}>A quick mixed revision session</Text>
-                </Pressable>
-                <Pressable accessibilityRole="button" style={styles.studyModeCard} onPress={() => startPractice(questions, 10)}>
-                  <Text style={styles.studyModeKicker}>STANDARD SESSION</Text>
-                  <Text style={styles.studyModeTitle}>10 questions ›</Text>
-                  <Text style={styles.studyModeBody}>Review mistakes after finishing</Text>
-                </Pressable>
-              </View>
-              <Text style={styles.sectionTitle}>All theory test tools</Text>
-              <MenuCard index="01" title="Practise 20 Questions" detail={'20 mixed questions drawn from ' + questions.length + ' original drafts'} onPress={() => startPractice(questions, 20)} />
-              <MenuCard index="02" title="Timed Mini Test" detail="Resumable 5-question sample; not an official exam simulation" onPress={() => setTab('mock')} />
-              <MenuCard index="03" title="Search Questions" detail="Find questions by word, topic or rule" onPress={() => setTab('search')} />
-              <MenuCard index="04" title="Flagged Questions" detail={bookmarkedIds.length + ' saved for later practice'} onPress={() => setTab('saved')} />
-              <MenuCard index="05" title="Progress Monitor" detail="Topic coverage, recent mistakes and accuracy" onPress={() => setTab('progress')} />
-              <MenuCard index="06" title="Flashcards" detail="Recall then reveal original answers" onPress={() => setTab('flashcards')} />
-              <MenuCard index="07" title="Smart Revision" detail="Your next 10 questions, prioritised offline" onPress={() => startPractice(smartQuestions)} />
-            </>
-          )}
+        {navigation.stack.map((screen, screenIndex) => {
+          const tab = screen;
+          const visible = screenIndex === navigation.stack.length - 1;
+          return <ScrollView ref={visible ? scrollRef : null}
+            key={tab === 'practice' ? tab + '-' + practiceSession?.id + '-' + questionIndex : tab}
+            style={[styles.screen, !visible && styles.hiddenScreen]}
+            accessibilityElementsHidden={!visible} importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}
+            contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          {tab === 'home' && <HomeScreen session={practiceSession} progress={progress}
+            onQuickPractice={() => startPractice(questions, 10)} onResume={() => navigate('practice')}
+            onPractice={() => { setSetupTopic(undefined); selectTab('setup'); }} onSigns={() => selectTab('roadSigns')}
+            onFlashcards={() => navigate('flashcards')} onTimed={() => navigate('mock')}
+            onArtworkReview={(__DEV__ || process.env.EXPO_PUBLIC_IMAGE_REVIEW === 'true') ? () => navigate('imageReview') : undefined} />}
 
           {tab === 'practice' && (
             <>
@@ -403,14 +328,13 @@ function AppContent() {
                   questions={practiceQuestions}
                   answers={sessionAnswers}
                   savedIds={bookmarkedIds}
-                  onFinish={() => setTab('theory')}
+                  backLabel={backLabel} onFinish={goBack}
                   onRetry={startPractice}
                   onRestart={() => startPractice(practiceQuestions)}
                 />
               ) : (
                 <>
                   <View style={styles.practiceTop}>
-                    <Pressable accessibilityRole="button" onPress={() => setTab('theory')} style={styles.backButton}><Text style={styles.backText}>‹  Theory</Text></Pressable>
                     <Text style={styles.practiceCounter}>QUESTION {questionIndex + 1} OF {practiceQuestions.length}</Text>
                   </View>
                   <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${((questionIndex + (selectedAnswer === null ? 0 : 1)) / practiceQuestions.length) * 100}%` }]} /></View>
@@ -471,13 +395,19 @@ function AppContent() {
             </>
           )}
 
-          {tab === 'setup' && <PracticeSetupScreen key={setupTopic ?? 'all'} initialTopic={setupTopic}
-            records={progressRecords} savedIds={bookmarkedIds} onBack={() => setTab('theory')} onStart={startPractice} />}
-          {tab === 'mock' && <MockExamScreen onBack={() => setTab('theory')} />}
-          {tab === 'search' && <QuestionSearchScreen onBack={() => setTab('theory')} onPractise={startPractice} />}
-          {tab === 'imageReview' && <ImageReviewScreen onBack={() => setTab('home')} />}
-          {tab === 'roadSigns' && <RoadSignsScreen onBack={() => setTab('home')} onPageChange={scrollToTop} />}
-          {tab === 'flashcards' && <FlashcardsScreen onBack={() => setTab('home')} onPractise={startPractice} />}
+          {tab === 'setup' && <>
+            <PracticeSetupScreen key={setupTopic ?? 'all'} initialTopic={setupTopic}
+              records={progressRecords} savedIds={bookmarkedIds} onStart={startPractice} />
+            <View style={styles.toolLinks}>
+              <Pressable accessibilityRole="button" onPress={() => navigate('flashcards')} style={styles.toolLink}><Text style={styles.backText}>Flashcards ›</Text></Pressable>
+              <Pressable accessibilityRole="button" onPress={() => navigate('mock')} style={styles.toolLink}><Text style={styles.backText}>Timed practice ›</Text></Pressable>
+            </View>
+          </>}
+          {tab === 'mock' && <MockExamScreen />}
+          {tab === 'search' && <QuestionSearchScreen onPractise={startPractice} />}
+          {tab === 'imageReview' && <ImageReviewScreen />}
+          {tab === 'roadSigns' && <RoadSignsScreen onPageChange={scrollToTop} />}
+          {tab === 'flashcards' && <FlashcardsScreen onPageChange={scrollToTop} onPractise={startPractice} />}
 
           {tab === 'saved' && (
             <>
@@ -540,7 +470,7 @@ function AppContent() {
               {topicStats.map((item) => (
                 <Pressable accessibilityRole="button" key={item.topic}
                   style={styles.topicReviewCard}
-                  onPress={() => startPractice(questions.filter((question) => question.topic === item.topic))}>
+                  onPress={() => openPracticeSetup(item.topic)}>
                   <View style={styles.topicReviewHeading}>
                     <Text style={styles.topicReviewTitle}>{item.topic}</Text>
                     <Text style={styles.topicReviewAccuracy}>{item.accuracyPercent === null ? 'Not tried' : item.accuracyPercent + '% accurate'}</Text>
@@ -558,37 +488,12 @@ function AppContent() {
               </Pressable>
             </>
           )}
-        </ScrollView>
+        </ScrollView>;
+        })}
 
-        <View style={styles.bottomNav}>
-          <NavItem label="Home" icon="⌂" active={tab === 'home'} onPress={() => setTab('home')} />
-          <NavItem label="Practice" icon="✓" active={tab === 'practice' || tab === 'setup'} onPress={() => {
-            if (tab === 'practice') return;
-            if (practiceRef.current && practiceRef.current.currentIndex < practiceRef.current.questionIds.length) {
-              setTab('practice');
-            } else {
-              openPracticeSetup();
-            }
-          }} />
-          <NavItem label="Timed" icon="◷" active={tab === 'mock'} onPress={() => setTab('mock')} />
-          <NavItem label="Saved" icon="☆" active={tab === 'saved'} onPress={() => setTab('saved')} />
-          <NavItem label="Progress" icon="▥" active={tab === 'progress'} onPress={() => setTab('progress')} />
-        </View>
+        <BottomNavigation active={activeRoot(navigation)} onSelect={selectTab} />
       </View>
     </SafeAreaView>
-  );
-}
-
-function MenuCard({ index, title, detail, onPress }: { index: string; title: string; detail: string; onPress: () => void }) {
-  return (
-    <Pressable accessibilityRole="button" style={styles.moduleCard} onPress={onPress}>
-      <View style={styles.moduleNumber}><Text style={styles.moduleNumberText}>{index}</Text></View>
-      <View style={styles.moduleContent}>
-        <Text style={styles.moduleTitle}>{title}</Text>
-        <Text style={styles.moduleDetail}>{detail}</Text>
-      </View>
-      <Text style={styles.moduleChevron}>›</Text>
-    </Pressable>
   );
 }
 
@@ -598,15 +503,6 @@ function StatCard({ value, label }: { value: string; label: string }) {
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
-  );
-}
-
-function NavItem({ label, icon, active, onPress }: { label: string; icon: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable accessibilityRole="button" accessibilityState={{ selected: active }} onPress={onPress} style={styles.navItem}>
-      <Text style={[styles.navIcon, active && styles.navActive]}>{icon}</Text>
-      <Text style={[styles.navLabel, active && styles.navActive]}>{label}</Text>
-    </Pressable>
   );
 }
 
@@ -633,42 +529,31 @@ const styles = StyleSheet.create({
   appShell: { flex: 1, backgroundColor: '#F5F7FB' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F7FB' },
   loadingText: { color: colors.muted, marginTop: 12, fontSize: 13 },
-  header: { backgroundColor: '#FFFFFF', paddingHorizontal: 22, paddingTop: 10, paddingBottom: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { backgroundColor: '#FFFFFF', paddingHorizontal: 18, paddingTop: 8, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: colors.border },
   headerCopy: { flex: 1, minWidth: 0, marginRight: 12 },
   headerEyebrow: { color: colors.blue, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
-  headerTitle: { color: colors.ink, fontSize: 23, fontWeight: '800', marginTop: 4 },
-  headerMark: { flexShrink: 0, width: 42, height: 42, borderRadius: 14, backgroundColor: colors.paleBlue, alignItems: 'center', justifyContent: 'center' },
-  headerMarkText: { color: colors.blue, fontSize: 14, fontWeight: '900' },
+  headerTitle: { color: colors.ink, fontSize: 18, fontWeight: '800', marginTop: 3 },
   notice: { marginHorizontal: 16, marginTop: 10, padding: 12, backgroundColor: '#FFF7E6', borderRadius: 12, borderWidth: 1, borderColor: '#F3D89E' },
   noticeText: { color: '#795A1A', fontSize: 12, lineHeight: 17 },
   noticeDismiss: { color: '#795A1A', fontWeight: '800', fontSize: 11, marginTop: 5 },
-  scrollContent: { padding: 18, paddingBottom: 26 },
-  hero: { backgroundColor: '#142B55', borderRadius: 22, padding: 22, marginBottom: 23 },
-  heroKicker: { color: '#B9CCF4', fontSize: 10, fontWeight: '800', letterSpacing: 1.2 },
-  heroTitle: { color: '#FFFFFF', fontSize: 26, lineHeight: 32, fontWeight: '800', marginTop: 10, maxWidth: 300 },
-  heroBody: { color: '#D5DFF2', fontSize: 13, lineHeight: 19, marginTop: 10, marginBottom: 18 },
+  headerSearch: { minHeight: 44, minWidth: 60, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EDF3FF', borderRadius: 13 },
+  backBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderColor: '#E4EAF2', gap: 12 },
+  globalBack: { minHeight: 44, justifyContent: 'center', paddingRight: 15 },
+  breadcrumb: { color: colors.muted, fontSize: 11, flexShrink: 1 },
+  screen: { flex: 1 },
+  hiddenScreen: { display: 'none' },
+  toolLinks: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  toolLink: { flex: 1, minHeight: 48, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF2', padding: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  scrollContent: { padding: 16, paddingBottom: 24 },
   primaryButton: { backgroundColor: colors.blue, borderRadius: 13, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, marginTop: 12 },
   primaryButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   disabledButton: { opacity: 0.55 },
-  buttonArrow: { fontSize: 18 },
   sectionTitle: { color: colors.ink, fontWeight: '800', fontSize: 17, marginBottom: 12 },
-  sectionHeader: { alignItems: 'flex-start', marginTop: 22 },
-  sectionHint: { color: colors.muted, fontSize: 11, marginBottom: 12 },
   statsRow: { flexDirection: 'row', gap: 9 },
   statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 15, paddingHorizontal: 10, borderWidth: 1, borderColor: colors.border },
   statValue: { color: colors.ink, fontSize: 23, fontWeight: '900' },
   statLabel: { color: colors.muted, fontSize: 10, marginTop: 3, lineHeight: 14 },
-  topicGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  topicCard: { width: '48%', flexGrow: 1, backgroundColor: '#FFFFFF', borderRadius: 15, borderWidth: 1, borderColor: colors.border, padding: 14, minHeight: 112 },
-  topicNumber: { color: '#8EA4C8', fontWeight: '900', fontSize: 11 },
-  topicName: { color: colors.ink, fontWeight: '800', fontSize: 14, marginTop: 10 },
-  topicCount: { color: colors.muted, fontSize: 11, marginTop: 4 },
-  savedBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#EAF1FF', borderRadius: 15, padding: 16, marginTop: 20 },
-  savedTitle: { color: colors.ink, fontWeight: '800', fontSize: 14 },
-  savedSubtitle: { color: colors.muted, fontSize: 11, marginTop: 3 },
-  savedCount: { color: colors.blue, fontWeight: '900', fontSize: 14 },
   practiceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backButton: { paddingVertical: 6, paddingRight: 12 },
   backText: { color: colors.blue, fontSize: 13, fontWeight: '800' },
   practiceCounter: { color: colors.muted, fontSize: 10, letterSpacing: 0.8, fontWeight: '900' },
   progressTrack: { height: 6, backgroundColor: '#E0E7F2', borderRadius: 5, overflow: 'hidden', marginBottom: 16 },
@@ -708,43 +593,10 @@ const styles = StyleSheet.create({
   infoCard: { borderWidth: 1, borderColor: colors.border, borderRadius: 15, padding: 15, backgroundColor: '#FFFFFF', marginBottom: 8 },
   infoTitle: { color: colors.ink, fontSize: 14, fontWeight: '800' },
   infoBody: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 6 },
-  completionCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 22, alignItems: 'center', marginTop: 20 },
-  completionEmoji: { color: colors.green, fontSize: 44, fontWeight: '900' },
-  completionTitle: { color: colors.ink, fontSize: 22, fontWeight: '900', marginTop: 10 },
-  completionBody: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: 'center', marginTop: 8 },
-  completionScore: { color: colors.blue, fontSize: 28, fontWeight: '900', marginTop: 14 },
-  studyModeRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  studyModeCard: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 15, backgroundColor: '#FFFFFF', padding: 14, minHeight: 124 },
-  studyModeKicker: { color: colors.blue, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
-  studyModeTitle: { color: colors.ink, fontSize: 16, fontWeight: '900', marginTop: 10 },
-  studyModeBody: { color: colors.muted, fontSize: 11, lineHeight: 16, marginTop: 5 },
   secondaryAction: { padding: 12, alignItems: 'center' },
   secondaryActionText: { color: colors.blue, fontSize: 13, fontWeight: '800' },
   topicReviewCard: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 15, backgroundColor: '#FFFFFF', marginBottom: 10 },
   topicReviewHeading: { flexDirection: 'row', justifyContent: 'space-between', gap: 6 },
   topicReviewTitle: { color: colors.ink, fontWeight: '800', fontSize: 14, flexShrink: 1 },
-  topicReviewAccuracy: { color: colors.blue, fontWeight: '800', fontSize: 11 },
-  moduleCard: { flexDirection: 'row', alignItems: 'center', minHeight: 86,
-    borderRadius: 15, borderWidth: 1, borderColor: colors.border,
-    backgroundColor: '#FFFFFF', padding: 14, marginBottom: 10 },
-  moduleNumber: { width: 38, height: 38, borderRadius: 12,
-    backgroundColor: '#EDF3FF', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  moduleNumberText: { fontSize: 12, fontWeight: '900', color: colors.blue },
-  moduleContent: { flex: 1 },
-  moduleTitle: { fontSize: 15, fontWeight: '800', color: colors.ink },
-  moduleDetail: { fontSize: 12, lineHeight: 17, color: colors.muted, marginTop: 5 },
-  moduleChevron: { fontWeight: '900', fontSize: 24, color: colors.blue, marginLeft: 4 },
-  scopeNote: { color: colors.muted, fontSize: 11, lineHeight: 17, marginTop: 4, marginBottom: 18 },
-  resumeBanner: { backgroundColor: '#EBF6EE', borderWidth: 1, borderColor: '#B7DBC5',
-    padding: 16, borderRadius: 15, marginBottom: 18 },
-  resumeTitle: { color: '#176840', fontSize: 15, fontWeight: '900' },
-  resumeBody: { color: '#437057', fontSize: 12, marginTop: 6 },
-  mockBanner: { backgroundColor: '#E5EDFD', borderRadius: 15, padding: 16, marginBottom: 22 },
-  mockBannerTitle: { color: '#183D8A', fontSize: 16, fontWeight: '900' },
-  mockBannerBody: { color: '#526B9A', fontSize: 12, marginTop: 5 },
-  bottomNav: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8, paddingBottom: 4 },
-  navItem: { flex: 1, alignItems: 'center', paddingVertical: 5 },
-  navIcon: { fontSize: 20, color: '#91A0B4' },
-  navLabel: { color: '#91A0B4', fontSize: 9, fontWeight: '700', marginTop: 2 },
-  navActive: { color: colors.blue },
+  topicReviewAccuracy: { color: colors.blue, fontWeight: '800', fontSize: 11 }
 });

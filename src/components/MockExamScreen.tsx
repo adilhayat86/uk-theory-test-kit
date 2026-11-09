@@ -14,9 +14,9 @@ import {
   getMockResults, saveMockSession,
 } from '../storage/database';
 
-type Props = { onBack: () => void };
 
-export default function MockExamScreen({ onBack }: Props) {
+
+export default function MockExamScreen() {
   const [session, setSession] = useState<MockSession | null>(null);
   const sessionRef = useRef<MockSession | null>(null);
   const [result, setResult] = useState<MockResult | null>(null);
@@ -106,7 +106,7 @@ export default function MockExamScreen({ onBack }: Props) {
     if (!current || busy) return;
     const unanswered = current.questionIds.length - Object.keys(current.answers).length;
     Alert.alert(
-      'Finish mock exam?',
+      'Finish timed practice?',
       unanswered ? `You still have ${unanswered} unanswered question(s). Submit anyway?` : 'Submit your answers now?',
       [
         { text: 'Keep practising', style: 'cancel' },
@@ -118,8 +118,8 @@ export default function MockExamScreen({ onBack }: Props) {
   function confirmDiscard() {
     const current = sessionRef.current;
     if (!current || busy) return;
-    Alert.alert('Discard this mock?', 'This clears the active mock without saving a result.', [
-      { text: 'Keep mock', style: 'cancel' },
+    Alert.alert('Discard timed practice?', 'This clears the active mock without saving a result.', [
+      { text: 'Keep practising', style: 'cancel' },
       {
         text: 'Discard', style: 'destructive', onPress: () => {
           setBusy(true);
@@ -148,9 +148,6 @@ export default function MockExamScreen({ onBack }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.headingRow}>
-        <Pressable accessibilityRole="button" onPress={onBack} style={styles.back}>
-          <Text style={styles.link}>‹  Home</Text>
-        </Pressable>
         <Text style={styles.eyebrow}>OFFLINE TIMED PRACTICE</Text>
       </View>
       {message ? <Text style={styles.warning}>{message}</Text> : null}
@@ -174,7 +171,7 @@ export default function MockExamScreen({ onBack }: Props) {
               {history.map((item) => (
                 <View key={item.id} style={styles.historyItem}>
                   <View>
-                    <Text style={styles.historyTitle}>{item.mode === 'full' ? 'Full mock' : 'Sample mock'} · {new Date(item.finishedAt).toLocaleDateString('en-GB')}</Text>
+                    <Text style={styles.historyTitle}>{item.mode === 'full' ? 'Full mock' : 'Timed practice'} · {new Date(item.finishedAt).toLocaleDateString('en-GB')}</Text>
                     <Text style={styles.dim}>{item.answered}/{item.total} answered · {item.reason === 'timeout' ? 'Time expired' : 'Submitted'}</Text>
                   </View>
                   <Text style={styles.historyScore}>{item.correct}/{item.total}</Text>
@@ -290,7 +287,7 @@ export default function MockExamScreen({ onBack }: Props) {
             <Text style={styles.primaryText}>Start another sample</Text>
           </Pressable>
           <Pressable accessibilityRole="button" style={styles.secondary} onPress={() => setResult(null)}>
-            <Text style={styles.secondaryText}>Back to mock overview</Text>
+            <Text style={styles.secondaryText}>Timed practice overview</Text>
           </Pressable>
         </>
       ) : null}
@@ -302,7 +299,6 @@ const styles = StyleSheet.create({
   root: { paddingBottom: 24 },
   center: { alignItems: 'center', padding: 36, gap: 8 },
   headingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  back: { paddingVertical: 8, paddingRight: 14 },
   link: { color: '#2456C7', fontWeight: '800', fontSize: 13 },
   eyebrow: { color: '#2456C7', fontWeight: '900', fontSize: 10, letterSpacing: 1 },
   title: { color: '#14233B', fontSize: 25, fontWeight: '900', marginBottom: 8 },
@@ -350,5 +346,5 @@ const styles = StyleSheet.create({
   reference: { color: '#7F8FA6', fontSize: 11, marginTop: 7, fontWeight: '700' },
   historyItem: { padding: 14, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E1E8F1', marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   historyTitle: { color: '#1F2E49', fontWeight: '800', fontSize: 13 },
-  historyScore: { color: '#2456C7', fontWeight: '900', fontSize: 18 },
+  historyScore: { color: '#2456C7', fontWeight: '900', fontSize: 18 }
 });

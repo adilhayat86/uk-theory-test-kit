@@ -5,14 +5,13 @@ import { draftImageSources } from '../data/draftImageSources';
 import type { DraftImageId } from '../data/draftImageSources';
 
 /** Internal artwork QA. No draft is assigned to a learner question by this screen. */
-export default function ImageReviewScreen({ onBack }: { onBack: () => void }) {
+export default function ImageReviewScreen() {
   const [query, setQuery] = useState('');
   const [index, setIndex] = useState(0);
   const assets = useMemo(() => manifest.assets.filter((asset) =>
     `${asset.id} ${asset.category} ${asset.description}`.toLowerCase().includes(query.toLowerCase().trim())), [query]);
   const asset = assets[index];
   return <View>
-    <Pressable accessibilityRole="button" onPress={onBack} style={styles.button}><Text>‹ Home</Text></Pressable>
     <Text style={styles.title}>Artwork review</Text>
     <Text style={styles.warning}>121 draft images · 0 approved. For technical and editorial review only.</Text>
     <TextInput accessibilityLabel="Search draft artwork" placeholder="Search description, category or ID"

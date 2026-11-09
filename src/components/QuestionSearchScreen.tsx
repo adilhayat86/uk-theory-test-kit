@@ -2,14 +2,15 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { questions } from '../data/questions';
 import type { TheoryQuestion } from '../data/questions';
+import TopicPicker from './TopicPicker';
 import { searchQuestions } from '../domain/questionSearch';
 
-type Props = { onBack: () => void; onPractise: (items: TheoryQuestion[]) => void };
+type Props = { onPractise: (items: TheoryQuestion[]) => void };
 
-export default function QuestionSearchScreen({ onBack, onPractise }: Props) {
+export default function QuestionSearchScreen({ onPractise }: Props) {
   const [query, setQuery] = useState('');
   const [topic, setTopic] = useState('All topics');
-  const topics = useMemo(() => ['All topics', ...new Set(questions.map((item) => item.topic))], []);
+  const topics = useMemo(() => [...new Set(questions.map((item) => item.topic))].map((id) => ({ id })), []);
   const results = useMemo(
     () => searchQuestions(questions.filter((item) => topic === 'All topics' || topic === item.topic), query),
     [query, topic],
@@ -17,9 +18,6 @@ export default function QuestionSearchScreen({ onBack, onPractise }: Props) {
 
   return (
     <View>
-      <Pressable accessibilityRole="button" onPress={onBack} style={styles.back}>
-        <Text style={styles.link}>‹ Theory Test</Text>
-      </Pressable>
       <Text style={styles.heading}>Search questions</Text>
       <Text style={styles.subheading}>Find a topic or rule in the original offline question bank.</Text>
       <TextInput
@@ -32,17 +30,9 @@ export default function QuestionSearchScreen({ onBack, onPractise }: Props) {
         autoCorrect={false}
         style={styles.search}
       />
-      <View style={styles.filters}>
-        {topics.map((item) => (
-          <Pressable key={item} accessibilityRole="button"
-            accessibilityState={{ selected: item === topic }}
-            onPress={() => setTopic(item)}
-            style={[styles.filter, topic === item && styles.filterActive]}>
-            <Text style={[styles.filterText, topic === item && styles.filterTextActive]}>{item}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <Text style={styles.counter}>{results.length} matching sample question{results.length === 1 ? '' : 's'}</Text>
+      <TopicPicker accessibilityLabel="Choose search topic" items={topics}
+        selected={topic === 'All topics' ? [] : [topic]} onChange={(ids) => setTopic(ids[0] ?? 'All topics')} />
+      <Text style={styles.counter}>{results.length} matching question{results.length === 1 ? '' : 's'}</Text>
       {results.length > 1 ? (
         <Pressable accessibilityRole="button" style={styles.primary} onPress={() => onPractise(results)}>
           <Text style={styles.primaryText}>Practise all {results.length} matches</Text>
@@ -64,19 +54,12 @@ export default function QuestionSearchScreen({ onBack, onPractise }: Props) {
 }
 
 const styles = StyleSheet.create({
-  back: { paddingVertical: 10, alignSelf: 'flex-start' },
   link: { color: '#2456C7', fontWeight: '800', fontSize: 13 },
   heading: { fontSize: 25, fontWeight: '900', color: '#14233B', marginTop: 4 },
   subheading: { color: '#66758B', fontSize: 13, lineHeight: 20, marginTop: 6, marginBottom: 14 },
   search: { borderWidth: 1, borderColor: '#CBD6E6', backgroundColor: '#FFFFFF',
     borderRadius: 13, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16,
     color: '#14233B', minHeight: 52 },
-  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
-  filter: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E7F2',
-    borderRadius: 22, paddingHorizontal: 12, paddingVertical: 9, minHeight: 40 },
-  filterActive: { backgroundColor: '#EDF3FF', borderColor: '#2456C7' },
-  filterText: { color: '#66758B', fontSize: 12, fontWeight: '700' },
-  filterTextActive: { color: '#2456C7' },
   counter: { marginTop: 16, marginBottom: 8, fontSize: 12, color: '#66758B', fontWeight: '700' },
   primary: { alignItems: 'center', justifyContent: 'center', minHeight: 48,
     backgroundColor: '#2456C7', borderRadius: 13, marginBottom: 10 },
@@ -86,5 +69,5 @@ const styles = StyleSheet.create({
   topic: { color: '#2456C7', fontWeight: '900', fontSize: 10, letterSpacing: 0.6 },
   prompt: { color: '#14233B', fontWeight: '700', fontSize: 15, lineHeight: 22, marginVertical: 9 },
   empty: { padding: 20, borderWidth: 1, borderColor: '#E4EAF2', borderRadius: 15 },
-  emptyText: { color: '#66758B', lineHeight: 20 },
+  emptyText: { color: '#66758B', lineHeight: 20 }
 });

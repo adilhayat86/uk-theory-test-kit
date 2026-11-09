@@ -11,6 +11,7 @@ type Props = {
   questions: TheoryQuestion[];
   answers: Record<string, number>;
   savedIds: string[];
+  backLabel: string;
   onFinish: () => void;
   onRetry: (items: TheoryQuestion[]) => void;
   onRestart: () => void;
@@ -24,7 +25,7 @@ const filters: { key: PracticeReviewFilter; title: string }[] = [
 ];
 
 export default function PracticeResultsScreen({
-  questions, answers, savedIds, onFinish, onRetry, onRestart,
+  questions, answers, savedIds, backLabel, onFinish, onRetry, onRestart,
 }: Props) {
   const [filter, setFilter] = useState<PracticeReviewFilter>('all');
   const [showReview, setShowReview] = useState(false);
@@ -105,7 +106,7 @@ export default function PracticeResultsScreen({
         <Text style={styles.link}>Practise these questions again</Text>
       </Pressable>
       <Pressable accessibilityRole="button" style={styles.textAction} onPress={onFinish}>
-        <Text style={styles.link}>Back to Theory Test</Text>
+        <Text style={styles.link}>Back to {backLabel}</Text>
       </Pressable>
     </View>
   );

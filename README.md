@@ -1,6 +1,6 @@
 # UK Theory Test Kit
 
-An independent, offline Great Britain car theory revision app built with Expo, React Native, TypeScript and SQLite. Android learner MVP **0.2.0**, versionCode **2**. Not affiliated with DVSA.
+An independent, offline Great Britain car theory revision app built with Expo, React Native, TypeScript and SQLite. Android learner MVP **0.2.1**, versionCode **3**. Not affiliated with DVSA.
 
 ## Included in the MVP
 
@@ -22,13 +22,13 @@ Great Britain car revision. No licensed DVSA question bank, full Highway Code bo
 
 See the [MVP implementation and phone competitor audit](docs/MVP_IMPLEMENTATION_2026-11-10.md), [release target](docs/MVP_RELEASE_TARGET.md), and [asset sources and licences](docs/ASSET_LICENCES.md). No competitor code or media is included.
 
-## Try it
+## Navigation
 
-- Home → Theory Revision → Build your practice: choose filters, length and topics, then start.
-- Home → Road Signs: search, expand a sign, save it, or try the recognition quiz.
-- Home → Flashcards: recall, reveal and browse answers without recording test attempts.
-- Timed: start a short timed session, flag questions and submit to review.
-- Saved and Progress: revisit bookmarks and topic coverage. Existing question IDs and database schema are unchanged.
+The main tabs are **Home, Practice, Signs, Saved and Progress**. Practice opens the session setup directly. Home shows quick practice, signs, flashcards and timed practice in a compact dashboard. Search is available in the header.
+
+Topics open in a picker rather than a long list above the content. Back returns to the actual previous screen with its search, selections and position retained. The Android Back key closes the topic picker before leaving a screen. A saved practice session is resumed explicitly from Home.
+
+See [navigation changes and validation](docs/NAVIGATION_2026-11-10.md).
 
 ## Development
 
