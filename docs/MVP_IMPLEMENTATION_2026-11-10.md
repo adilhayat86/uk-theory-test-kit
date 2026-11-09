@@ -30,4 +30,3 @@ This test MVP is for independent GB car revision. It does not include the licens
 - Original Airplane mode, Wi-Fi, Bluetooth and mobile-data settings were restored. Screenshots, JSON reports, APK and backup are retained locally on G: under the MVP build folder. The app is left on Home.
 
 Human editorial approval, production signing, store listing, TalkBack and wider device/font-size QA remain outside this completed test build.
-
