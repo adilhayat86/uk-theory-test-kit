@@ -16,6 +16,7 @@ import MockExamScreen from './src/components/MockExamScreen';
 import QuestionIllustration from './src/components/QuestionIllustration';
 import FlashcardsScreen from './src/components/FlashcardsScreen';
 import QuestionSearchScreen from './src/components/QuestionSearchScreen';
+import ImageReviewScreen from './src/components/ImageReviewScreen';
 import RoadSignsScreen from './src/components/RoadSignsScreen';
 import PracticeResultsScreen from './src/components/PracticeResultsScreen';
 import { chooseQuestions } from './src/domain/mockExam';
@@ -36,7 +37,7 @@ import type { ProgressSummary } from './src/domain/progress';
 import { getQuestionsToRetry, getTopicReview, selectSmartPractice } from './src/domain/revision';
 import type { QuestionProgressDetail } from './src/domain/revision';
 
-type Tab = 'home' | 'theory' | 'practice' | 'mock' | 'saved' | 'progress' | 'flashcards' | 'search' | 'roadSigns';
+type Tab = 'home' | 'theory' | 'practice' | 'mock' | 'saved' | 'progress' | 'flashcards' | 'search' | 'roadSigns' | 'imageReview';
 
 const EMPTY_PROGRESS: ProgressSummary = {
   questionsAnswered: 0,
@@ -295,7 +296,10 @@ function AppContent() {
               ) : null}
               <Text style={styles.sectionTitle}>Learn and practise</Text>
               <MenuCard index="01" title="Theory Revision" detail="Practice questions, quick sessions, search and saved questions" onPress={() => setTab('theory')} />
-              <MenuCard index="02" title="Road Sign Notes" detail="Text-based sign study, saved notes and quiz preview" onPress={() => setTab('roadSigns')} />
+              <MenuCard index="02" title="Road Sign Notes" detail="Sign study with illustrations, saved notes and mini quiz" onPress={() => setTab('roadSigns')} />
+              {(__DEV__ || process.env.EXPO_PUBLIC_IMAGE_REVIEW === 'true') ? (
+                <MenuCard index="QA" title="Artwork review" detail="Browse 121 pending draft images offline" onPress={() => setTab('imageReview')} />
+              ) : null}
               <Text style={styles.scopeNote}>GB car theory preparation. NI-specific questions are not yet provided.</Text>
 
               <Pressable accessibilityRole="button" style={styles.mockBanner} onPress={() => setTab('mock')}>
@@ -408,7 +412,7 @@ function AppContent() {
                       </Pressable>
                     </View>
                     <Text style={styles.questionPrompt}>{currentQuestion.prompt}</Text>
-                     <QuestionIllustration question={currentQuestion} />
+                     <QuestionIllustration question={currentQuestion} context={selectedAnswer === null ? 'question' : 'review'} />
                     {currentQuestion.options.map((option, index) => {
                       const isChosen = selectedAnswer === index;
                       const isCorrectOption = selectedAnswer !== null && index === currentQuestion.correctIndex;
@@ -458,6 +462,7 @@ function AppContent() {
 
           {tab === 'mock' && <MockExamScreen onBack={() => setTab('theory')} />}
           {tab === 'search' && <QuestionSearchScreen onBack={() => setTab('theory')} onPractise={startPractice} />}
+          {tab === 'imageReview' && <ImageReviewScreen onBack={() => setTab('home')} />}
           {tab === 'roadSigns' && <RoadSignsScreen onBack={() => setTab('home')} />}
           {tab === 'flashcards' && <FlashcardsScreen onBack={() => setTab('home')} onPractise={startPractice} />}
 

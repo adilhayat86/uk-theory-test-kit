@@ -290,7 +290,7 @@ export default function MockExamScreen({ onBack }: Props) {
               <View key={id} style={styles.reviewCard}>
                 <Text style={styles.number}>QUESTION {index + 1} · {correct ? 'CORRECT' : 'REVIEW'}</Text>
                 <Text style={styles.reviewPrompt}>{item.prompt}</Text>
-                <QuestionIllustration question={item} />
+                <QuestionIllustration question={item} context="review" />
                 <Text style={styles.body}>Your answer: {selected === undefined ? 'Unanswered' : item.options[selected]}</Text>
                 <Text style={styles.correctAnswer}>Correct: {item.options[item.correctIndex]}</Text>
                 <Text style={styles.body}>{item.explanation}</Text>

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import QuestionIllustration from './QuestionIllustration';
 import type { TheoryQuestion } from '../data/questions';
 import {
   buildPracticeReview, filterPracticeReview, topicPracticeScores,
@@ -88,6 +89,7 @@ export default function PracticeResultsScreen({
                 {entry.correct ? 'CORRECT' : 'REVIEW'} · {entry.question.topic.toUpperCase()}
               </Text>
               <Text style={styles.question}>{index + 1}. {entry.question.prompt}</Text>
+              <QuestionIllustration question={entry.question} context="review" />
               <Text style={styles.answerText}>Your answer: {entry.question.options[entry.selectedIndex]}</Text>
               {!entry.correct ? (
                 <Text style={styles.correctAnswer}>Correct: {entry.question.options[entry.question.correctIndex]}</Text>

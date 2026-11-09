@@ -55,7 +55,7 @@ npx expo start
 - **Per-topic dashboard**: view attempted-question coverage, accuracy and mistakes to retry; all calculated locally.
 - **Screenshot-informed study hub**: clear Theory Revision and Road Sign Notes navigation for MVP, with unique independent styling.
 - **Offline question search**: keyword and topic filtering across the local original bank, tap one result or practise all matches.
-- **Road Signs preview**: twelve original, source-referenced text explanations with category browsing, search, SQLite bookmarks and a twelve-question text quiz. Visual road-sign identification is not yet included.
+- **Road Signs**: twelve original, source-referenced notes with category browsing, search, SQLite bookmarks and a twelve-question text quiz. STOP and GIVE WAY notes include teaching diagrams; eight visual recognition questions are available in Theory Revision.
 - **Deferred:** hazard-perception playback and full Highway Code are not exposed in the MVP navigation.
 - **Competitor-recording-informed practice**: choose a shuffled 5- or 10-question session from the Theory hub; after practice, filter your actual session answers by correct/incorrect/saved, review explanations and topic scores, and retry mistakes.
 - **Timed five-question mini test** (six minutes), with flagging, changing answers, question jumping, submission, timeout, answer review and saved offline mock history.
@@ -111,3 +111,27 @@ A static audit of a user-supplied Theory Test 4 in 1 Kit APK informs our priorit
 ## Question-bank evidence
 
 All 200 current draft questions include four answer choices, explanations and direct primary GOV.UK rule links. Read the [editorial audit](docs/QUESTION_BANK_EDITORIAL_AUDIT.md) and [200-row review tracker](docs/QUESTION_REVIEW_TRACKER.csv). The automated structure checks do **not** constitute human fact checking or approval to sell the app.
+
+
+## Offline artwork integration (9 November 2026)
+
+The 208-question bank and all progress storage formats are preserved. The nine
+existing diagrams now share one typed registry. Practice and timed mini tests
+hide meaning captions until answer review; screen-reader labels describe visible
+shapes instead of naming the tested meaning. Flashcards and practice results
+now display their matching diagrams. Selected road-sign notes include diagrams.
+
+All **121 draft pack PNGs** are stored separately under
+`src/assets/illustrations-v2/`, with the original manifest, review CSV, guide and
+editable sources. Each has a literal Metro `require()` in `draftImageSources.ts`.
+They have **not** been substituted into scored questions. All remain
+`DRAFT_REVIEW_REQUIRED`; see [artwork review findings](docs/IMAGE_LIBRARY_REVIEW.md).
+
+For internal offline visual QA, set `EXPO_PUBLIC_IMAGE_REVIEW=true` before building
+(or run a development build), then open **Home → Artwork review**. This browser
+loads one draft at a time and supports description/category/ID search. Ordinary
+release navigation hides this entry. Do not enable it for a commercial build.
+
+The full-resolution review pack adds approximately 146 MiB of PNG masters to
+an artwork-review bundle. Produce optimised device derivatives after editorial
+approval; retain the master checksums. No runtime network downloads are used.

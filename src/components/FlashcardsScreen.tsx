@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { questions } from '../data/questions';
+import QuestionIllustration from './QuestionIllustration';
 import type { TheoryQuestion } from '../data/questions';
 
 type Props = {
@@ -54,6 +55,7 @@ export default function FlashcardsScreen({ onBack, onPractise }: Props) {
           <View style={styles.card}>
             <Text style={styles.counter}>CARD {index + 1} OF {cards.length} • {current.topic.toUpperCase()}</Text>
             <Text style={styles.prompt}>{current.prompt}</Text>
+            <QuestionIllustration question={current} context={revealed ? 'review' : 'question'} />
             {revealed ? (
               <View style={styles.answer}>
                 <Text style={styles.answerLabel}>ANSWER</Text>

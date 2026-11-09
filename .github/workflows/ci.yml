@@ -66,6 +66,9 @@ jobs:
     name: Build Android device-test APK and bundles
     runs-on: ubuntu-24.04
     needs: quality
+    env:
+      # Internal QA APK exposes the pending-artwork browser; never a Play build.
+      EXPO_PUBLIC_IMAGE_REVIEW: 'true'
     steps:
       - name: Check out source
         uses: actions/checkout@v7

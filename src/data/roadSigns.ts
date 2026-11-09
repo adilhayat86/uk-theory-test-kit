@@ -1,6 +1,8 @@
+import type { IllustrationId } from './illustrationAssets';
+
 /**
  * Original text-first GB sign revision notes from DfT's "Know Your Traffic Signs".
- * Illustrations are not included: do not treat these descriptions as a visual sign test.
+ * Selected notes include original simplified teaching diagrams.
  * Source: https://www.gov.uk/government/publications/know-your-traffic-signs/the-signing-system
  * Sources last editorially reviewed 6 November 2026. Recheck before store release.
  */
@@ -9,6 +11,7 @@ export type RoadSignCategory = 'Orders' | 'Warnings' | 'Information';
 export type RoadSignFact = {
   id: string;
   title: string;
+  imageAssetId?: IllustrationId;
   category: RoadSignCategory;
   description: string;
   takeaway: string;
@@ -37,7 +40,7 @@ export const roadSignFacts: RoadSignFact[] = [
       answers: ['A junction warning', 'A positive instruction or designated route', 'A parking charge', 'A place-name direction'], correctIndex: 1 },
   },
   {
-    id: 'stop', title: 'STOP sign', category: 'Orders',
+    id: 'stop', imageAssetId: 'stop-sign', title: 'STOP sign', category: 'Orders',
     description: 'An eight-sided STOP sign is intentionally different in shape from most other order signs.',
     takeaway: 'Stop before crossing the stop line and check that it is safe to proceed.',
     reference: regulatory,
@@ -45,7 +48,7 @@ export const roadSignFacts: RoadSignFact[] = [
       answers: ['Slow if traffic is light', 'Stop only if someone is crossing', 'Come to a complete stop before the line', 'Sound your horn'], correctIndex: 2 },
   },
   {
-    id: 'give-way', title: 'GIVE WAY sign', category: 'Orders',
+    id: 'give-way', imageAssetId: 'give-way', title: 'GIVE WAY sign', category: 'Orders',
     description: 'This sign is shaped like an upside-down triangle to make it easily recognisable.',
     takeaway: 'Give priority to traffic on the major road.',
     reference: regulatory,

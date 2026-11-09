@@ -4,6 +4,7 @@ import {
   findRoadSignFacts, roadSignCategories, roadSignFacts,
 } from '../data/roadSigns';
 import type { RoadSignCategory } from '../data/roadSigns';
+import { Illustration } from './QuestionIllustration';
 import { getSavedSignIds, toggleSavedSign } from '../storage/database';
 
 type Mode = 'learn' | 'saved' | 'quiz';
@@ -74,8 +75,8 @@ export default function RoadSignsScreen({ onBack }: Props) {
         <Text style={styles.link}>‹ Home</Text>
       </Pressable>
       <Text style={styles.title}>Road signs</Text>
-      <Text style={styles.subtitle}>An original, text-first introduction to GB signs.
-        Illustrated sign recognition is a future content release.</Text>
+      <Text style={styles.subtitle}>Original GB sign notes with selected teaching illustrations.
+        Practise visual sign recognition in Theory Revision.</Text>
       <View style={styles.modeRow}>
         {([
           ['learn', 'Categories & search'],
@@ -164,6 +165,7 @@ export default function RoadSignsScreen({ onBack }: Props) {
                 </Pressable>
               </View>
               <Text style={styles.description}>{item.description}</Text>
+              {item.imageAssetId ? <Illustration assetId={item.imageAssetId} context="learn" /> : null}
               <Text style={styles.takeaway}>{item.takeaway}</Text>
               <Text style={styles.reference}>{item.reference}</Text>
             </View>

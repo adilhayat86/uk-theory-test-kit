@@ -1,3 +1,5 @@
+import type { IllustrationId } from './illustrationAssets';
+
 export type TheoryQuestion = {
   id: string;
   topic: string;
@@ -10,7 +12,7 @@ export type TheoryQuestion = {
   /** Public primary source for manual editorial checking. */
   sourceUrl?: string;
   /** Static PNG illustrations embedded in the APK for offline study. */
-  imageAssetId?: 'zebra-crossing' | 'no-entry' | 'stop-sign' | 'give-way' | 'speed-limit-30' | 'speed-limit-50' | 'national-speed-limit' | 'keep-left' | 'signals-ahead';
+  imageAssetId?: IllustrationId;
   /** Locally bundled video asset linking a three-question case study; future content. */
   caseStudyVideoAssetId?: string;
 };

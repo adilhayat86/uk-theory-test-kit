@@ -1,0 +1,2 @@
+# Preserve the imported editorial tracker bytes and its original CRLF endings.
+src/assets/illustrations-v2/image-review-tracker.csv -text whitespace=cr-at-eol

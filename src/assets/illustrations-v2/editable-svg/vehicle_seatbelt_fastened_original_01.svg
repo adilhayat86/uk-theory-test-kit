@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="1000" viewBox="0 0 1250 1000"><defs>
+<linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5f8fb"/><stop offset="1" stop-color="#cfdce6"/></linearGradient>
+<linearGradient id="rubber" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#141c25"/><stop offset=".22" stop-color="#4d5863"/><stop offset=".51" stop-color="#11181f"/><stop offset=".8" stop-color="#434b53"/><stop offset="1" stop-color="#0c141c"/></linearGradient>
+<linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eaf1f6"/><stop offset=".38" stop-color="#a3b2be"/><stop offset=".55" stop-color="#f4f8fa"/><stop offset="1" stop-color="#6c8192"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#faffff" stop-opacity=".9"/><stop offset=".4" stop-color="#abd6e7" stop-opacity=".66"/><stop offset="1" stop-color="#468db2" stop-opacity=".7"/></linearGradient>
+<linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fb7771"/><stop offset=".55" stop-color="#e03838"/><stop offset="1" stop-color="#8e1624"/></linearGradient>
+<linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a1"/><stop offset="1" stop-color="#f7a528"/></linearGradient>
+<linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#76c6f0"/><stop offset="1" stop-color="#1461a1"/></linearGradient>
+<filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="24"/></filter>
+<pattern id="grain" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="4" cy="3" r=".55" fill="#7b90a5" opacity=".16"/><circle cx="13" cy="14" r=".6" fill="#fff" opacity=".24"/></pattern>
+</defs><rect width="1250" height="1000" fill="url(#paper)"/><rect width="1250" height="1000" fill="url(#grain)"/>
+<ellipse cx="620" cy="846" rx="435" ry="65" fill="#536d83" opacity=".22" filter="url(#shadow)"/>
+<g transform="translate(140 48)"><path d="M430 92C310 91 270 179 279 284Q288 402 420 439Q550 424 577 311Q603 196 548 134Q506 95 430 92Z" fill="#d0a07b" stroke="#a57455" stroke-width="9"/><path d="M296 343Q199 400 140 554L117 832H798L780 554Q720 403 552 343L482 446H381Z" fill="url(#blue)" stroke="#173d5d" stroke-width="18"/>
+<path d="M273 355 L644 828" stroke="#182633" stroke-width="95" stroke-linecap="round"/><path d="M273 355 L644 828" stroke="#b7c8d2" stroke-width="52" stroke-linecap="round"/><path d="M273 355 L644 828" stroke="#ecf3f7" stroke-width="8" opacity=".65"/>
+<rect x="602" y="705" width="119" height="104" rx="14" fill="#273f4e" stroke="#c6d4dd" stroke-width="12"/><rect x="636" y="734" width="61" height="43" rx="9" fill="url(#red)"/><path d="M135 830H799" stroke="#12344d" stroke-width="21"/></g></svg>
