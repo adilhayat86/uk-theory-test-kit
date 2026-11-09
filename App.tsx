@@ -289,7 +289,7 @@ function AppContent() {
         <View style={styles.header}>
           <Image accessible={false} source={brandAssets['brand-mark']} style={styles.brandMark} />
           <View style={styles.headerCopy}>
-            <Text style={styles.headerEyebrow}>GB CAR THEORY · OFFLINE</Text>
+            <Text style={styles.headerEyebrow}>LEARN THE ROAD</Text>
             <Text style={styles.headerTitle}>Theory Test Kit</Text>
           </View>
           {tab !== 'search' ? <Pressable accessibilityRole="button" accessibilityLabel="Search questions"

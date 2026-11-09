@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   tab: { flex: 1, minHeight: 58, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
   iconFrame: { width: 45, height: 29, alignItems: 'center', justifyContent: 'center', borderRadius: 15 },
   selected: { backgroundColor: '#E6F5F3' },
-  iconImage: { width: 23, height: 23 }, mutedIcon: { opacity: 0.5 },
+  iconImage: { width: 23, height: 23 }, mutedIcon: { tintColor: '#66758B' },
   icon: { fontSize: 21, lineHeight: 26, color: '#77869A' },
   label: { color: '#66758B', fontSize: 10, fontWeight: '700', marginTop: 3 },
   active: { color: '#087E8B', fontWeight: '900' },
