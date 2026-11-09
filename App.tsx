@@ -289,7 +289,7 @@ function AppContent() {
         <View style={styles.header}>
           <Image accessible={false} source={brandAssets['brand-mark']} style={styles.brandMark} />
           <View style={styles.headerCopy}>
-            <Text style={styles.headerEyebrow}>LEARN THE ROAD</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Image source={brandAssets['uk-flag']} accessibilityLabel="United Kingdom flag" style={{ width: 24, height: 14 }} /><Text style={styles.headerEyebrow}>UK THEORY TEST KIT</Text></View>
             <Text style={styles.headerTitle}>Theory Test Kit</Text>
           </View>
           {tab !== 'search' ? <Pressable accessibilityRole="button" accessibilityLabel="Search questions"

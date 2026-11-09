@@ -15,6 +15,7 @@ export default function HomeScreen({ session, progress, onQuickPractice, onResum
   onSigns, onFlashcards, onTimed, onArtworkReview }: Props) {
   const unfinished = session !== null && session.currentIndex < session.questionIds.length;
   return <View>
+    <View style={styles.countryBadge}><Image source={brandAssets['uk-flag']} accessibilityLabel="United Kingdom flag" style={{ width: 26, height: 16 }} /><Text style={styles.countryText}>UK CAR THEORY</Text></View>
     <Text accessibilityRole="header" style={styles.title}>Your road to test day</Text>
     <Text style={styles.subtitle}>Small sessions. Steady progress.</Text>
     <View style={styles.hero}>
@@ -58,6 +59,8 @@ function Tool({ title, detail, mark, onPress }: { title: string; detail: string;
 }
 
 const styles = StyleSheet.create({
+  countryBadge: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 9 },
+  countryText: { color: '#087E8B', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
   title: { color: '#132B3A', fontSize: 22, lineHeight: 28, fontWeight: '900', marginTop: 3 },
   subtitle: { color: '#66758B', fontSize: 13, marginTop: 5, marginBottom: 16 },
   hero: { backgroundColor: '#132B3A', padding: 18, borderRadius: 19, marginBottom: 14 },
