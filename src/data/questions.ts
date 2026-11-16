@@ -891,10 +891,10 @@ export const questions: TheoryQuestion[] = [
     "difficulty": "standard",
     "prompt": "Regular checks of the windscreen-washer equipment shown help you maintain what?",
     "options": [
-      "The hydraulic brakes",
-      "The engine oil pump",
-      "The fuel injectors",
-      "The windscreen washers"
+      "The correct hydraulic brake pressure",
+      "The engine oil pressure",
+      "The correct fuel-injection timing",
+      "A clear view through the windscreen"
     ],
     "correctIndex": 3,
     "explanation": "The drawing shows a washer-fluid reservoir. Working washers help keep the windscreen clear; identify the correct filler using the vehicle handbook.",
