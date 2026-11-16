@@ -79,8 +79,9 @@ jobs:
     runs-on: ubuntu-24.04
     needs: quality
     env:
-      # Learner MVP APK. Draft-only gallery remains available in the separate review export.
-      EXPO_PUBLIC_IMAGE_REVIEW: 'false'
+      # Internal device-test APK includes Home → My images and the complete offline collection.
+      # Store/learner exports above still exclude the unselected draft artwork.
+      EXPO_PUBLIC_IMAGE_REVIEW: 'true'
     steps:
       - name: Check out source
         uses: actions/checkout@v7

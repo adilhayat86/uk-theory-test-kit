@@ -55,12 +55,12 @@ Structural checks meet the 200-question / 10-topic minimum. They do not constitu
 
 GitHub Actions checks types, tests, Expo compatibility, Android/iOS exports, a standalone Android learner APK and an iOS simulator build. The standalone release-mode APK embeds JavaScript and works without Metro. Its development signing key is for device testing; the CI AAB is not a production Play upload.
 
-Ordinary learner exports contain 42 PNGs (about 1.6 MiB). Set `EXPO_PUBLIC_IMAGE_REVIEW=false`. Verify an export with:
+Ordinary learner exports contain 51 PNGs (about 1.6 MiB), including the app branding. Set `EXPO_PUBLIC_IMAGE_REVIEW=false`. Verify an export with:
 
 ```sh
 node scripts/check-export-assets.cjs dist/android android learner
 ```
 
-The separate internal artwork-review export uses `EXPO_PUBLIC_IMAGE_REVIEW=true` and Home → Artwork review. It includes all 121 draft images and their unchanged review tracker, adding roughly 146 MiB. The normal learner bundle includes only the nine selected original diagrams from this pack and excludes the other 112. Selection is not human editorial approval. Restart Metro when changing the flag.
+The internal device-test APK and artwork-review export use `EXPO_PUBLIC_IMAGE_REVIEW=true` and include a prominent Home → My images entry. All 121 original draft images are searchable and available offline, with previous/next navigation and optional image details. Their review status and tracker remain unchanged. The full collection adds roughly 146 MiB; ordinary learner exports still include only the nine selected original diagrams from this pack and exclude the other 112. Selection is not human editorial approval. Restart Metro when changing the flag.
 
 Source SVGs, hashes, licensing and PNG dimensions for DfT images are retained under `src/assets/dft-signs/`. No network downloads are needed during study.

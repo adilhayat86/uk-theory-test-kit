@@ -10,7 +10,7 @@ export const initialNavigation: NavigationState = { stack: ['home'] };
 export const screenTitles: Record<Screen, string> = {
   home: 'Home', setup: 'Practice', roadSigns: 'Signs', saved: 'Saved', progress: 'Progress',
   practice: 'Your session', mock: 'Timed practice', flashcards: 'Flashcards',
-  search: 'Search', imageReview: 'Artwork review',
+  search: 'Search', imageReview: 'My images',
 };
 export function activeRoot({ stack }: NavigationState): RootScreen {
   const current = stack[stack.length - 1];
