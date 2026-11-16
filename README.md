@@ -1,14 +1,16 @@
-# UK Theory Test Kit
+# Roadstep
 
-An independent, offline Great Britain car theory revision app built with Expo, React Native, TypeScript and SQLite. Android illustrated-study update **0.4.0**, versionCode **6**. Not affiliated with DVSA.
+An independent, offline Great Britain car theory revision app built with Expo, React Native, TypeScript and SQLite. Progress-first test update **0.5.0**, versionCode **7**. Not affiliated with DVSA.
 
 ## Included in the MVP
 
 - 228 original questions across 13 topics, with four choices, explanations and primary-source references. All original 208 question records are preserved.
-- Home → Picture practice starts 10 illustrated questions. Practice setup also offers a Picture questions filter and the new Dashboard warnings topic.
+- A progress-first Home with question coverage, correct-last-try/revisit/unseen counts, recommended next sessions and actionable topic focus areas.
+- Central Progress tab with a learning route, per-topic coverage, separate historical accuracy and real timed-check history. No fabricated test-readiness score.
+- Home → Picture practice starts up to 10 illustrated questions. Learn also offers a Picture questions filter and the Dashboard warnings topic.
 - Practice setup: 5, 10 or 20 questions, multiple topics and all / pictures / smart / incorrect / not-tried / saved filters.
 - Smart revision prioritises recent mistakes and unseen questions using local history.
-- Crash-safe practice resume, saved answers, bookmarks, result review and retry mistakes.
+- Crash-safe practice resume, explicit session discard without deleting answer history/bookmarks, result review and retry mistakes. Finished practice links back to shared progress.
 - 30 illustrated road-sign notes with search, categories, saved signs and a shuffled 10-question recognition quiz.
 - 30 openly licensed DfT sign illustrations and 52 selected original project images, all bundled offline. Labelled teaching scenes appear only after answering or revealing a flashcard; genuine image questions show uncaptioned technical illustrations. Twenty-one sign lessons also include original roadside examples.
 - Topic flashcards, question search and local progress by topic.
@@ -25,7 +27,9 @@ See the [MVP implementation and phone competitor audit](docs/MVP_IMPLEMENTATION_
 
 ## Navigation
 
-The main tabs are **Home, Practice, Signs, Saved and Progress**. Practice opens the session setup directly. Home shows quick practice, signs, flashcards and timed practice in a compact dashboard. Search is available in the header.
+The main tabs are **Home, Learn, Progress, Signs and Saved**. Home shows your learning position and recommends a next step. Progress is the central destination for your learning route and topics. Learn opens practice setup; illustrated practice, signs, flashcards and timed checks remain available. Search is in the header.
+
+See the [progress-first redesign and competitor review](docs/PROGRESS_FIRST_REDESIGN.md) and [Roadstep identity](docs/BRAND.md).
 
 Topics open in a picker rather than a long list above the content. Back returns to the actual previous screen with its search, selections and position retained. The Android Back key closes the topic picker before leaving a screen. A saved practice session is resumed explicitly from Home.
 

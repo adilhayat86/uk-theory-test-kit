@@ -1,9 +1,13 @@
-# Theory Test Kit visual identity
+# Roadstep visual identity
 
-Original road-and-checkmark emblem, with navy (#132B3A), teal (#087E8B), mint (#B4F1D7), and soft neutral surfaces. The road represents learning; the checkmark represents practice completion, not a guaranteed test pass.
+Roadstep is the working brand for this internal Great Britain car-theory revision build. Its learning promise is simple: **UK theory, one step forward.** It is not an official DVSA product or a promise of passing the driving theory test. Public brand-name and trademark clearance remains outside this test update.
 
-Editable SVG masters and exported PNGs live in `src/assets/brand/`. The app icon is opaque and the Android adaptive foreground has additional safe-area padding. The same artwork appears in the app header. Seven matching outline icons replace font-dependent symbols in the study cards and bottom navigation.
+The original mark is an ascending white path with three steps and a lime checkpoint dot on an indigo field. It represents visible learning progress, including returning to an earlier topic when revision is useful. It does not imply a verified mastery or pass-readiness score. The icon contains no national flag or endorsement badge.
 
-All branding is original project vector artwork. No competitor branding or government endorsement marks are used. Existing traffic-sign artwork and semantic answer-feedback colours retain their meaning. The name, navigation, question IDs and saved-data schema remain compatible.
+The shared palette in `src/theme.ts` uses warm offwhite (#F7F7F2), indigo (#4F46E5), dark ink (#202033), lime (#DDEA91), soft lavender (#EFEDFF) and quiet grey borders. Green and red retain their semantic meaning in answer feedback. Coverage, latest answer correctness and overall accuracy remain distinct concepts in the interface.
 
-The Union Flag appears in the launcher emblem, shared header and Home country badge. UK branding does not expand the current GB-only question scope.
+Editable SVG masters and matching exported PNGs live in `src/assets/brand/`. The app icon is opaque. Android's adaptive foreground is transparent, with the symbol inset to protect its checkpoint under launcher masks; its separate background is indigo. The header uses the rounded-square brand mark. The seven matching outline icons have simple geometry that remains legible at small sizes.
+
+Navigation remains compatible with existing routes. Its visible order is Home, Learn, Progress, Signs and Saved, with Progress in the centre. The active destination has a lime indicator; Progress retains an indigo tile when another destination is active. Labels and selected state remain available to screen readers.
+
+All artwork is original project vector work. Competitor research informs the study flow, not the logo, artwork or typography. The package identifier, bundle identifier and question IDs remain unchanged so an update can preserve stored learning data. The old Union Flag asset is retained for any scoped country-reference use; it is no longer part of the launcher identity.

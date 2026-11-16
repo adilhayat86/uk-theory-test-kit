@@ -1,3 +1,4 @@
+import { colors } from '../theme';
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { questions } from '../data/questions';
@@ -23,7 +24,7 @@ export default function QuestionSearchScreen({ onPractise }: Props) {
       <TextInput
         accessibilityLabel="Search theory questions"
         placeholder="Search by keyword, topic or rule…"
-        placeholderTextColor="#77869A"
+        placeholderTextColor={colors.muted}
         value={query}
         onChangeText={setQuery}
         clearButtonMode="while-editing"
@@ -54,20 +55,20 @@ export default function QuestionSearchScreen({ onPractise }: Props) {
 }
 
 const styles = StyleSheet.create({
-  link: { color: '#087E8B', fontWeight: '800', fontSize: 13 },
-  heading: { fontSize: 25, fontWeight: '900', color: '#132B3A', marginTop: 4 },
-  subheading: { color: '#66758B', fontSize: 13, lineHeight: 20, marginTop: 6, marginBottom: 14 },
-  search: { borderWidth: 1, borderColor: '#CBD6E6', backgroundColor: '#FFFFFF',
+  link: { color: colors.primary, fontWeight: '800', fontSize: 13 },
+  heading: { fontSize: 25, fontWeight: '900', color: colors.ink, marginTop: 4 },
+  subheading: { color: colors.muted, fontSize: 13, lineHeight: 20, marginTop: 6, marginBottom: 14 },
+  search: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface,
     borderRadius: 13, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16,
-    color: '#132B3A', minHeight: 52 },
-  counter: { marginTop: 16, marginBottom: 8, fontSize: 12, color: '#66758B', fontWeight: '700' },
+    color: colors.ink, minHeight: 52 },
+  counter: { marginTop: 16, marginBottom: 8, fontSize: 12, color: colors.muted, fontWeight: '700' },
   primary: { alignItems: 'center', justifyContent: 'center', minHeight: 48,
-    backgroundColor: '#087E8B', borderRadius: 13, marginBottom: 10 },
-  primaryText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
-  result: { backgroundColor: '#FFFFFF', borderRadius: 15, borderWidth: 1,
-    borderColor: '#DFE8E6', padding: 15, marginBottom: 10 },
-  topic: { color: '#087E8B', fontWeight: '900', fontSize: 10, letterSpacing: 0.6 },
-  prompt: { color: '#132B3A', fontWeight: '700', fontSize: 15, lineHeight: 22, marginVertical: 9 },
-  empty: { padding: 20, borderWidth: 1, borderColor: '#DFE8E6', borderRadius: 15 },
-  emptyText: { color: '#66758B', lineHeight: 20 }
+    backgroundColor: colors.primary, borderRadius: 13, marginBottom: 10 },
+  primaryText: { color: colors.white, fontWeight: '800', fontSize: 14 },
+  result: { backgroundColor: colors.surface, borderRadius: 15, borderWidth: 1,
+    borderColor: colors.border, padding: 15, marginBottom: 10 },
+  topic: { color: colors.primary, fontWeight: '900', fontSize: 10, letterSpacing: 0.6 },
+  prompt: { color: colors.ink, fontWeight: '700', fontSize: 15, lineHeight: 22, marginVertical: 9 },
+  empty: { padding: 20, borderWidth: 1, borderColor: colors.border, borderRadius: 15 },
+  emptyText: { color: colors.muted, lineHeight: 20 }
 });

@@ -1,3 +1,4 @@
+import { colors } from '../theme';
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { questions } from '../data/questions';
@@ -74,18 +75,18 @@ export default function PracticeSetupScreen({ records, savedIds, initialTopic, o
 }
 
 const styles = StyleSheet.create({
-  title: { color: '#132B3A', fontSize: 26, fontWeight: '900', marginTop: 8 },
-  heading: { color: '#132B3A', fontSize: 17, fontWeight: '800', marginBottom: 8, marginTop: 6 },
-  length: { flex: 1, minHeight: 44, padding: 11, alignItems: 'center', borderWidth: 1, borderColor: '#CBD6E6', borderRadius: 12, backgroundColor: '#FFFFFF' },
+  title: { color: colors.ink, fontSize: 26, fontWeight: '900', marginTop: 8 },
+  heading: { color: colors.ink, fontSize: 17, fontWeight: '800', marginBottom: 8, marginTop: 6 },
+  length: { flex: 1, minHeight: 44, padding: 11, alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.surface },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-  chip: { borderWidth: 1, borderColor: '#CBD6E6', borderRadius: 22, backgroundColor: '#FFFFFF', paddingHorizontal: 14, paddingVertical: 12, minHeight: 46 },
-  chipText: { color: '#40516A', fontWeight: '700', fontSize: 13 },
-  selected: { borderColor: '#087E8B', backgroundColor: '#E6F5F3' },
-  activeText: { color: '#087E8B' },
-  summary: { backgroundColor: '#132B3A', borderRadius: 16, padding: 16, marginTop: 2 },
-  summaryTitle: { color: '#FFFFFF', fontWeight: '800', fontSize: 21 },
-  summaryBody: { color: '#D6E9E6', fontSize: 13, lineHeight: 20, marginTop: 6 },
-  primary: { minHeight: 50, borderRadius: 13, backgroundColor: '#087E8B', alignItems: 'center', justifyContent: 'center', padding: 14, marginTop: 15 },
-  primaryText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
+  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 22, backgroundColor: colors.surface, paddingHorizontal: 14, paddingVertical: 12, minHeight: 46 },
+  chipText: { color: colors.ink, fontWeight: '700', fontSize: 13 },
+  selected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  activeText: { color: colors.primary },
+  summary: { backgroundColor: colors.ink, borderRadius: 16, padding: 16, marginTop: 2 },
+  summaryTitle: { color: colors.white, fontWeight: '800', fontSize: 21 },
+  summaryBody: { color: colors.primarySoft, fontSize: 13, lineHeight: 20, marginTop: 6 },
+  primary: { minHeight: 50, borderRadius: 13, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', padding: 14, marginTop: 15 },
+  primaryText: { color: colors.white, fontWeight: '800', fontSize: 14 },
   disabled: { opacity: 0.45 }
 });

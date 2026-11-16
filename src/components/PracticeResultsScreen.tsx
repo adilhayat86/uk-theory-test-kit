@@ -6,6 +6,7 @@ import {
   buildPracticeReview, filterPracticeReview, topicPracticeScores,
 } from '../domain/practiceReview';
 import type { PracticeReviewFilter } from '../domain/practiceReview';
+import { colors } from '../theme';
 
 type Props = {
   questions: TheoryQuestion[];
@@ -15,6 +16,7 @@ type Props = {
   onFinish: () => void;
   onRetry: (items: TheoryQuestion[]) => void;
   onRestart: () => void;
+  onProgress: () => void;
 };
 
 const filters: { key: PracticeReviewFilter; title: string }[] = [
@@ -25,7 +27,7 @@ const filters: { key: PracticeReviewFilter; title: string }[] = [
 ];
 
 export default function PracticeResultsScreen({
-  questions, answers, savedIds, backLabel, onFinish, onRetry, onRestart,
+  questions, answers, savedIds, backLabel, onFinish, onRetry, onRestart, onProgress,
 }: Props) {
   const [filter, setFilter] = useState<PracticeReviewFilter>('all');
   const [showReview, setShowReview] = useState(false);
@@ -46,6 +48,17 @@ export default function PracticeResultsScreen({
         <Text style={styles.note}>This short practice result does not predict your official test score.</Text>
       </View>
 
+      <View style={styles.progressCard}>
+        <Text style={styles.progressEyebrow}>YOUR NEXT STEP</Text>
+        <Text style={styles.progressTitle}>Keep moving forward</Text>
+        <Text style={styles.progressBody}>{entries.length > 0
+          ? 'Your answers are saved to your progress. See what you have covered and what to revisit next.'
+          : 'See your question coverage and choose what to practise next.'}</Text>
+        <Pressable accessibilityRole="button" style={styles.primary} onPress={onProgress}>
+          <Text style={styles.primaryText}>See your progress</Text>
+        </Pressable>
+      </View>
+
       {topicScores.length ? (
         <>
           <Text style={styles.sectionTitle}>How you did by topic</Text>
@@ -58,9 +71,9 @@ export default function PracticeResultsScreen({
         </>
       ) : null}
 
-      <Pressable accessibilityRole="button" style={styles.primary}
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: showReview }} style={styles.secondary}
         onPress={() => setShowReview((previous) => !previous)}>
-        <Text style={styles.primaryText}>{showReview ? 'Hide answer review' : 'Review your answers'}</Text>
+        <Text style={styles.secondaryText}>{showReview ? 'Hide answer review' : 'Review your answers'}</Text>
       </Pressable>
 
       {wrongQuestions.length > 0 ? (
@@ -113,39 +126,44 @@ export default function PracticeResultsScreen({
 }
 
 const styles = StyleSheet.create({
-  hero: { borderRadius: 20, padding: 22, backgroundColor: '#132B3A', alignItems: 'center', marginTop: 8, marginBottom: 22 },
-  eyebrow: { color: '#B4F1D7', letterSpacing: 1, fontSize: 10, fontWeight: '900' },
-  score: { color: '#FFFFFF', fontSize: 47, fontWeight: '900', marginTop: 7 },
-  detail: { color: '#FFFFFF', fontSize: 15, marginTop: 8 },
-  note: { color: '#D6E9E6', fontSize: 11, lineHeight: 17, textAlign: 'center', marginTop: 10 },
-  sectionTitle: { color: '#132B3A', fontSize: 18, fontWeight: '900', marginBottom: 12, marginTop: 8 },
-  topicRow: { borderRadius: 12, borderWidth: 1, borderColor: '#DFE8E6',
-    flexDirection: 'row', justifyContent: 'space-between', gap: 8, padding: 14,
-    backgroundColor: '#FFFFFF', marginBottom: 8 },
-  topicTitle: { color: '#132B3A', fontWeight: '700', fontSize: 13, flexShrink: 1 },
-  topicMetric: { color: '#087E8B', fontWeight: '900', fontSize: 13 },
-  primary: { backgroundColor: '#087E8B', minHeight: 48, borderRadius: 13,
+  hero: { borderRadius: 24, padding: 24, backgroundColor: colors.ink, alignItems: 'center', marginTop: 8, marginBottom: 16 },
+  eyebrow: { color: colors.lime, letterSpacing: 1.3, fontSize: 10, fontWeight: '900' },
+  score: { color: colors.white, fontSize: 52, fontWeight: '900', marginTop: 8 },
+  detail: { color: colors.white, fontSize: 14, lineHeight: 21, marginTop: 8, textAlign: 'center' },
+  note: { color: '#D6D4E9', fontSize: 11, lineHeight: 17, textAlign: 'center', marginTop: 10 },
+  progressCard: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface,
+    borderRadius: 20, padding: 18, marginBottom: 22 },
+  progressEyebrow: { color: colors.primary, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  progressTitle: { color: colors.ink, fontSize: 20, lineHeight: 27, fontWeight: '800', marginTop: 7 },
+  progressBody: { color: colors.muted, fontSize: 13, lineHeight: 20, marginTop: 7 },
+  sectionTitle: { color: colors.ink, fontSize: 18, fontWeight: '900', marginBottom: 12, marginTop: 8 },
+  topicRow: { borderRadius: 14, borderWidth: 1, borderColor: colors.border,
+    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8, padding: 14,
+    backgroundColor: colors.surface, marginBottom: 8 },
+  topicTitle: { color: colors.ink, fontWeight: '700', fontSize: 13, flexShrink: 1 },
+  topicMetric: { color: colors.primary, fontWeight: '900', fontSize: 13 },
+  primary: { backgroundColor: colors.primary, minHeight: 48, borderRadius: 14, padding: 14,
     alignItems: 'center', justifyContent: 'center', marginTop: 14 },
-  primaryText: { color: '#FFFFFF', fontWeight: '900', fontSize: 14 },
-  secondary: { backgroundColor: '#E6F5F3', borderRadius: 13, minHeight: 48,
+  primaryText: { color: colors.white, fontWeight: '900', fontSize: 14, textAlign: 'center' },
+  secondary: { backgroundColor: colors.primarySoft, borderRadius: 14, minHeight: 48, padding: 14,
     marginTop: 10, alignItems: 'center', justifyContent: 'center' },
-  secondaryText: { fontSize: 14, color: '#087E8B', fontWeight: '800' },
+  secondaryText: { fontSize: 14, lineHeight: 21, color: colors.primary, fontWeight: '800', textAlign: 'center' },
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
-  filter: { borderWidth: 1, borderRadius: 20, borderColor: '#DFE8E6',
-    backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 10, minHeight: 42 },
-  filterSelected: { borderColor: '#087E8B', backgroundColor: '#E6F5F3' },
-  filterText: { color: '#66758B', fontSize: 12, fontWeight: '800' },
-  filterTextActive: { color: '#087E8B' },
-  reviewCard: { borderRadius: 15, borderWidth: 1, borderColor: '#DFE8E6',
-    backgroundColor: '#FFFFFF', padding: 16, marginBottom: 12 },
+  filter: { borderWidth: 1, borderRadius: 20, borderColor: colors.border,
+    backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 10, minHeight: 44 },
+  filterSelected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  filterText: { color: colors.muted, fontSize: 12, fontWeight: '800' },
+  filterTextActive: { color: colors.primary },
+  reviewCard: { borderRadius: 18, borderWidth: 1, borderColor: colors.border,
+    backgroundColor: colors.surface, padding: 16, marginBottom: 12 },
   tag: { fontWeight: '900', fontSize: 10, letterSpacing: 0.6 },
-  good: { color: '#16834A' }, bad: { color: '#C23B42' },
-  question: { fontSize: 16, color: '#132B3A', fontWeight: '800', lineHeight: 23, marginTop: 9 },
-  answerText: { fontSize: 13, color: '#66758B', lineHeight: 20, marginTop: 10 },
-  correctAnswer: { fontSize: 13, color: '#16834A', lineHeight: 20, fontWeight: '800', marginTop: 6 },
-  explanation: { color: '#40516A', fontSize: 13, lineHeight: 20, marginTop: 12 },
-  reference: { color: '#8492A7', fontSize: 11, marginTop: 9 },
-  empty: { color: '#66758B', fontSize: 13, padding: 15 },
-  textAction: { alignItems: 'center', justifyContent: 'center', padding: 14 },
-  link: { color: '#087E8B', fontWeight: '800', fontSize: 13 },
+  good: { color: colors.success }, bad: { color: colors.danger },
+  question: { fontSize: 16, color: colors.ink, fontWeight: '800', lineHeight: 23, marginTop: 9 },
+  answerText: { fontSize: 13, color: colors.muted, lineHeight: 20, marginTop: 10 },
+  correctAnswer: { fontSize: 13, color: colors.success, lineHeight: 20, fontWeight: '800', marginTop: 6 },
+  explanation: { color: colors.ink, fontSize: 13, lineHeight: 20, marginTop: 12 },
+  reference: { color: colors.muted, fontSize: 11, marginTop: 9 },
+  empty: { color: colors.muted, fontSize: 13, padding: 15 },
+  textAction: { alignItems: 'center', justifyContent: 'center', padding: 14, minHeight: 48 },
+  link: { color: colors.primary, fontWeight: '800', fontSize: 13, textAlign: 'center' },
 });

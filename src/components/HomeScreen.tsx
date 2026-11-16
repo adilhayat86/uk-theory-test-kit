@@ -2,103 +2,92 @@ import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { brandAssets } from '../data/brandAssets';
 import type { PracticeSession } from '../domain/practiceSession';
-import type { ProgressSummary } from '../domain/progress';
+import type { LearningOverview } from '../domain/learningProgress';
+import { colors } from '../theme';
+import { CoverageCard, TopicProgressRow } from './LearningOverview';
 
 type Props = {
-  session: PracticeSession | null; progress: ProgressSummary;
-  onQuickPractice: () => void; onResume: () => void; onPractice: () => void;
-  onPicturePractice: () => void;
-  onSigns: () => void; onFlashcards: () => void; onTimed: () => void;
-  onArtworkReview?: () => void;
+  session: PracticeSession | null; overview: LearningOverview;
+  onNext: () => void; onResume: () => void; onDiscard: () => void;
+  onPractice: () => void; onProgress: () => void; onTopic: (topic: string) => void;
+  onPicturePractice: () => void; onSigns: () => void; onFlashcards: () => void;
+  onTimed: () => void; onArtworkReview?: () => void;
 };
 
-export default function HomeScreen({ session, progress, onQuickPractice, onResume, onPractice, onPicturePractice,
-  onSigns, onFlashcards, onTimed, onArtworkReview }: Props) {
+export default function HomeScreen({ session, overview, onNext, onResume, onDiscard,
+  onPractice, onProgress, onTopic, onPicturePractice, onSigns, onFlashcards, onTimed, onArtworkReview }: Props) {
   const unfinished = session !== null && session.currentIndex < session.questionIds.length;
+  const focusTopics = [...overview.topics].sort((a,b) => b.needsReview-a.needsReview || a.coveragePercent-b.coveragePercent).slice(0,3);
+  const nextTitle = overview.needsReview > 0 ? 'Turn mistakes into progress.'
+    : overview.unseen > 0 ? 'Discover something new.' : 'Keep your knowledge fresh.';
   return <View>
-    <View style={styles.countryBadge}><Image source={brandAssets['uk-flag']} accessibilityLabel="United Kingdom flag" style={{ width: 26, height: 16 }} /><Text style={styles.countryText}>UK CAR THEORY</Text></View>
-    <Text accessibilityRole="header" style={styles.title}>Your road to test day</Text>
-    <Text style={styles.subtitle}>Small sessions. Steady progress.</Text>
-    <View style={styles.hero}>
-      <Text style={styles.kicker}>{unfinished ? 'PICK UP WHERE YOU LEFT OFF' : 'MAKE TODAY COUNT'}</Text>
-      <Text style={styles.heroTitle}>{unfinished ? 'Your session is saved' : 'Quick practice'}</Text>
-      <Text style={styles.heroDetail}>{unfinished
-        ? 'Question ' + (session.currentIndex + 1) + ' of ' + session.questionIds.length
-        : '10 mixed questions · learn at your own pace'}</Text>
-      <Pressable accessibilityRole="button" accessibilityLabel={unfinished ? 'Continue practice' : 'Start quick practice'}
-        onPress={unfinished ? onResume : onQuickPractice} style={styles.primary}>
-        <Text style={styles.primaryText}>{unfinished ? 'Continue practice' : 'Start 10 questions'} ›</Text>
+    <Text style={s.eyebrow}>YOUR LEARNING JOURNEY</Text>
+    <Text accessibilityRole="header" style={s.title}>One step closer.</Text>
+    <Text style={s.subtitle}>See where you are. Know what to do next.</Text>
+    <CoverageCard overview={overview} onPress={onProgress} />
+    <View style={s.next}>
+      <View style={s.nextHeading}><Text style={s.eyebrow}>YOUR NEXT STEP</Text><View style={s.badge}><Text style={s.badgeText}>PERSONAL TO YOU</Text></View></View>
+      <Text style={s.nextTitle}>{unfinished ? 'Pick up your saved session.' : nextTitle}</Text>
+      <Text style={s.body}>{unfinished ? `Question ${session.currentIndex+1} of ${session.questionIds.length} · your answers are saved.`
+        : overview.needsReview > 0 ? `${overview.needsReview} questions need another look. Start with up to 10, chosen from your latest mistakes.`
+        : overview.unseen > 0 ? `${overview.unseen} questions still to explore. Take up to 10 at your own pace.`
+        : 'A mixed session helps you revisit the questions you have explored.'}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel={unfinished ? 'Continue practice' : 'Start next session'}
+        onPress={unfinished ? onResume : onNext} style={s.primary}>
+        <Text style={s.primaryText}>{unfinished ? 'Continue session' : 'Start next session'}  →</Text>
       </Pressable>
+      {session ? <Pressable accessibilityRole="button" accessibilityLabel="Discard practice session" onPress={onDiscard} style={s.textButton}>
+        <Text style={s.smallLink}>{unfinished ? 'Discard this session' : 'Clear last session'}</Text>
+      </Pressable> : <Text style={s.footnote}>Study answers update your question coverage.</Text>}
     </View>
-    <Pressable accessibilityRole="button" accessibilityLabel="Start picture practice"
-      accessibilityHint="Start ten questions with illustrations" onPress={onPicturePractice} style={styles.pictureCard}>
-      <Image accessible={false} source={brandAssets.signs} style={styles.toolIcon} />
-      <View style={styles.reviewText}>
-        <Text style={styles.reviewTitle}>Picture practice</Text>
-        <Text style={styles.reviewDetail}>10 visual questions · learn with your illustrations</Text>
-      </View>
-      <Text accessible={false} style={styles.reviewArrow}>›</Text>
-    </Pressable>
-    <View style={styles.grid}>
-      <Tool title="Practice" detail="Choose topics & questions" mark="practice" onPress={onPractice} />
-      <Tool title="Road signs" detail="Learn signs & take a quiz" mark="signs" onPress={onSigns} />
-      <Tool title="Flashcards" detail="Recall, then reveal" mark="flashcards" onPress={onFlashcards} />
-      <Tool title="Timed practice" detail="5 questions · 6 minutes" mark="timed" onPress={onTimed} />
+    <View style={s.sectionHeading}><Text accessibilityRole="header" style={s.sectionTitle}>Your focus areas</Text>
+      <Pressable accessibilityRole="button" onPress={onProgress} style={s.sectionLink}><Text style={s.link}>View all →</Text></Pressable></View>
+    {focusTopics.map(topic => <TopicProgressRow key={topic.topic} item={topic} onPress={() => onTopic(topic.topic)} />)}
+    <Text accessibilityRole="header" style={[s.sectionTitle,{marginTop:20,marginBottom:12}]}>Learn your way</Text>
+    <View style={s.grid}>
+      <Tool title="Picture practice" detail="Learn with illustrations" icon="signs" onPress={onPicturePractice} />
+      <Tool title="Flashcards" detail="Think, then reveal" icon="flashcards" onPress={onFlashcards} />
+      <Tool title="Road signs" detail="Learn in context" icon="signs" onPress={onSigns} />
+      <Tool title="Timed practice" detail="A short knowledge check" icon="timed" onPress={onTimed} />
     </View>
-    {session && !unfinished ? <Pressable accessibilityRole="button" accessibilityLabel="Review last practice result"
-      onPress={onResume} style={styles.lastResult}>
-      <Text style={styles.resultTitle}>Last practice result</Text>
-      <Text style={styles.resultDetail}>{Object.keys(session.answers).length} answers saved · review ›</Text>
-    </Pressable> : null}
-    <View style={styles.stats}>
-      <Text style={styles.stat}><Text style={styles.statValue}>{progress.questionsAnswered}</Text> questions tried</Text>
-      <Text style={styles.stat}><Text style={styles.statValue}>{progress.accuracyPercent}%</Text> accuracy</Text>
-    </View>
-    <Text style={styles.scope}>Great Britain car revision · available offline</Text>
-    {onArtworkReview ? <Pressable accessibilityRole="button" accessibilityLabel="My images"
-      accessibilityHint="Browse the complete original image collection offline" onPress={onArtworkReview} style={styles.review}>
-      <Text style={styles.resultTitle}>My images · full collection ›</Text>
+    <Pressable accessibilityRole="button" onPress={onPractice} style={s.textButton}><Text style={s.link}>Browse all topics and practice options →</Text></Pressable>
+    <Text style={s.scope}>Great Britain car theory · works offline</Text>
+    {onArtworkReview ? <Pressable accessibilityRole="button" accessibilityLabel="My images" onPress={onArtworkReview} style={s.textButton}>
+      <Text style={s.smallLink}>My images · draft collection</Text>
     </Pressable> : null}
   </View>;
 }
 
-function Tool({ title, detail, mark, onPress }: { title: string; detail: string; mark: keyof typeof brandAssets; onPress: () => void }) {
-  return <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={styles.tool}>
-    <View style={styles.iconTile}><Image accessible={false} source={brandAssets[mark]} style={styles.toolIcon} /></View>
-    <Text style={styles.toolTitle}>{title}</Text><Text style={styles.toolDetail}>{detail}</Text>
+function Tool({title,detail,icon,onPress}:{title:string;detail:string;icon:keyof typeof brandAssets;onPress:()=>void}) {
+  return <Pressable accessibilityRole="button" accessibilityLabel={title==='Picture practice'?'Start picture practice':title} onPress={onPress} style={s.tool}>
+    <Image accessible={false} source={brandAssets[icon]} style={s.icon} />
+    <Text style={s.toolTitle}>{title}</Text><Text style={s.toolDetail}>{detail}</Text>
   </Pressable>;
 }
 
-const styles = StyleSheet.create({
-  countryBadge: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 9 },
-  countryText: { color: '#087E8B', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-  title: { color: '#132B3A', fontSize: 22, lineHeight: 28, fontWeight: '900', marginTop: 3 },
-  subtitle: { color: '#66758B', fontSize: 13, marginTop: 5, marginBottom: 16 },
-  hero: { backgroundColor: '#132B3A', padding: 18, borderRadius: 19, marginBottom: 14 },
-  kicker: { color: '#B4F1D7', fontSize: 9, fontWeight: '800', letterSpacing: 0.6 },
-  heroTitle: { color: '#FFFFFF', fontSize: 23, fontWeight: '800', marginTop: 7 },
-  heroDetail: { color: '#D6E9E6', fontSize: 12, lineHeight: 18, marginTop: 5 },
-  primary: { backgroundColor: '#087E8B', minHeight: 48, padding: 12, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginTop: 13 },
-  primaryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  tool: { width: '47%', flexGrow: 1, minHeight: 112, padding: 14, borderRadius: 15, borderWidth: 1, borderColor: '#DFE8E6', backgroundColor: '#FFFFFF' },
-  iconTile: { width: 36, height: 36, borderRadius: 11, backgroundColor: '#E6F5F3', alignItems: 'center', justifyContent: 'center' },
-  toolIcon: { width: 24, height: 24 },
-  toolMark: { color: '#087E8B', fontSize: 21, lineHeight: 25 },
-  toolTitle: { color: '#132B3A', fontSize: 15, fontWeight: '800', marginTop: 6 },
-  toolDetail: { color: '#66758B', fontSize: 11, lineHeight: 16, marginTop: 4 },
-  lastResult: { borderRadius: 13, backgroundColor: '#E6F5F3', padding: 13, marginTop: 14 },
-  resultTitle: { color: '#087E8B', fontWeight: '800', fontSize: 13 },
-  resultDetail: { color: '#437057', fontSize: 12, marginTop: 4 },
-  stats: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 17 },
-  stat: { color: '#66758B', fontSize: 12, flexShrink: 1 },
-  statValue: { color: '#132B3A', fontWeight: '900' },
-  scope: { color: '#66758B', fontSize: 10, marginTop: 12, textAlign: 'center' },
-  pictureCard: { padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14,
-    minHeight: 76, borderRadius: 15, borderWidth: 1, borderColor: '#B7DED8', backgroundColor: '#E6F5F3' },
-  reviewText: { flex: 1 },
-  reviewTitle: { color: '#132B3A', fontWeight: '800', fontSize: 16 },
-  reviewDetail: { color: '#40516A', fontSize: 12, lineHeight: 18, marginTop: 4 },
-  reviewArrow: { color: '#087E8B', fontSize: 27 },
-  review: { minHeight: 48, padding: 14, alignItems: 'center', marginTop: 8 },
+const s=StyleSheet.create({
+  eyebrow:{fontSize:10,fontWeight:'800',letterSpacing:1.2,color:colors.primary},
+  title:{fontSize:29,fontWeight:'900',color:colors.ink,marginTop:7},
+  subtitle:{fontSize:13,lineHeight:20,color:colors.muted,marginTop:6,marginBottom:20},
+  next:{backgroundColor:colors.surface,borderWidth:1,borderColor:colors.border,borderRadius:22,padding:18,marginTop:16},
+  nextHeading:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:8,flexWrap:'wrap'},
+  badge:{backgroundColor:colors.lime,borderRadius:6,paddingHorizontal:7,paddingVertical:5},
+  badgeText:{fontSize:8,fontWeight:'800',letterSpacing:0.6,color:colors.ink},
+  nextTitle:{fontSize:21,lineHeight:28,fontWeight:'800',color:colors.ink,marginTop:13},
+  body:{fontSize:13,lineHeight:20,color:colors.muted,marginTop:8},
+  primary:{backgroundColor:colors.primary,padding:14,minHeight:50,alignItems:'center',justifyContent:'center',borderRadius:13,marginTop:16},
+  primaryText:{color:colors.white,fontSize:14,fontWeight:'800'},
+  footnote:{fontSize:10,lineHeight:16,color:colors.muted,textAlign:'center',marginTop:10},
+  textButton:{minHeight:44,paddingVertical:12,alignItems:'center',justifyContent:'center'},
+  smallLink:{fontSize:11,color:colors.muted,fontWeight:'700'},
+  sectionHeading:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:10,marginTop:18,marginBottom:5},
+  sectionTitle:{fontSize:18,fontWeight:'800',color:colors.ink,flexShrink:1},
+  sectionLink:{minHeight:44,justifyContent:'center',paddingHorizontal:3},
+  link:{fontSize:12,lineHeight:19,color:colors.primary,fontWeight:'800'},
+  grid:{flexDirection:'row',flexWrap:'wrap',gap:10},
+  tool:{width:'47%',flexGrow:1,borderRadius:16,padding:15,borderWidth:1,borderColor:colors.border,backgroundColor:colors.surface},
+  icon:{width:25,height:25,marginBottom:10},
+  toolTitle:{fontSize:14,fontWeight:'800',color:colors.ink},
+  toolDetail:{fontSize:11,lineHeight:17,color:colors.muted,marginTop:4},
+  scope:{fontSize:10,color:colors.muted,textAlign:'center',marginTop:12},
 });

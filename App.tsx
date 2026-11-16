@@ -16,6 +16,10 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
 import { brandAssets } from './src/data/brandAssets';
 import HomeScreen from './src/components/HomeScreen';
+import ProgressScreen from './src/components/ProgressScreen';
+import { buildLearningOverview } from './src/domain/learningProgress';
+import { eligiblePracticeQuestions } from './src/domain/practiceSelection';
+import { colors as palette } from './src/theme';
 import BottomNavigation from './src/components/BottomNavigation';
 import { activeRoot, initialNavigation, navigationReducer, previousScreen, screenTitles } from './src/domain/navigation';
 import type { Screen, RootScreen } from './src/domain/navigation';
@@ -39,10 +43,11 @@ import {
   replaceSavedPractice,
   recordSavedPracticeAnswer,
   advanceSavedPractice,
+  clearSavedPractice,
   toggleBookmark,
 } from './src/storage/database';
 import type { ProgressSummary } from './src/domain/progress';
-import { getQuestionsToRetry, getTopicReview, selectSmartPractice } from './src/domain/revision';
+import { getQuestionsToRetry } from './src/domain/revision';
 import type { QuestionProgressDetail } from './src/domain/revision';
 
 const EMPTY_PROGRESS: ProgressSummary = {
@@ -109,8 +114,8 @@ function AppContent() {
   );
 
   const retryQuestions = useMemo(() => getQuestionsToRetry(questions, progressRecords), [progressRecords]);
-  const smartQuestions = useMemo(() => selectSmartPractice(questions, progressRecords, 10), [progressRecords]);
-  const topicStats = useMemo(() => getTopicReview(questions, progressRecords), [progressRecords]);
+  const learningOverview = useMemo(() => buildLearningOverview(questions, progressRecords), [progressRecords]);
+  const unseenQuestions = useMemo(() => eligiblePracticeQuestions(questions, progressRecords, [], [], 'unseen').slice(0, 10), [progressRecords]);
 
   const refreshLocalData = useCallback(async () => {
     const [nextProgress, nextBookmarks, nextRecords] = await Promise.all([
@@ -201,6 +206,34 @@ function AppContent() {
     void createSession();
   }
 
+  function requestDiscardPractice() {
+    if (practiceSavingRef.current) return;
+    Alert.alert('Discard this session?', 'Your answer history and saved questions will stay. Only the current practice session will be removed.', [
+      { text: 'Keep session', style: 'cancel' },
+      { text: 'Discard session', style: 'destructive', onPress: () => { void discardPractice(); } },
+    ]);
+  }
+
+  async function discardPractice() {
+    if (practiceSavingRef.current) return;
+    practiceSavingRef.current = true;
+    setIsSaving(true);
+    try {
+      await clearSavedPractice();
+      practiceRef.current = null;
+      setPracticeSession(null);
+      answerLockedRef.current = false;
+      setStorageMessage(null);
+      selectTab('home');
+      scrollToTop();
+    } catch {
+      setStorageMessage('Could not discard the session. Please try again.');
+    } finally {
+      practiceSavingRef.current = false;
+      setIsSaving(false);
+    }
+  }
+
   async function chooseAnswer(index: number) {
     const active = practiceRef.current;
     if (!active || !currentQuestion || selectedAnswer !== null ||
@@ -289,8 +322,8 @@ function AppContent() {
         <View style={styles.header}>
           <Image accessible={false} source={brandAssets['brand-mark']} style={styles.brandMark} />
           <View style={styles.headerCopy}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Image source={brandAssets['uk-flag']} accessibilityLabel="United Kingdom flag" style={{ width: 24, height: 14 }} /><Text style={styles.headerEyebrow}>UK THEORY TEST KIT</Text></View>
-            <Text style={styles.headerTitle}>Theory Test Kit</Text>
+            <Text style={styles.headerTitle}>Roadstep</Text>
+            <Text style={styles.headerEyebrow}>UK THEORY · TEST BUILD</Text>
           </View>
           {tab !== 'search' ? <Pressable accessibilityRole="button" accessibilityLabel="Search questions"
             onPress={() => navigate('search')} style={styles.headerSearch}><Text style={styles.backText}>Search</Text></Pressable> : null}
@@ -318,8 +351,10 @@ function AppContent() {
             style={[styles.screen, !visible && styles.hiddenScreen]}
             accessibilityElementsHidden={!visible} importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}
             contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {tab === 'home' && <HomeScreen session={practiceSession} progress={progress}
-            onQuickPractice={() => startPractice(questions, 10)} onResume={() => navigate('practice')}
+          {tab === 'home' && <HomeScreen session={practiceSession} overview={learningOverview}
+            onNext={() => retryQuestions.length > 0 ? startPractice(retryQuestions.slice(0,10)) : learningOverview.unseen > 0 ? startPractice(unseenQuestions) : startPractice(questions,10)}
+            onResume={() => navigate('practice')} onDiscard={requestDiscardPractice}
+            onProgress={() => selectTab('progress')} onTopic={openPracticeSetup}
             onPicturePractice={() => startPractice(questions.filter((question) => question.imageAssetId !== undefined), 10)}
             onPractice={() => { setSetupTopic(undefined); selectTab('setup'); }} onSigns={() => selectTab('roadSigns')}
             onFlashcards={() => navigate('flashcards')} onTimed={() => navigate('mock')}
@@ -335,6 +370,7 @@ function AppContent() {
                   backLabel={backLabel} onFinish={goBack}
                   onRetry={startPractice}
                   onRestart={() => startPractice(practiceQuestions)}
+                  onProgress={() => selectTab('progress')}
                 />
               ) : (
                 <>
@@ -444,69 +480,15 @@ function AppContent() {
             </>
           )}
 
-          {tab === 'progress' && (
-            <>
-              <Text style={styles.pageTitle}>Your progress</Text>
-              <Text style={styles.pageSubtitle}>Your answers stay on this device. No account or internet connection is needed.</Text>
-              <View style={styles.progressHero}>
-                <Text style={styles.progressHeroValue}>{progress.accuracyPercent}%</Text>
-                <Text style={styles.progressHeroLabel}>Overall answer accuracy</Text>
-              </View>
-              <View style={styles.statsRow}>
-                <StatCard value={String(progress.questionsAnswered)} label="Unique questions" />
-                <StatCard value={String(progress.totalAttempts)} label="Total attempts" />
-                <StatCard value={String(progress.correctAttempts)} label="Correct answers" />
-              </View>
-              <Text style={styles.sectionTitle}>Your personal study plan</Text>
-              <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>{retryQuestions.length} question{retryQuestions.length === 1 ? '' : 's'} to retry</Text>
-                <Text style={styles.infoBody}>Smart revision starts with your most recent wrong answers and then questions you have not tried. This is guidance, not a pass prediction.</Text>
-                <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={() => startPractice(smartQuestions)}>
-                  <Text style={styles.primaryButtonText}>Start smart revision</Text>
-                </Pressable>
-                {retryQuestions.length > 0 ? (
-                  <Pressable accessibilityRole="button" style={styles.secondaryAction} onPress={() => startPractice(retryQuestions)}>
-                    <Text style={styles.secondaryActionText}>Retry only mistakes ({retryQuestions.length})</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-              <Text style={styles.sectionTitle}>Study by topic</Text>
-              {topicStats.map((item) => (
-                <Pressable accessibilityRole="button" key={item.topic}
-                  style={styles.topicReviewCard}
-                  onPress={() => openPracticeSetup(item.topic)}>
-                  <View style={styles.topicReviewHeading}>
-                    <Text style={styles.topicReviewTitle}>{item.topic}</Text>
-                    <Text style={styles.topicReviewAccuracy}>{item.accuracyPercent === null ? 'Not tried' : item.accuracyPercent + '% accurate'}</Text>
-                  </View>
-                  <Text style={styles.infoBody}>{item.questionsTried}/{item.totalQuestions} questions tried · {item.recentMistakes} need retry</Text>
-                </Pressable>
-              ))}
-              <Text style={styles.sectionTitle}>Current content</Text>
-              <View style={styles.infoCard}>
-                <Text style={styles.infoTitle}>{questions.length} original draft questions</Text>
-                <Text style={styles.infoBody}>All {questions.length} are available for revision. Independent editorial approval is still pending, and the full official-style mock is not included.</Text>
-              </View>
-              <Pressable style={styles.primaryButton} onPress={() => startPractice()}>
-                <Text style={styles.primaryButtonText}>Continue practising</Text>
-              </Pressable>
-            </>
-          )}
+          {tab === 'progress' && <ProgressScreen overview={learningOverview} summary={progress} active={visible}
+            onNew={() => startPractice(unseenQuestions)} onRetry={() => startPractice(retryQuestions.slice(0,10))}
+            onMixed={() => startPractice(questions,10)} onTimed={() => navigate('mock')} onTopic={openPracticeSetup} />}
         </ScrollView>;
         })}
 
         <BottomNavigation active={activeRoot(navigation)} onSelect={selectTab} />
       </View>
     </SafeAreaView>
-  );
-}
-
-function StatCard({ value, label }: { value: string; label: string }) {
-  return (
-    <View style={styles.statCard}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
   );
 }
 
@@ -519,70 +501,65 @@ export default function App() {
 }
 
 const colors = {
-  ink: '#132B3A',
-  muted: '#66758B',
-  blue: '#087E8B',
-  paleBlue: '#E6F5F3',
-  border: '#DFE8E6',
-  green: '#16834A',
-  red: '#C23B42',
+  ink: palette.ink,
+  muted: palette.muted,
+  blue: palette.primary,
+  paleBlue: palette.primarySoft,
+  border: palette.border,
+  green: palette.success,
+  red: palette.danger,
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F7F6' },
-  appShell: { flex: 1, backgroundColor: '#F4F7F6' },
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F7F6' },
+  safeArea: { flex: 1, backgroundColor: palette.background },
+  appShell: { flex: 1, backgroundColor: palette.background },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.background },
   loadingText: { color: colors.muted, marginTop: 12, fontSize: 13 },
   header: { backgroundColor: '#FFFFFF', paddingHorizontal: 18, paddingTop: 8, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: colors.border },
   brandMark: { width: 38, height: 38, marginRight: 10, borderRadius: 11 },
   headerCopy: { flex: 1, minWidth: 0, marginRight: 12 },
-  headerEyebrow: { color: colors.blue, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
-  headerTitle: { color: colors.ink, fontSize: 18, fontWeight: '800', marginTop: 3 },
+  headerEyebrow: { color: colors.muted, fontSize: 8, fontWeight: '700', letterSpacing: 1, marginTop: 3 },
+  headerTitle: { color: colors.ink, fontSize: 20, fontWeight: '900' },
   notice: { marginHorizontal: 16, marginTop: 10, padding: 12, backgroundColor: '#FFF7E6', borderRadius: 12, borderWidth: 1, borderColor: '#F3D89E' },
   noticeText: { color: '#795A1A', fontSize: 12, lineHeight: 17 },
   noticeDismiss: { color: '#795A1A', fontWeight: '800', fontSize: 11, marginTop: 5 },
-  headerSearch: { minHeight: 44, minWidth: 60, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E6F5F3', borderRadius: 13 },
-  backBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderColor: '#DFE8E6', gap: 12 },
+  headerSearch: { minHeight: 44, minWidth: 60, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primarySoft, borderRadius: 13 },
+  backBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderColor: '#E5E4ED', gap: 12 },
   globalBack: { minHeight: 44, justifyContent: 'center', paddingRight: 15 },
   breadcrumb: { color: colors.muted, fontSize: 11, flexShrink: 1 },
   screen: { flex: 1 },
   hiddenScreen: { display: 'none' },
   toolLinks: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  toolLink: { flex: 1, minHeight: 48, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DFE8E6', padding: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  toolLink: { flex: 1, minHeight: 48, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E4ED', padding: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { padding: 16, paddingBottom: 24 },
   primaryButton: { backgroundColor: colors.blue, borderRadius: 13, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, marginTop: 12 },
   primaryButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   disabledButton: { opacity: 0.55 },
-  sectionTitle: { color: colors.ink, fontWeight: '800', fontSize: 17, marginBottom: 12 },
-  statsRow: { flexDirection: 'row', gap: 9 },
-  statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 15, paddingHorizontal: 10, borderWidth: 1, borderColor: colors.border },
-  statValue: { color: colors.ink, fontSize: 23, fontWeight: '900' },
-  statLabel: { color: colors.muted, fontSize: 10, marginTop: 3, lineHeight: 14 },
   practiceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   backText: { color: colors.blue, fontSize: 13, fontWeight: '800' },
   practiceCounter: { color: colors.muted, fontSize: 10, letterSpacing: 0.8, fontWeight: '900' },
-  progressTrack: { height: 6, backgroundColor: '#DFE8E6', borderRadius: 5, overflow: 'hidden', marginBottom: 16 },
+  progressTrack: { height: 6, backgroundColor: '#E5E4ED', borderRadius: 5, overflow: 'hidden', marginBottom: 16 },
   progressFill: { height: 6, backgroundColor: colors.blue, borderRadius: 5 },
   questionCard: { backgroundColor: '#FFFFFF', padding: 18, borderRadius: 20, borderWidth: 1, borderColor: colors.border },
   questionMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   topicPill: { color: colors.blue, fontSize: 10, letterSpacing: 0.8, fontWeight: '900' },
-  bookmarkButton: { backgroundColor: '#F1F5FA', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20 },
+  bookmarkButton: { backgroundColor: '#EFEDFF', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20 },
   bookmarkText: { color: colors.blue, fontSize: 11, fontWeight: '800' },
   questionPrompt: { color: colors.ink, fontWeight: '800', fontSize: 21, lineHeight: 29, marginBottom: 18 },
   answerOption: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 13, padding: 12, marginBottom: 10, minHeight: 54 },
-  optionLetter: { height: 28, width: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F0F3F8', marginRight: 10 },
+  optionLetter: { height: 28, width: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EFEDFF', marginRight: 10 },
   optionLetterText: { color: colors.ink, fontWeight: '900', fontSize: 12 },
-  answerText: { color: '#34445C', fontSize: 13, lineHeight: 19, flex: 1 },
+  answerText: { color: '#414154', fontSize: 13, lineHeight: 19, flex: 1 },
   answerCorrect: { borderColor: '#8DCEA9', backgroundColor: '#F0FAF4' },
   answerIncorrect: { borderColor: '#E8A4A7', backgroundColor: '#FFF3F3' },
   answerMark: { color: colors.green, fontWeight: '900', fontSize: 17, marginLeft: 8 },
-  explanationBox: { backgroundColor: '#F4F7FC', borderRadius: 14, padding: 14, marginTop: 7 },
+  explanationBox: { backgroundColor: '#EFEDFF', borderRadius: 14, padding: 14, marginTop: 7 },
   explanationHeading: { fontSize: 13, fontWeight: '900', marginBottom: 6 },
   correctLabel: { color: colors.green },
   incorrectLabel: { color: colors.red },
-  explanationBody: { color: '#40516A', fontSize: 13, lineHeight: 20 },
-  referenceText: { color: '#8492A7', fontSize: 10, marginTop: 8, fontWeight: '700' },
-  selectHint: { color: '#8290A4', fontSize: 11, textAlign: 'center', marginTop: 8 },
+  explanationBody: { color: '#505064', fontSize: 13, lineHeight: 20 },
+  referenceText: { color: '#6A6A7C', fontSize: 10, marginTop: 8, fontWeight: '700' },
+  selectHint: { color: '#6A6A7C', fontSize: 11, textAlign: 'center', marginTop: 8 },
   pageTitle: { color: colors.ink, fontSize: 25, fontWeight: '900', marginTop: 5 },
   pageSubtitle: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 20 },
   emptyCard: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 20, marginTop: 6 },
@@ -592,16 +569,4 @@ const styles = StyleSheet.create({
   savedQuestionTopic: { color: colors.blue, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   savedQuestionPrompt: { color: colors.ink, fontSize: 14, lineHeight: 20, fontWeight: '700', marginTop: 8 },
   removeSaved: { color: colors.red, fontSize: 11, fontWeight: '800', marginTop: 12 },
-  progressHero: { backgroundColor: '#132B3A', borderRadius: 20, padding: 22, alignItems: 'center', marginBottom: 14 },
-  progressHeroValue: { color: '#FFFFFF', fontSize: 42, fontWeight: '900' },
-  progressHeroLabel: { color: '#D6E9E6', fontSize: 12, marginTop: 3 },
-  infoCard: { borderWidth: 1, borderColor: colors.border, borderRadius: 15, padding: 15, backgroundColor: '#FFFFFF', marginBottom: 8 },
-  infoTitle: { color: colors.ink, fontSize: 14, fontWeight: '800' },
-  infoBody: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 6 },
-  secondaryAction: { padding: 12, alignItems: 'center' },
-  secondaryActionText: { color: colors.blue, fontSize: 13, fontWeight: '800' },
-  topicReviewCard: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 15, backgroundColor: '#FFFFFF', marginBottom: 10 },
-  topicReviewHeading: { flexDirection: 'row', justifyContent: 'space-between', gap: 6 },
-  topicReviewTitle: { color: colors.ink, fontWeight: '800', fontSize: 14, flexShrink: 1 },
-  topicReviewAccuracy: { color: colors.blue, fontWeight: '800', fontSize: 11 }
 });

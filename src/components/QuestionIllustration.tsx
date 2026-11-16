@@ -1,3 +1,4 @@
+import { colors } from '../theme';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import type { TheoryQuestion } from '../data/questions';
@@ -30,7 +31,7 @@ export default function QuestionIllustration({ question, context = 'question' }:
   return assetId ? <Illustration assetId={assetId} context={context} /> : null;
 }
 const styles = StyleSheet.create({
-  frame: { alignItems: 'center', backgroundColor: '#F4F7FB', borderRadius: 12, padding: 12, marginBottom: 14 },
+  frame: { alignItems: 'center', backgroundColor: colors.primarySoft, borderRadius: 12, padding: 12, marginBottom: 14 },
   image: { width: '100%', maxWidth: 400, maxHeight: 260 },
-  caption: { marginTop: 6, color: '#5D6F85', fontSize: 12, flexShrink: 1 },
+  caption: { marginTop: 6, color: colors.muted, fontSize: 12, flexShrink: 1 },
 });

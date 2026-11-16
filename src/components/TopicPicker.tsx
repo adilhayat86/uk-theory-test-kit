@@ -1,3 +1,4 @@
+import { colors } from '../theme';
 import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -64,20 +65,20 @@ export default function TopicPicker({ items, selected, multiple = false, accessi
 
 const styles = StyleSheet.create({
   trigger: { minHeight: 62, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderWidth: 1, borderColor: '#DCE4F0', borderRadius: 14, backgroundColor: '#FFFFFF', marginVertical: 12 },
-  copy: { flex: 1 }, kicker: { fontSize: 9, fontWeight: '800', color: '#66758B', letterSpacing: 0.6 },
-  summary: { color: '#132B3A', fontSize: 14, fontWeight: '800', marginTop: 4 },
-  change: { color: '#087E8B', fontWeight: '800', fontSize: 13 },
-  sheet: { flex: 1, backgroundColor: '#F4F7F6' },
+    borderWidth: 1, borderColor: colors.border, borderRadius: 14, backgroundColor: colors.surface, marginVertical: 12 },
+  copy: { flex: 1 }, kicker: { fontSize: 9, fontWeight: '800', color: colors.muted, letterSpacing: 0.6 },
+  summary: { color: colors.ink, fontSize: 14, fontWeight: '800', marginTop: 4 },
+  change: { color: colors.primary, fontWeight: '800', fontSize: 13 },
+  sheet: { flex: 1, backgroundColor: colors.background },
   header: { paddingHorizontal: 18, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  title: { color: '#132B3A', fontSize: 22, fontWeight: '900', flex: 1 },
+  title: { color: colors.ink, fontSize: 22, fontWeight: '900', flex: 1 },
   close: { padding: 12, minHeight: 44 },
-  list: { padding: 18 }, help: { color: '#66758B', fontSize: 13, lineHeight: 20, marginBottom: 16 },
-  item: { borderWidth: 1, borderColor: '#DCE4F0', backgroundColor: '#FFFFFF', padding: 16, borderRadius: 13, marginBottom: 9, minHeight: 54 },
-  selected: { borderColor: '#087E8B', backgroundColor: '#E6F5F3' },
-  itemText: { color: '#132B3A', fontSize: 15, fontWeight: '800' },
-  detail: { color: '#66758B', fontSize: 12, marginTop: 6 },
-  footer: { padding: 16, borderTopWidth: 1, borderColor: '#DCE4F0', backgroundColor: '#FFFFFF' },
-  done: { backgroundColor: '#087E8B', padding: 15, minHeight: 50, borderRadius: 13, alignItems: 'center' },
-  doneText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14, textAlign: 'center' },
+  list: { padding: 18 }, help: { color: colors.muted, fontSize: 13, lineHeight: 20, marginBottom: 16 },
+  item: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, padding: 16, borderRadius: 13, marginBottom: 9, minHeight: 54 },
+  selected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  itemText: { color: colors.ink, fontSize: 15, fontWeight: '800' },
+  detail: { color: colors.muted, fontSize: 12, marginTop: 6 },
+  footer: { padding: 16, borderTopWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  done: { backgroundColor: colors.primary, padding: 15, minHeight: 50, borderRadius: 13, alignItems: 'center' },
+  doneText: { color: colors.white, fontWeight: '800', fontSize: 14, textAlign: 'center' },
 });

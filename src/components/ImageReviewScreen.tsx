@@ -1,3 +1,4 @@
+import { colors } from '../theme';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import manifest from '../assets/illustrations-v2/image-manifest.json';
@@ -48,13 +49,13 @@ export default function ImageReviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 24, fontWeight: '800', color: '#132B3A', marginVertical: 12 },
-  description: { fontSize: 14, lineHeight: 21, color: '#40516A', marginVertical: 8 },
+  title: { fontSize: 24, fontWeight: '800', color: colors.ink, marginVertical: 12 },
+  description: { fontSize: 14, lineHeight: 21, color: colors.ink, marginVertical: 8 },
   warning: { fontSize: 14, lineHeight: 21, fontWeight: '700', color: '#9A4D0B', marginVertical: 10 },
-  search: { borderWidth: 1, borderColor: '#CBD6E6', borderRadius: 12, padding: 12, minHeight: 48 },
+  search: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 12, minHeight: 48 },
   navigation: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  button: { padding: 14, backgroundColor: '#E6F5F3', borderRadius: 12, minHeight: 48, marginVertical: 8 },
-  buttonText: { color: '#132B3A', fontWeight: '700' },
+  button: { padding: 14, backgroundColor: colors.primarySoft, borderRadius: 12, minHeight: 48, marginVertical: 8 },
+  buttonText: { color: colors.ink, fontWeight: '700' },
   disabledButton: { opacity: 0.45 },
   detailsButton: { paddingVertical: 14, minHeight: 48, alignSelf: 'flex-start' },
 });

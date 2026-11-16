@@ -1,3 +1,4 @@
+import { colors } from '../theme';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
@@ -145,7 +146,7 @@ export default function RoadSignsScreen({ onPageChange }: Props) {
       ) : (
         <>
           <TextInput accessibilityLabel="Find a road sign" placeholder="Find a sign or its meaning…"
-            placeholderTextColor="#77869A" value={query} onChangeText={setQuery}
+            placeholderTextColor={colors.muted} value={query} onChangeText={setQuery}
             autoCorrect={false} style={styles.search} />
           <View style={styles.filters}>
             <Pressable accessibilityRole="button" onPress={() => setCategory(undefined)}
@@ -205,50 +206,50 @@ export default function RoadSignsScreen({ onPageChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  link: { color: '#087E8B', fontSize: 13, fontWeight: '800' },
-  title: { color: '#132B3A', fontSize: 25, fontWeight: '900', marginTop: 5 },
-  subtitle: { color: '#66758B', fontSize: 13, lineHeight: 20, marginTop: 7, marginBottom: 16 },
+  link: { color: colors.primary, fontSize: 13, fontWeight: '800' },
+  title: { color: colors.ink, fontSize: 25, fontWeight: '900', marginTop: 5 },
+  subtitle: { color: colors.muted, fontSize: 13, lineHeight: 20, marginTop: 7, marginBottom: 16 },
   modeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 16 },
-  modeButton: { backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 12,
-    borderRadius: 12, borderWidth: 1, borderColor: '#DFE8E6', minHeight: 44 },
-  modeSelected: { backgroundColor: '#E6F5F3', borderColor: '#087E8B' },
-  modeText: { color: '#66758B', fontWeight: '800', fontSize: 12 },
-  modeTextSelected: { color: '#087E8B' },
+  modeButton: { backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 12,
+    borderRadius: 12, borderWidth: 1, borderColor: colors.border, minHeight: 44 },
+  modeSelected: { backgroundColor: colors.primarySoft, borderColor: colors.primary },
+  modeText: { color: colors.muted, fontWeight: '800', fontSize: 12 },
+  modeTextSelected: { color: colors.primary },
   warning: { color: '#9A4D0B', marginBottom: 12, fontSize: 12 },
-  search: { borderWidth: 1, borderColor: '#CBD6E6', backgroundColor: '#FFFFFF',
+  search: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface,
     borderRadius: 13, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16,
-    color: '#132B3A', minHeight: 52 },
+    color: colors.ink, minHeight: 52 },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  filter: { borderWidth: 1, borderColor: '#DFE8E6', borderRadius: 20,
-    backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 9, minHeight: 40 },
-  filterActive: { borderColor: '#087E8B', backgroundColor: '#E6F5F3' },
-  filterText: { color: '#66758B', fontWeight: '700', fontSize: 12 },
-  filterActiveText: { color: '#087E8B' },
-  counter: { fontSize: 12, color: '#66758B', fontWeight: '700', marginVertical: 14 },
-  empty: { color: '#66758B', fontSize: 13, lineHeight: 20, marginBottom: 18 },
-  card: { borderRadius: 16, borderWidth: 1, borderColor: '#DFE8E6',
-    backgroundColor: '#FFFFFF', padding: 16, marginBottom: 12 },
+  filter: { borderWidth: 1, borderColor: colors.border, borderRadius: 20,
+    backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 9, minHeight: 40 },
+  filterActive: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  filterText: { color: colors.muted, fontWeight: '700', fontSize: 12 },
+  filterActiveText: { color: colors.primary },
+  counter: { fontSize: 12, color: colors.muted, fontWeight: '700', marginVertical: 14 },
+  empty: { color: colors.muted, fontSize: 13, lineHeight: 20, marginBottom: 18 },
+  card: { borderRadius: 16, borderWidth: 1, borderColor: colors.border,
+    backgroundColor: colors.surface, padding: 16, marginBottom: 12 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
   cardTitleWrap: { flex: 1 },
   thumbnail: { width: 100, height: 90, marginBottom: 12 },
-  expandHint: { color: '#087E8B', fontSize: 12, fontWeight: '700', paddingVertical: 10 },
-  eyebrow: { fontWeight: '900', fontSize: 10, color: '#087E8B', letterSpacing: 0.5 },
-  cardTitle: { fontWeight: '800', fontSize: 17, color: '#132B3A', marginTop: 6 },
+  expandHint: { color: colors.primary, fontSize: 12, fontWeight: '700', paddingVertical: 10 },
+  eyebrow: { fontWeight: '900', fontSize: 10, color: colors.primary, letterSpacing: 0.5 },
+  cardTitle: { fontWeight: '800', fontSize: 17, color: colors.ink, marginTop: 6 },
   saveButton: { paddingVertical: 8, paddingHorizontal: 6 },
-  description: { color: '#40516A', fontSize: 14, lineHeight: 21, marginTop: 12 },
-  takeaway: { color: '#132B3A', fontSize: 13, fontWeight: '700', lineHeight: 20, marginTop: 10 },
-  reference: { color: '#8492A7', fontSize: 11, marginTop: 10 },
-  quizQuestion: { color: '#132B3A', fontWeight: '800', fontSize: 20, lineHeight: 28,
+  description: { color: colors.ink, fontSize: 14, lineHeight: 21, marginTop: 12 },
+  takeaway: { color: colors.ink, fontSize: 13, fontWeight: '700', lineHeight: 20, marginTop: 10 },
+  reference: { color: colors.muted, fontSize: 11, marginTop: 10 },
+  quizQuestion: { color: colors.ink, fontWeight: '800', fontSize: 20, lineHeight: 28,
     marginTop: 15, marginBottom: 14 },
-  option: { minHeight: 50, borderWidth: 1, borderColor: '#DFE8E6',
+  option: { minHeight: 50, borderWidth: 1, borderColor: colors.border,
     borderRadius: 12, padding: 13, marginBottom: 9 },
   chosen: { backgroundColor: '#FFF1E6', borderColor: '#DFB58D' },
   rightOption: { backgroundColor: '#ECF8F0', borderColor: '#83C4A0' },
-  optionText: { fontSize: 14, color: '#132B3A', lineHeight: 20 },
+  optionText: { fontSize: 14, color: colors.ink, lineHeight: 20 },
   correct: { color: '#16834A', fontWeight: '900', marginTop: 10 },
   incorrect: { color: '#C23B42', fontWeight: '900', marginTop: 10 },
-  primary: { backgroundColor: '#087E8B', borderRadius: 12, alignItems: 'center',
+  primary: { backgroundColor: colors.primary, borderRadius: 12, alignItems: 'center',
     justifyContent: 'center', minHeight: 48, marginTop: 16 },
-  primaryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  footer: { color: '#8492A7', fontSize: 11, lineHeight: 17, marginTop: 12 }
+  primaryText: { color: colors.white, fontSize: 14, fontWeight: '800' },
+  footer: { color: colors.muted, fontSize: 11, lineHeight: 17, marginTop: 12 }
 });

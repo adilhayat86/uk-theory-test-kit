@@ -8,7 +8,7 @@ export type NavigationAction =
 
 export const initialNavigation: NavigationState = { stack: ['home'] };
 export const screenTitles: Record<Screen, string> = {
-  home: 'Home', setup: 'Practice', roadSigns: 'Signs', saved: 'Saved', progress: 'Progress',
+  home: 'Home', setup: 'Learn', roadSigns: 'Signs', saved: 'Saved', progress: 'Progress',
   practice: 'Your session', mock: 'Timed practice', flashcards: 'Flashcards',
   search: 'Search', imageReview: 'My images',
 };
