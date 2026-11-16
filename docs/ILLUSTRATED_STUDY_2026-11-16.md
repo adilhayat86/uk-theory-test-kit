@@ -4,8 +4,8 @@ The image collection is used within questions and answer explanations. The compl
 
 - 20 new original illustrated questions: 12 dashboard warnings and eight vehicle checks. Total: 228 questions across 13 topics.
 - Home → Picture practice and Practice → Picture questions provide direct access to the 31 questions that display an image before answering.
-- 23 existing questions gain matching original roadside, crossing, junction or vehicle examples after the answer/reveal. Seven earlier teaching matches remain active.
-- 44 of the 121 original images are selected for learning. The internal gallery retains the complete collection. Selection does not approve an image or question for publication.
+- 21 existing questions gain matching original roadside, crossing, junction or vehicle examples after the answer/reveal. Seven earlier teaching matches remain active. Twenty-one sign lessons include an original context image in their expanded details, separately from the official sign diagram used by the quiz.
+- 52 of the 121 original images are selected for learning. The internal gallery retains the complete collection. Selection does not approve an image or question for publication.
 - The original 208 question records, their IDs and answers, and the saved-data schema remain unchanged. New question review rows are PENDING_INDEPENDENT_REVIEW.
 
 `src/data/studyImages.ts` is the explicit image-to-question mapping. Each selected entry records its original manifest ID. The master manifest, original PNGs and original image-review tracker are preserved.
@@ -17,6 +17,8 @@ The 20 new question pictures are individual controls, vehicle components or dash
 Annotated crossing and box-junction diagrams, and roadside examples that supplement existing sign questions, are shown after answering or revealing a flashcard. The original quiz diagram remains visible before answering. No assets are attached solely by topic or a suggested question ID.
 
 Two previously selected drawings are held from teaching: the red-X motorway scene does not clearly associate the closure with a lane, and the rear-fog drawing lacks an unambiguous standard fog-light treatment. Both remain available in the full review collection. Other unselected images include variants, subjects not yet matched and scenes requiring further checks; they are not all declared defective.
+
+The existing `gb-signs-002` stem describes the car/motorcycle order differently from the drawing, so that question is not assigned the new photograph. The photograph is used in the accurate no-motor-vehicles sign lesson instead. The original question record remains preserved for independent editorial review. The zebra-priority annotation is likewise not attached to the separate zig-zag parking/overtaking question merely because both concern crossings.
 
 ## Sources checked
 

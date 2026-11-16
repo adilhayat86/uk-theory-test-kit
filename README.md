@@ -10,7 +10,7 @@ An independent, offline Great Britain car theory revision app built with Expo, R
 - Smart revision prioritises recent mistakes and unseen questions using local history.
 - Crash-safe practice resume, saved answers, bookmarks, result review and retry mistakes.
 - 30 illustrated road-sign notes with search, categories, saved signs and a shuffled 10-question recognition quiz.
-- 30 openly licensed DfT sign illustrations and 44 selected original project images, all bundled offline. Labelled teaching scenes appear only after answering or revealing a flashcard; genuine image questions show uncaptioned technical illustrations.
+- 30 openly licensed DfT sign illustrations and 52 selected original project images, all bundled offline. Labelled teaching scenes appear only after answering or revealing a flashcard; genuine image questions show uncaptioned technical illustrations. Twenty-one sign lessons also include original roadside examples.
 - Topic flashcards, question search and local progress by topic.
 - Timed five-question practice (six minutes), changeable answers, flags, question navigation, offline resume and result history.
 - No account, ads or subscription.
@@ -62,7 +62,7 @@ Ordinary learner exports include the selected learning images, DfT signs and app
 node scripts/check-export-assets.cjs dist/android android learner
 ```
 
-The internal device-test APK and artwork-review export use `EXPO_PUBLIC_IMAGE_REVIEW=true` and include Home → My images for browsing the complete collection. All 121 original draft images are searchable and available offline, with previous/next navigation and optional image details. Their review status and tracker remain unchanged. Ordinary learner exports include 44 selected project images and exclude the remaining 77. Selection is not human editorial approval. Restart Metro when changing the flag.
+The internal device-test APK and artwork-review export use `EXPO_PUBLIC_IMAGE_REVIEW=true` and include Home → My images for browsing the complete collection. All 121 original draft images are searchable and available offline, with previous/next navigation and optional image details. Their review status and tracker remain unchanged. Ordinary learner exports include 52 selected project images and exclude the remaining 69. Selection is not human editorial approval. Restart Metro when changing the flag.
 
 See [illustrated-study mappings and sources](docs/ILLUSTRATED_STUDY_2026-11-16.md) for the 20 new questions, added teaching examples and held artwork.
 

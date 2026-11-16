@@ -6,6 +6,7 @@ import {
 import type { RoadSignCategory } from '../data/roadSigns';
 import { Illustration } from './QuestionIllustration';
 import { illustrationAssets } from '../data/illustrationAssets';
+import { roadSignStudyImages } from '../data/studyImages';
 import { getSavedSignIds, toggleSavedSign } from '../storage/database';
 
 type Mode = 'learn' | 'saved' | 'quiz';
@@ -185,6 +186,10 @@ export default function RoadSignsScreen({ onPageChange }: Props) {
                 {item.imageAssetId ? <Illustration assetId={item.imageAssetId} context="learn" /> : null}
                 <Text style={styles.description}>{item.description}</Text>
                 <Text style={styles.takeaway}>{item.takeaway}</Text>
+                {roadSignStudyImages[item.id as keyof typeof roadSignStudyImages] ? <>
+                  <Text style={styles.eyebrow}>ROADSIDE EXAMPLE</Text>
+                  <Illustration assetId={roadSignStudyImages[item.id as keyof typeof roadSignStudyImages]} context="learn" />
+                </> : null}
                 <Text style={styles.reference}>{item.reference}</Text>
               </> : null}
             </View>

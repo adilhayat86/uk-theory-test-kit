@@ -44,6 +44,14 @@
     "reg_speed_limit_50_roadside_scene_01",
     "reg_national_speed_limit_roadside_scene_01",
     "reg_keep_left_bollard_scene_01",
-    "warn_traffic_signals_ahead_roadside_scene_01"
+    "warn_traffic_signals_ahead_roadside_scene_01",
+    "reg_no_u_turn_scene_01",
+    "warn_right_bend_scene_01",
+    "warn_slippery_road_scene_01",
+    "warn_school_children_scene_01",
+    "reg_speed_limit_40_roadside_scene_01",
+    "reg_turn_left_only_roadside_scene_01",
+    "warn_crossroads_scene_01",
+    "warn_two_way_traffic_scene_01"
   ]
 }

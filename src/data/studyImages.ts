@@ -38,17 +38,23 @@ export const studyImageAssets = {
   "national-limit-example": { source: require("../assets/illustrations-v2/images/reg_national_speed_limit_roadside_scene_01.png"), originalAssetId: "reg_national_speed_limit_roadside_scene_01", label: "National speed limit applies", visualDescription: "Roadside white circle with a diagonal black stripe", width: 1254, height: 1254 },
   "keep-left-example": { source: require("../assets/illustrations-v2/images/reg_keep_left_bollard_scene_01.png"), originalAssetId: "reg_keep_left_bollard_scene_01", label: "Pass to the left of the obstruction", visualDescription: "Blue circular arrow on a traffic-island bollard", width: 1254, height: 1254 },
   "signals-example": { source: require("../assets/illustrations-v2/images/warn_traffic_signals_ahead_roadside_scene_01.png"), originalAssetId: "warn_traffic_signals_ahead_roadside_scene_01", label: "Traffic signals ahead", visualDescription: "Triangular roadside sign showing a three-lamp signal", width: 1254, height: 1254 },
+  "no-u-turn-example": { source: require("../assets/illustrations-v2/images/reg_no_u_turn_scene_01.png"), originalAssetId: "reg_no_u_turn_scene_01", label: "No U-turn restriction", visualDescription: "Roadside red-bordered sign with a crossed turning arrow", width: 1254, height: 1254 },
+  "bend-right-example": { source: require("../assets/illustrations-v2/images/warn_right_bend_scene_01.png"), originalAssetId: "warn_right_bend_scene_01", label: "Bend to the right ahead", visualDescription: "Triangular warning sign with a line bending right", width: 1254, height: 1254 },
+  "slippery-example": { source: require("../assets/illustrations-v2/images/warn_slippery_road_scene_01.png"), originalAssetId: "warn_slippery_road_scene_01", label: "Slippery road warning", visualDescription: "Triangular sign with a car and two winding tracks", width: 1254, height: 1254 },
+  "school-example": { source: require("../assets/illustrations-v2/images/warn_school_children_scene_01.png"), originalAssetId: "warn_school_children_scene_01", label: "Children going to or from school", visualDescription: "Triangular warning sign showing two children", width: 1254, height: 1254 },
+  "speed-40-example": { source: require("../assets/illustrations-v2/images/reg_speed_limit_40_roadside_scene_01.png"), originalAssetId: "reg_speed_limit_40_roadside_scene_01", label: "40 mph maximum speed", visualDescription: "Red-bordered circular roadside sign displaying 40", width: 1024, height: 1024 },
+  "turn-left-example": { source: require("../assets/illustrations-v2/images/reg_turn_left_only_roadside_scene_01.png"), originalAssetId: "reg_turn_left_only_roadside_scene_01", label: "Turn left as directed", visualDescription: "Blue circular roadside sign with a left-pointing arrow", width: 1024, height: 1024 },
+  "crossroads-example": { source: require("../assets/illustrations-v2/images/warn_crossroads_scene_01.png"), originalAssetId: "warn_crossroads_scene_01", label: "Crossroads ahead", visualDescription: "Triangular warning sign containing a black cross", width: 1254, height: 1254 },
+  "two-way-example": { source: require("../assets/illustrations-v2/images/warn_two_way_traffic_scene_01.png"), originalAssetId: "warn_two_way_traffic_scene_01", label: "Two-way traffic warning", visualDescription: "Triangular sign with two arrows pointing in opposite directions", width: 1254, height: 1254 },
 } as const;
 
 export const studyImageBindings = {
   "rules-001": "zebra-priority-example",
-  "crossings-001": "zebra-priority-example",
   "junction-001": "stop-example",
   "gb-junction-003": "give-way-example",
   "gb-junction-006": "box-junction-example",
   "gb-junction-007": "box-junction-example",
   "gb-rules-007": "headlights-example",
-  "gb-signs-002": "no-motor-example",
   "gb-signs-003": "no-entry-example",
   "gb-signs-004": "ahead-example",
   "gb-signs-005": "keep-left-example",
@@ -64,4 +70,28 @@ export const studyImageBindings = {
   "sign-recognition-006": "national-limit-example",
   "sign-recognition-007": "keep-left-example",
   "sign-recognition-008": "signals-example"
+} as const satisfies Record<string, keyof typeof studyImageAssets>;
+
+export const roadSignStudyImages = {
+  "red-ring": "speed-30-example",
+  "blue-circle": "ahead-example",
+  "stop": "stop-example",
+  "give-way": "give-way-example",
+  "no-u-turn": "no-u-turn-example",
+  "warning-triangle": "signals-example",
+  "warning-bend": "bend-right-example",
+  "warning-crossing": "zebra-priority-example",
+  "no-entry": "no-entry-example",
+  "keep-left": "keep-left-example",
+  "signals-ahead": "signals-example",
+  "national-speed-limit": "national-limit-example",
+  "speed-40": "speed-40-example",
+  "no-motor-vehicles": "no-motor-example",
+  "no-overtaking": "no-overtaking-example",
+  "turn-left": "turn-left-example",
+  "crossroads": "crossroads-example",
+  "road-narrows": "narrowing-example",
+  "two-way": "two-way-example",
+  "slippery-road": "slippery-example",
+  "school": "school-example"
 } as const satisfies Record<string, keyof typeof studyImageAssets>;

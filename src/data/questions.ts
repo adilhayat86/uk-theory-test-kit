@@ -889,7 +889,7 @@ export const questions: TheoryQuestion[] = [
     "id": "illustrated-vehicle-003",
     "topic": "Vehicle safety",
     "difficulty": "standard",
-    "prompt": "What equipment is supplied by the illustrated reservoir?",
+    "prompt": "Regular checks of the windscreen-washer equipment shown help you maintain what?",
     "options": [
       "The hydraulic brakes",
       "The engine oil pump",

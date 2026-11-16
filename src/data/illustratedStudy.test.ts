@@ -1,5 +1,6 @@
 import { questions } from './questions';
-import { studyImageAssets, studyImageBindings } from './studyImages';
+import { studyImageAssets, studyImageBindings, roadSignStudyImages } from './studyImages';
+import { roadSignFacts } from './roadSigns';
 import manifest from '../assets/illustrations-v2/image-manifest.json';
 import selection from '../assets/illustrations-v2/learner-selection.json';
 
@@ -24,6 +25,11 @@ test('every educational match points to an existing question and a traceable sel
   const ids = new Set(questions.map((question) => question.id));
   for (const [questionId, imageId] of Object.entries(studyImageBindings)) {
     expect(ids.has(questionId)).toBe(true);
+    expect(selection.assetIds).toContain(studyImageAssets[imageId].originalAssetId);
+  }
+  const signIds = new Set(roadSignFacts.map((sign) => sign.id));
+  for (const [signId, imageId] of Object.entries(roadSignStudyImages)) {
+    expect(signIds.has(signId)).toBe(true);
     expect(selection.assetIds).toContain(studyImageAssets[imageId].originalAssetId);
   }
   expect(selection.assetIds).not.toContain('motorway_red_x_closed_lane_original_01');
