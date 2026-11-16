@@ -7,11 +7,12 @@ import type { ProgressSummary } from '../domain/progress';
 type Props = {
   session: PracticeSession | null; progress: ProgressSummary;
   onQuickPractice: () => void; onResume: () => void; onPractice: () => void;
+  onPicturePractice: () => void;
   onSigns: () => void; onFlashcards: () => void; onTimed: () => void;
   onArtworkReview?: () => void;
 };
 
-export default function HomeScreen({ session, progress, onQuickPractice, onResume, onPractice,
+export default function HomeScreen({ session, progress, onQuickPractice, onResume, onPractice, onPicturePractice,
   onSigns, onFlashcards, onTimed, onArtworkReview }: Props) {
   const unfinished = session !== null && session.currentIndex < session.questionIds.length;
   return <View>
@@ -29,15 +30,15 @@ export default function HomeScreen({ session, progress, onQuickPractice, onResum
         <Text style={styles.primaryText}>{unfinished ? 'Continue practice' : 'Start 10 questions'} ›</Text>
       </Pressable>
     </View>
-    {onArtworkReview ? <Pressable accessibilityRole="button" accessibilityLabel="My images"
-      accessibilityHint="Browse your original image collection offline" onPress={onArtworkReview} style={styles.review}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Start picture practice"
+      accessibilityHint="Start ten questions with illustrations" onPress={onPicturePractice} style={styles.pictureCard}>
       <Image accessible={false} source={brandAssets.signs} style={styles.toolIcon} />
       <View style={styles.reviewText}>
-        <Text style={styles.reviewTitle}>My images</Text>
-        <Text style={styles.reviewDetail}>Your original illustrations · available offline</Text>
+        <Text style={styles.reviewTitle}>Picture practice</Text>
+        <Text style={styles.reviewDetail}>10 visual questions · learn with your illustrations</Text>
       </View>
       <Text accessible={false} style={styles.reviewArrow}>›</Text>
-    </Pressable> : null}
+    </Pressable>
     <View style={styles.grid}>
       <Tool title="Practice" detail="Choose topics & questions" mark="practice" onPress={onPractice} />
       <Tool title="Road signs" detail="Learn signs & take a quiz" mark="signs" onPress={onSigns} />
@@ -54,6 +55,10 @@ export default function HomeScreen({ session, progress, onQuickPractice, onResum
       <Text style={styles.stat}><Text style={styles.statValue}>{progress.accuracyPercent}%</Text> accuracy</Text>
     </View>
     <Text style={styles.scope}>Great Britain car revision · available offline</Text>
+    {onArtworkReview ? <Pressable accessibilityRole="button" accessibilityLabel="My images"
+      accessibilityHint="Browse the complete original image collection offline" onPress={onArtworkReview} style={styles.review}>
+      <Text style={styles.resultTitle}>My images · full collection ›</Text>
+    </Pressable> : null}
   </View>;
 }
 
@@ -89,10 +94,11 @@ const styles = StyleSheet.create({
   stat: { color: '#66758B', fontSize: 12, flexShrink: 1 },
   statValue: { color: '#132B3A', fontWeight: '900' },
   scope: { color: '#66758B', fontSize: 10, marginTop: 12, textAlign: 'center' },
-  review: { padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14,
+  pictureCard: { padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14,
     minHeight: 76, borderRadius: 15, borderWidth: 1, borderColor: '#B7DED8', backgroundColor: '#E6F5F3' },
   reviewText: { flex: 1 },
   reviewTitle: { color: '#132B3A', fontWeight: '800', fontSize: 16 },
   reviewDetail: { color: '#40516A', fontSize: 12, lineHeight: 18, marginTop: 4 },
   reviewArrow: { color: '#087E8B', fontSize: 27 },
+  review: { minHeight: 48, padding: 14, alignItems: 'center', marginTop: 8 },
 });

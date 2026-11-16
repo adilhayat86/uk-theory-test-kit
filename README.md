@@ -1,15 +1,16 @@
 # UK Theory Test Kit
 
-An independent, offline Great Britain car theory revision app built with Expo, React Native, TypeScript and SQLite. Android learner MVP **0.2.1**, versionCode **3**. Not affiliated with DVSA.
+An independent, offline Great Britain car theory revision app built with Expo, React Native, TypeScript and SQLite. Android illustrated-study update **0.4.0**, versionCode **6**. Not affiliated with DVSA.
 
 ## Included in the MVP
 
-- 208 original questions across 12 topics, with four choices, explanations and primary-source references.
-- Practice setup: 5, 10 or 20 questions, multiple topics and all / smart / incorrect / not-tried / saved filters.
+- 228 original questions across 13 topics, with four choices, explanations and primary-source references. All original 208 question records are preserved.
+- Home → Picture practice starts 10 illustrated questions. Practice setup also offers a Picture questions filter and the new Dashboard warnings topic.
+- Practice setup: 5, 10 or 20 questions, multiple topics and all / pictures / smart / incorrect / not-tried / saved filters.
 - Smart revision prioritises recent mistakes and unseen questions using local history.
 - Crash-safe practice resume, saved answers, bookmarks, result review and retry mistakes.
 - 30 illustrated road-sign notes with search, categories, saved signs and a shuffled 10-question recognition quiz.
-- 30 openly licensed DfT sign illustrations and nine original answer-explanation diagrams, all bundled offline. Teaching diagrams stay hidden until answering or revealing a flashcard.
+- 30 openly licensed DfT sign illustrations and 44 selected original project images, all bundled offline. Labelled teaching scenes appear only after answering or revealing a flashcard; genuine image questions show uncaptioned technical illustrations.
 - Topic flashcards, question search and local progress by topic.
 - Timed five-question practice (six minutes), changeable answers, flags, question navigation, offline resume and result history.
 - No account, ads or subscription.
@@ -55,12 +56,14 @@ Structural checks meet the 200-question / 10-topic minimum. They do not constitu
 
 GitHub Actions checks types, tests, Expo compatibility, Android/iOS exports, a standalone Android learner APK and an iOS simulator build. The standalone release-mode APK embeds JavaScript and works without Metro. Its development signing key is for device testing; the CI AAB is not a production Play upload.
 
-Ordinary learner exports contain 51 PNGs (about 1.6 MiB), including the app branding. Set `EXPO_PUBLIC_IMAGE_REVIEW=false`. Verify an export with:
+Ordinary learner exports include the selected learning images, DfT signs and app branding. Set `EXPO_PUBLIC_IMAGE_REVIEW=false`. Verify an export with:
 
 ```sh
 node scripts/check-export-assets.cjs dist/android android learner
 ```
 
-The internal device-test APK and artwork-review export use `EXPO_PUBLIC_IMAGE_REVIEW=true` and include a prominent Home → My images entry. All 121 original draft images are searchable and available offline, with previous/next navigation and optional image details. Their review status and tracker remain unchanged. The full collection adds roughly 146 MiB; ordinary learner exports still include only the nine selected original diagrams from this pack and exclude the other 112. Selection is not human editorial approval. Restart Metro when changing the flag.
+The internal device-test APK and artwork-review export use `EXPO_PUBLIC_IMAGE_REVIEW=true` and include Home → My images for browsing the complete collection. All 121 original draft images are searchable and available offline, with previous/next navigation and optional image details. Their review status and tracker remain unchanged. Ordinary learner exports include 44 selected project images and exclude the remaining 77. Selection is not human editorial approval. Restart Metro when changing the flag.
+
+See [illustrated-study mappings and sources](docs/ILLUSTRATED_STUDY_2026-11-16.md) for the 20 new questions, added teaching examples and held artwork.
 
 Source SVGs, hashes, licensing and PNG dimensions for DfT images are retained under `src/assets/dft-signs/`. No network downloads are needed during study.

@@ -17,7 +17,7 @@ const pngs = exported.assets.filter((asset) => asset.ext === 'png');
 const hashes = new Set(pngs.map((asset) => hash(fs.readFileSync(path.join(directory, asset.path)))));
 
 // Verify actual packaged bytes, rather than trusting a hidden menu or flag.
-for (const registry of ['illustrationAssets.ts', 'dftSignAssets.ts', 'teachingImages.ts']) {
+for (const registry of ['illustrationAssets.ts', 'dftSignAssets.ts', 'teachingImages.ts', 'studyImages.ts']) {
   const file = path.join(root, 'src/data', registry);
   const requires = fs.readFileSync(file, 'utf8').matchAll(/require\(['"]([^'"]+\.png)['"]\)/g);
   for (const [, relative] of requires) {

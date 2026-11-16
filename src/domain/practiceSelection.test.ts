@@ -28,3 +28,11 @@ test('empty selections return an empty pool without falling back to unrelated qu
   expect(eligiblePracticeQuestions(bank, records, [], [], 'saved')).toEqual([]);
   expect(eligiblePracticeQuestions(bank, records, [], ['unknown topic'], 'smart')).toEqual([]);
 });
+
+test('picture practice selects only illustrated questions and still respects topic filters', () => {
+  const dashboard = questions.find((question) => question.id === 'illustrated-dashboard-001')!;
+  const candidates = [first, second, dashboard, first];
+  expect(eligiblePracticeQuestions(candidates, records, [], [], 'illustrated')).toEqual([first, dashboard]);
+  expect(eligiblePracticeQuestions(candidates, records, [], [dashboard.topic], 'illustrated')).toEqual([dashboard]);
+  expect(eligiblePracticeQuestions(candidates, records, [], ['unknown topic'], 'illustrated')).toEqual([]);
+});

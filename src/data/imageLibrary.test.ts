@@ -52,7 +52,7 @@ test('question captions never expose sign meanings, while review and learning ca
 });
 
 test('static illustration dimensions describe the actual PNG files', () => {
-  for (const registry of ['illustrationAssets.ts', 'dftSignAssets.ts', 'teachingImages.ts']) {
+  for (const registry of ['illustrationAssets.ts', 'dftSignAssets.ts', 'teachingImages.ts', 'studyImages.ts']) {
     const code = readFileSync(join(__dirname, registry), 'utf8');
     const entries = [...code.matchAll(/require\(['"]([^'"]+\.png)['"]\).*?width: (\d+), height: (\d+)/g)];
     expect(entries.length).toBeGreaterThan(0);

@@ -22,3 +22,17 @@ test('teaching diagrams stay hidden until an answer is revealed', () => {
 test('text-only questions do not render an empty image frame', () => {
   expect(QuestionIllustration({ question: questions.find((question) => !question.imageAssetId)! })).toBeNull();
 });
+
+test('a labelled teaching scene replaces the quiz diagram only after answering', () => {
+  const question = questions.find((item) => item.id === 'rules-001')!;
+  expect(QuestionIllustration({ question, context: 'question' })!.props.assetId).toBe('zebra-crossing');
+  expect(QuestionIllustration({ question, context: 'review' })!.props.assetId).toBe('zebra-priority-example');
+});
+
+test('new illustrated questions show an uncaptioned picture before the answer', () => {
+  for (const question of questions.filter((item) => item.id.startsWith('illustrated-'))) {
+    const frame = QuestionIllustration({ question, context: 'question' });
+    expect(frame!.props.assetId).toBe(question.imageAssetId);
+    expect(Illustration({ assetId: frame!.props.assetId }).props.children[1]).toBeNull();
+  }
+});

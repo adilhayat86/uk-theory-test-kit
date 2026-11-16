@@ -10,6 +10,7 @@ import type { QuestionProgressDetail } from '../domain/revision';
 
 const modes: { id: PracticeMode; title: string; detail: string }[] = [
   { id: 'all', title: 'All questions', detail: 'A shuffled mix from your chosen topics' },
+  { id: 'illustrated', title: 'Picture questions', detail: 'Questions with an illustration to examine before answering' },
   { id: 'smart', title: 'Smart revision', detail: 'Recent mistakes first, then unseen questions' },
   { id: 'incorrect', title: 'Incorrect', detail: 'Questions you answered incorrectly last time' },
   { id: 'unseen', title: 'Not tried yet', detail: 'Explore questions you have not answered' },

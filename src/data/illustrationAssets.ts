@@ -1,5 +1,6 @@
 import { dftSignAssets } from './dftSignAssets';
 import { teachingAssets } from './teachingImages';
+import { studyImageAssets } from './studyImages';
 import type { ImageSourcePropType } from 'react-native';
 
 type IllustrationAsset = {
@@ -8,12 +9,15 @@ type IllustrationAsset = {
   visualDescription: string;
   width: number;
   height: number;
+  /** Original image-pack ID for tracing a curated educational use. */
+  originalAssetId?: string;
 };
 
 // Stable existing IDs. Independent editorial review is still required for release.
 export const illustrationAssets = {
   ...dftSignAssets,
   ...teachingAssets,
+  ...studyImageAssets,
   'zebra-crossing': { source: require('../assets/zebra-crossing.png'), label: 'Zebra crossing illustration', visualDescription: 'Road with striped pedestrian crossing', width: 96, height: 96 },
   'no-entry': dftSignAssets['dft-no-entry'],
   'stop-sign': dftSignAssets['dft-stop'],

@@ -320,6 +320,7 @@ function AppContent() {
             contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {tab === 'home' && <HomeScreen session={practiceSession} progress={progress}
             onQuickPractice={() => startPractice(questions, 10)} onResume={() => navigate('practice')}
+            onPicturePractice={() => startPractice(questions.filter((question) => question.imageAssetId !== undefined), 10)}
             onPractice={() => { setSetupTopic(undefined); selectTab('setup'); }} onSigns={() => selectTab('roadSigns')}
             onFlashcards={() => navigate('flashcards')} onTimed={() => navigate('mock')}
             onArtworkReview={(__DEV__ || process.env.EXPO_PUBLIC_IMAGE_REVIEW === 'true') ? () => navigate('imageReview') : undefined} />}

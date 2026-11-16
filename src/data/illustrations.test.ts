@@ -1,8 +1,10 @@
 import { questions } from './questions';
+import { illustrationAssets } from './illustrationAssets';
 test('illustrated questions use bundled image IDs', () => {
-  const allowed = new Set(['zebra-crossing', 'no-entry', 'stop-sign', 'give-way', 'speed-limit-30', 'speed-limit-50', 'national-speed-limit', 'keep-left', 'signals-ahead']);
+  const allowed = new Set(Object.keys(illustrationAssets));
   const illustrated = questions.filter(q => q.imageAssetId);
-  expect(illustrated).toHaveLength(11);
+  expect(illustrated.filter((question) => !question.id.startsWith('illustrated-'))).toHaveLength(11);
+  expect(illustrated.filter((question) => question.id.startsWith('illustrated-'))).toHaveLength(20);
   for (const question of illustrated) expect(allowed.has(question.imageAssetId!)).toBe(true);
 });
 

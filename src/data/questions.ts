@@ -11,6 +11,8 @@ export type TheoryQuestion = {
   reference: string;
   /** Public primary source for manual editorial checking. */
   sourceUrl?: string;
+  /** Manufacturer guidance supporting a depicted vehicle control or warning. */
+  supportingSourceUrl?: string;
   /** Static PNG illustrations embedded in the APK for offline study. */
   imageAssetId?: IllustrationId;
   /** Locally bundled video asset linking a three-question case study; future content. */
@@ -631,5 +633,358 @@ export const questions: TheoryQuestion[] = [
     explanation: "A red triangular sign depicting traffic lights warns that traffic signals are ahead. Adjust your speed and be ready to stop.",
     reference: "Know Your Traffic Signs, Warning signs",
     sourceUrl: 'https://www.gov.uk/guidance/the-highway-code/traffic-signs',
+  },
+  // Original illustrated study questions added 16 November 2026; independent review pending.
+  {
+    "id": "illustrated-dashboard-001",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "This red warning appears while a petrol engine is running. What should you do?",
+    "options": [
+      "Stop safely and switch off the engine",
+      "Accelerate to make the warning disappear",
+      "Wait until the next routine service",
+      "Keep driving if the fuel gauge is full"
+    ],
+    "correctIndex": 0,
+    "explanation": "An oil-pressure warning needs prompt attention. Stop safely, turn the engine off and follow the handbook; a normal oil level does not rule out a pressure fault.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-oil"
+  },
+  {
+    "id": "illustrated-dashboard-002",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "The pictured warning stays on with the engine running. Which system commonly needs checking?",
+    "options": [
+      "The windscreen washer system",
+      "The battery charging system",
+      "The fuel-tank filler flap",
+      "The head-restraint adjustment"
+    ],
+    "correctIndex": 1,
+    "explanation": "This symbol commonly signals a charging fault. Follow the vehicle handbook and arrange inspection; it is not simply a reminder to replace a key-fob battery.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-battery"
+  },
+  {
+    "id": "illustrated-dashboard-003",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "This warning remains illuminated during a journey. Which function may have a fault?",
+    "options": [
+      "Automatic window demisting",
+      "Air conditioning",
+      "Anti-lock braking",
+      "Adaptive head restraints"
+    ],
+    "correctIndex": 2,
+    "explanation": "The ABS indicator relates to anti-lock braking. A persistent warning needs assessment; check the handbook for the particular vehicle.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-abs"
+  },
+  {
+    "id": "illustrated-dashboard-004",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "Which check is most directly connected with the pictured warning symbol?",
+    "options": [
+      "Checking the windscreen washer level",
+      "Checking the roof-rack height",
+      "Checking the radio settings",
+      "Checking tyre pressures and the monitoring-system instructions"
+    ],
+    "correctIndex": 3,
+    "explanation": "The tyre-pressure warning calls for a pressure check and the handbook instructions. Flashing and steady indications can have different meanings.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-tyres"
+  },
+  {
+    "id": "illustrated-dashboard-005",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "The amber symbol shown remains on after the engine starts. Which interpretation is sensible?",
+    "options": [
+      "An engine-management or emissions-related fault needs checking",
+      "The main-beam headlights are switched on",
+      "The rear seat belt is fastened",
+      "The coolant has definitely reached the correct level"
+    ],
+    "correctIndex": 0,
+    "explanation": "The engine-shaped warning needs diagnosis. Consult the handbook and obtain the appropriate inspection; the symbol alone does not identify the failed part.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-engine"
+  },
+  {
+    "id": "illustrated-dashboard-006",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "This red warning stays on after the parking brake has been fully released. What is the safest response?",
+    "options": [
+      "Carry on because the parking brake is off",
+      "Stop safely and have the brake system checked",
+      "Disconnect the warning lamp",
+      "Accelerate and test the brakes at high speed"
+    ],
+    "correctIndex": 1,
+    "explanation": "A brake warning after release of the parking brake can indicate a serious fault. Stop safely and seek the checks specified by the handbook.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-brakes"
+  },
+  {
+    "id": "illustrated-dashboard-007",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "The red thermometer warning appears during a drive. What should you do?",
+    "options": [
+      "Open the hot coolant cap immediately",
+      "Increase engine speed to clear the light",
+      "Stop safely, turn off the engine and let it cool",
+      "Ignore it if the air conditioning works"
+    ],
+    "correctIndex": 2,
+    "explanation": "An engine-temperature warning requires attention to overheating. Stop safely and follow the handbook; never open a pressurised coolant cap while it is hot.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-temperature"
+  },
+  {
+    "id": "illustrated-dashboard-008",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "The pictured warning stays lit after the normal start-up checks. Which system needs professional assessment?",
+    "options": [
+      "The fuel-gauge sender only",
+      "The windscreen washer pump",
+      "The rear-window heater only",
+      "The airbag or supplementary restraint system"
+    ],
+    "correctIndex": 3,
+    "explanation": "The seated-person and circle symbol relates to the airbag system. A persistent warning needs the inspection specified for that vehicle.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-airbag"
+  },
+  {
+    "id": "illustrated-dashboard-009",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "You notice this reminder before setting off. What should you check?",
+    "options": [
+      "That the required seat belts and restraints are correctly fastened",
+      "That the rear fog lamps are on",
+      "That every window is closed",
+      "That the steering wheel is at full lock"
+    ],
+    "correctIndex": 0,
+    "explanation": "This is a seat-belt reminder. Check the required restraints before moving and follow the vehicle instructions if the reminder remains on.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-seatbelt"
+  },
+  {
+    "id": "illustrated-dashboard-010",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "The amber symbol shown flashes briefly on a slippery surface. What can that indicate?",
+    "options": [
+      "The main-beam headlights are operating",
+      "The stability or traction-control system is intervening",
+      "The fuel tank has just become full",
+      "The washer reservoir is being filled"
+    ],
+    "correctIndex": 1,
+    "explanation": "This symbol concerns stability or traction control. Flashing can accompany intervention; a steady warning or an OFF indicator needs its own handbook check.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-stability"
+  },
+  {
+    "id": "illustrated-dashboard-011",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "This amber warning appears during a long trip. What should you plan?",
+    "options": [
+      "A stop in a live motorway lane",
+      "A coolant top-up with the engine hot",
+      "A safe stop at a suitable refuelling location",
+      "A tyre change solely because this lamp is on"
+    ],
+    "correctIndex": 2,
+    "explanation": "The fuel-pump symbol is a low-fuel warning. Arrange a suitable refuelling stop rather than relying on an assumed remaining range.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-fuel"
+  },
+  {
+    "id": "illustrated-dashboard-012",
+    "topic": "Dashboard warnings",
+    "difficulty": "standard",
+    "prompt": "What does this blue indicator commonly tell a driver?",
+    "options": [
+      "The rear fog lamp has failed",
+      "The engine oil pressure is low",
+      "The parking brake is applied",
+      "The main-beam headlights are on"
+    ],
+    "correctIndex": 3,
+    "explanation": "Blue straight-ray headlamp indications commonly identify main beam. Dip the lights when needed to avoid dazzling other road users.",
+    "reference": "Highway Code, Annex 6: warning displays; manufacturer indicator guide",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "supportingSourceUrl": "https://www.ford.co.uk/support/how-tos/more-vehicle-topics/lights-and-bulbs/what-do-the-lights-on-my-dashboard-mean",
+    "imageAssetId": "dash-main-beam"
+  },
+  {
+    "id": "illustrated-vehicle-001",
+    "topic": "Vehicle safety",
+    "difficulty": "standard",
+    "prompt": "You are checking the engine oil using the illustrated component. Which reading should you compare?",
+    "options": [
+      "The fuel level against the tyre pressure",
+      "The oil level against the minimum and maximum marks",
+      "The coolant temperature against the odometer",
+      "The windscreen washer level against engine speed"
+    ],
+    "correctIndex": 1,
+    "explanation": "Use the dipstick or oil-level indicator according to the vehicle instructions and check the level against its marked limits.",
+    "reference": "DVSA vehicle-safety guidance, engine oil check",
+    "sourceUrl": "https://www.gov.uk/government/publications/car-show-me-tell-me-vehicle-safety-questions/car-show-me-tell-me-vehicle-safety-questions",
+    "imageAssetId": "oil-dipstick"
+  },
+  {
+    "id": "illustrated-vehicle-002",
+    "topic": "Vehicle safety",
+    "difficulty": "standard",
+    "prompt": "During a parked under-bonnet check, how would you assess the fluid level in this reservoir?",
+    "options": [
+      "Fill it to the cap regardless of the marks",
+      "Judge it only from the fuel gauge",
+      "Compare it with the reservoir high and low markings",
+      "Ignore the level if the horn works"
+    ],
+    "correctIndex": 2,
+    "explanation": "Check hydraulic brake fluid against the reservoir markings. The correct fluid and any further action must follow the vehicle instructions.",
+    "reference": "DVSA vehicle-safety guidance, hydraulic brake-fluid check",
+    "sourceUrl": "https://www.gov.uk/government/publications/car-show-me-tell-me-vehicle-safety-questions/car-show-me-tell-me-vehicle-safety-questions",
+    "imageAssetId": "brake-fluid"
+  },
+  {
+    "id": "illustrated-vehicle-003",
+    "topic": "Vehicle safety",
+    "difficulty": "standard",
+    "prompt": "What equipment is supplied by the illustrated reservoir?",
+    "options": [
+      "The hydraulic brakes",
+      "The engine oil pump",
+      "The fuel injectors",
+      "The windscreen washers"
+    ],
+    "correctIndex": 3,
+    "explanation": "The drawing shows a washer-fluid reservoir. Working washers help keep the windscreen clear; identify the correct filler using the vehicle handbook.",
+    "reference": "Highway Code, Annex 6: washers and clear vision",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "imageAssetId": "screenwash"
+  },
+  {
+    "id": "illustrated-vehicle-004",
+    "topic": "Vehicle safety",
+    "difficulty": "standard",
+    "prompt": "Rain is leaving streaks across the glass even while the pictured equipment is operating. What should you do?",
+    "options": [
+      "Check the wipers and restore a clear view before continuing",
+      "Drive faster to avoid looking through the streaks",
+      "Rely only on the side mirrors",
+      "Turn off the headlamps to remove the streaks"
+    ],
+    "correctIndex": 0,
+    "explanation": "Wipers and washers must work effectively. Stop somewhere safe if necessary to restore visibility rather than continuing with an obstructed view.",
+    "reference": "Highway Code, Annex 6: wipers and visibility",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "imageAssetId": "wiper-blade"
+  },
+  {
+    "id": "illustrated-vehicle-005",
+    "topic": "Vehicle safety",
+    "difficulty": "standard",
+    "prompt": "The driver shown is making only a short local journey. What is the normal requirement for the fitted restraint?",
+    "options": [
+      "Wear it only above 30 mph",
+      "Wear the seat belt unless a lawful exemption applies",
+      "Use it only on motorways",
+      "Fasten it behind the seat to silence the reminder"
+    ],
+    "correctIndex": 1,
+    "explanation": "A short journey does not remove the normal seat-belt requirement. Ensure that the fitted belt is used correctly, subject to lawful exemptions.",
+    "reference": "Highway Code, Rule 99",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/rules-for-drivers-and-motorcyclists-89-to-102",
+    "imageAssetId": "seatbelt-fit"
+  },
+  {
+    "id": "illustrated-vehicle-006",
+    "topic": "Vehicle safety",
+    "difficulty": "standard",
+    "prompt": "Before driving with a child in the illustrated restraint, what should the driver check?",
+    "options": [
+      "That an adult can hold the child instead",
+      "That the harness is left loose for every journey",
+      "That the suitable restraint is fitted and adjusted to its instructions",
+      "That a cushion replaces the required child restraint"
+    ],
+    "correctIndex": 2,
+    "explanation": "Use the suitable child restraint and its fitting instructions. The driver is responsible for ensuring children under 14 use the required restraint.",
+    "reference": "Highway Code, Rules 100 and 102",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/rules-for-drivers-and-motorcyclists-89-to-102",
+    "imageAssetId": "child-harness"
+  },
+  {
+    "id": "illustrated-vehicle-007",
+    "topic": "Vehicle safety",
+    "difficulty": "standard",
+    "prompt": "Why should the items shown be secured before the journey starts?",
+    "options": [
+      "To make the vehicle exempt from speed limits",
+      "To remove the need to check the tyres",
+      "To make a loose load safe during sudden braking",
+      "To prevent the load moving and creating a hazard"
+    ],
+    "correctIndex": 3,
+    "explanation": "Luggage must be securely stowed. Secure items so that braking or a change of direction does not turn them into a hazard.",
+    "reference": "Highway Code, Annex 6: securely stowed luggage",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "imageAssetId": "secure-luggage"
+  },
+  {
+    "id": "illustrated-vehicle-008",
+    "topic": "Vehicle safety",
+    "difficulty": "standard",
+    "prompt": "Before moving off, what should you do with the item shown?",
+    "options": [
+      "Adjust it to give an appropriate rearward view from your driving position",
+      "Adjust it only after reaching a motorway",
+      "Point it at the rear passengers throughout the trip",
+      "Use it as a substitute for every blind-spot check"
+    ],
+    "correctIndex": 0,
+    "explanation": "Adjust the mirrors before driving. A correctly adjusted mirror helps observation but does not remove the need for other checks.",
+    "reference": "Highway Code, Annex 6: mirror adjustment",
+    "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+    "imageAssetId": "rearview-adjustment"
   },
 ];

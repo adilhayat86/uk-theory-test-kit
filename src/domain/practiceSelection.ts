@@ -2,7 +2,7 @@ import type { TheoryQuestion } from '../data/questions';
 import { getQuestionsToRetry, selectSmartPractice } from './revision';
 import type { QuestionProgressDetail } from './revision';
 
-export type PracticeMode = 'all' | 'smart' | 'incorrect' | 'unseen' | 'saved';
+export type PracticeMode = 'all' | 'smart' | 'incorrect' | 'unseen' | 'saved' | 'illustrated';
 
 /** Empty topics means every topic. Filters always apply before smart ranking. */
 export function eligiblePracticeQuestions(
@@ -17,6 +17,7 @@ export function eligiblePracticeQuestions(
     return true;
   });
   if (mode === 'smart') return selectSmartPractice(pool, records, pool.length);
+  if (mode === 'illustrated') return pool.filter((question) => question.imageAssetId !== undefined);
   if (mode === 'incorrect') return getQuestionsToRetry(pool, records);
   if (mode === 'unseen') {
     const tried = new Set(records.filter((r) => r.attempts > 0).map((r) => r.questionId));
