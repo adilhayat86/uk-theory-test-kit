@@ -6,11 +6,11 @@ This wording follows the vocabulary of current [Google Play](https://play.google
 
 ## Road-sign variation
 
-A compact Union Flag inset sits in the lower-right part of the sign, below the car and beside the checkmark. It reuses the project's existing flag geometry and stays inside the adaptive icon's safe area. The red sign remains the main silhouette; the flag is a regional detail.
+The Union Flag fills the background outside the red octagon, making the regional identity visible at small icon sizes. It reuses the project's existing flag geometry, cropped to the square without distortion. The car and checkmark stay clear on the red sign. The earlier small inset has been removed.
 
 The original mark uses the familiar red octagonal silhouette of a STOP sign, with a white inset border. Its central symbol is a newly drawn front-view car and checkmark, replacing the STOP lettering. It represents driving knowledge and practice; it is not an actual instructional sign or an official approval badge. [DfT describes the STOP sign's distinctive octagonal shape](https://www.gov.uk/government/publications/know-your-traffic-signs/the-signing-system).
 
-Editable SVG masters and matching PNG exports are in `src/assets/brand/`. The 1024px app icon has an opaque warm-offwhite background (#F7F7F2), red octagon (#DC333C), and white symbols. The adaptive foreground is transparent and inset so the complete sign fits launcher masks; its separate background is offwhite. The header mark has a rounded-square background. Full-size and 64px versions were inspected for legibility.
+Editable SVG masters and matching PNG exports are in `src/assets/brand/`. The 1024px app icon has an opaque Union Flag background, red octagon (#DC333C), and white symbols. The adaptive foreground is transparent and inset so the complete sign fits launcher masks; its separate `adaptive-background.png` carries the flag. The header mark has the same flag backdrop with rounded-square clipping. Full-size, 64px and circular launcher variants were inspected for legibility.
 
 The study interface retains indigo actions, lime progress accents and warm neutral surfaces from `src/theme.ts`. Red is used in the sign-inspired identity and retains its existing answer-feedback meaning. The Progress navigation icon remains an ascending path because it describes learning progress, independently of the app logo.
 
