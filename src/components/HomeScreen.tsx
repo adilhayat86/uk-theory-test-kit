@@ -36,6 +36,10 @@ export default function HomeScreen({ session, overview, onNext, onResume, onDisc
         onPress={unfinished ? onResume : onNext} style={s.primary}>
         <Text style={s.primaryText}>{unfinished ? 'Continue session' : 'Start next session'}  →</Text>
       </Pressable>
+      {session && !unfinished ? <Pressable accessibilityRole="button" accessibilityLabel="Review last practice result"
+        onPress={onResume} style={s.textButton}>
+        <Text style={s.link}>Review last practice result →</Text>
+      </Pressable> : null}
       {session ? <Pressable accessibilityRole="button" accessibilityLabel="Discard practice session" onPress={onDiscard} style={s.textButton}>
         <Text style={s.smallLink}>{unfinished ? 'Discard this session' : 'Clear last session'}</Text>
       </Pressable> : <Text style={s.footnote}>Study answers update your question coverage.</Text>}

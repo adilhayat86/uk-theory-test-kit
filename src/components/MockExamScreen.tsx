@@ -171,7 +171,7 @@ export default function MockExamScreen() {
               <Text style={styles.sectionTitle}>Previous attempts</Text>
               {history.map((item) => (
                 <View key={item.id} style={styles.historyItem}>
-                  <View>
+                  <View style={styles.historyCopy}>
                     <Text style={styles.historyTitle}>{item.mode === 'full' ? 'Full mock' : 'Timed practice'} · {new Date(item.finishedAt).toLocaleDateString('en-GB')}</Text>
                     <Text style={styles.dim}>{item.answered}/{item.total} answered · {item.reason === 'timeout' ? 'Time expired' : 'Submitted'}</Text>
                   </View>
@@ -186,7 +186,7 @@ export default function MockExamScreen() {
       {session ? (
         <>
           <View style={styles.timerCard}>
-            <View>
+            <View style={styles.timerCopy}>
               <Text style={styles.eyebrow}>{session.mode === 'full' ? 'FULL MOCK' : 'SAMPLE MOCK'}</Text>
               <Text style={styles.timerLabel}>{attempted} of {session.questionIds.length} answered</Text>
             </View>
@@ -199,7 +199,7 @@ export default function MockExamScreen() {
             <View style={styles.questionCard}>
               <View style={styles.inline}>
                 <Text style={styles.topic}>{question.topic.toUpperCase()}</Text>
-                <Pressable accessibilityRole="button" onPress={() => changeSession((old) => flagQuestion(old, question.id, Date.now()))}>
+                <Pressable accessibilityRole="button" style={styles.flagButton} onPress={() => changeSession((old) => flagQuestion(old, question.id, Date.now()))}>
                   <Text style={styles.link}>{flagged.has(question.id) ? '★ Flagged' : '☆ Flag for review'}</Text>
                 </Pressable>
               </View>
@@ -315,13 +315,15 @@ const styles = StyleSheet.create({
   secondary: { backgroundColor: colors.primarySoft, borderRadius: 12, minHeight: 42, paddingHorizontal: 15, justifyContent: 'center', alignItems: 'center', flex: 1 },
   secondaryText: { color: colors.primary, fontSize: 13, fontWeight: '800', textAlign: 'center' },
   disabled: { opacity: 0.4 },
-  timerCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: colors.primarySoft, borderRadius: 16 },
-  timerRight: { alignItems: 'flex-end' },
+  timerCard: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: colors.primarySoft, borderRadius: 16 },
+  timerCopy: { maxWidth: '100%' },
+  timerRight: { alignItems: 'flex-end', flexGrow: 1, maxWidth: '100%' },
   timerLabel: { color: colors.ink, fontSize: 14, fontWeight: '700', marginTop: 8 },
   timer: { color: colors.primary, fontWeight: '900', fontSize: 28, fontVariant: ['tabular-nums'] },
   timerDanger: { color: '#C73236' },
   questionCard: { backgroundColor: colors.surface, borderRadius: 18, padding: 18, marginTop: 15, borderWidth: 1, borderColor: colors.border },
-  inline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  inline: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  flagButton: { minHeight: 44, justifyContent: 'center', maxWidth: '100%' },
   topic: { color: colors.primary, fontWeight: '900', fontSize: 10, flexShrink: 1 },
   number: { color: colors.muted, fontSize: 11, fontWeight: '900', marginTop: 14, marginBottom: 7 },
   prompt: { color: colors.ink, fontSize: 19, lineHeight: 26, fontWeight: '800', marginBottom: 15 },
@@ -345,7 +347,8 @@ const styles = StyleSheet.create({
   reviewPrompt: { color: colors.ink, fontSize: 15, fontWeight: '800', lineHeight: 22 },
   correctAnswer: { color: '#167448', fontWeight: '800', fontSize: 13, lineHeight: 19, marginTop: 8 },
   reference: { color: colors.muted, fontSize: 11, marginTop: 7, fontWeight: '700' },
-  historyItem: { padding: 14, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border, marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  historyItem: { padding: 14, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border, marginBottom: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center', justifyContent: 'space-between' },
+  historyCopy: { flex: 1, minWidth: 0 },
   historyTitle: { color: colors.ink, fontWeight: '800', fontSize: 13 },
   historyScore: { color: colors.primary, fontWeight: '900', fontSize: 18 }
 });
