@@ -1,3 +1,5 @@
+import { courseQuestions } from './courseQuestions';
+import { caseStudyQuestions } from './caseStudyQuestions';
 import type { IllustrationId } from './illustrationAssets';
 
 export type TheoryQuestion = {
@@ -987,4 +989,6 @@ export const questions: TheoryQuestion[] = [
     "sourceUrl": "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
     "imageAssetId": "rearview-adjustment"
   },
+  ...courseQuestions,
+  ...caseStudyQuestions,
 ];

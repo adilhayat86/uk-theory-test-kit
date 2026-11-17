@@ -1,4 +1,6 @@
 import type { TheoryQuestion } from '../data/questions';
+import { CHECKPOINT_QUESTION_COUNT, isCheckpointContext } from './courseProgress';
+import type { CheckpointContext } from './courseProgress';
 
 export type PracticeSession = {
   version: 1;
@@ -7,6 +9,7 @@ export type PracticeSession = {
   answers: Record<string, number>;
   currentIndex: number;
   startedAt: number;
+  checkpoint?: CheckpointContext;
 };
 
 export function isPracticeSession(data: unknown): data is PracticeSession {
@@ -22,23 +25,33 @@ export function isPracticeSession(data: unknown): data is PracticeSession {
       !value.answers || typeof value.answers !== 'object' || Array.isArray(value.answers)) return false;
 
   const ids = new Set(value.questionIds);
-  return Object.entries(value.answers).every(([id, selectedIndex]) =>
-    ids.has(id) && Number.isInteger(selectedIndex) && selectedIndex >= 0 && selectedIndex <= 3);
+  if (!Object.entries(value.answers).every(([id, selectedIndex]) =>
+    ids.has(id) && Number.isInteger(selectedIndex) && selectedIndex >= 0 && selectedIndex <= 3)) return false;
+  if (value.checkpoint !== undefined) {
+    if (!isCheckpointContext(value.checkpoint) || value.questionIds.length !== CHECKPOINT_QUESTION_COUNT) return false;
+    return value.questionIds.every((id, index) =>
+      index < value.currentIndex! ? Object.prototype.hasOwnProperty.call(value.answers, id)
+        : index === value.currentIndex || !Object.prototype.hasOwnProperty.call(value.answers, id));
+  }
+  return true;
 }
 
 export function beginPractice(
   items: TheoryQuestion[],
   startedAt: number,
   sessionId: string,
+  checkpoint?: CheckpointContext,
 ): PracticeSession {
   const questionIds = items.map((q) => q.id);
   if (!Number.isFinite(startedAt) || startedAt < 0 || !sessionId ||
-      !questionIds.length || new Set(questionIds).size !== questionIds.length) {
+      !questionIds.length || new Set(questionIds).size !== questionIds.length ||
+      (checkpoint !== undefined && (!isCheckpointContext(checkpoint) || questionIds.length !== CHECKPOINT_QUESTION_COUNT))) {
     throw new Error('Cannot start an empty, duplicate or invalid practice session.');
   }
   return {
     version: 1, id: sessionId, questionIds,
     answers: {}, currentIndex: 0, startedAt,
+    ...(checkpoint ? { checkpoint: { ...checkpoint, lessonVersions: { ...checkpoint.lessonVersions } } } : {}),
   };
 }
 

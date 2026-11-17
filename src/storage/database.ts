@@ -1,12 +1,15 @@
 import * as SQLite from 'expo-sqlite';
-import { isMockSession } from '../domain/mockExam';
+import { finishMock, isMockResult, isMockSession } from '../domain/mockExam';
 import type { MockSession, MockResult } from '../domain/mockExam';
 import type { TheoryQuestion } from '../data/questions';
+import { questions } from '../data/questions';
 import { summarizeProgress } from '../domain/progress';
 import type { ProgressSummary } from '../domain/progress';
 import type { QuestionProgressDetail } from '../domain/revision';
 import { answerPractice, isPracticeSession, nextPractice } from '../domain/practiceSession';
 import type { PracticeSession } from '../domain/practiceSession';
+import { buildCheckpointResult, isCheckpointResult, isLessonProgress } from '../domain/courseProgress';
+import type { CheckpointResult, LessonProgress } from '../domain/courseProgress';
 
 type StoredProgressRow = {
   question_id: string;
@@ -58,6 +61,22 @@ async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
             payload TEXT NOT NULL,
             completed_at TEXT NOT NULL
           );
+          CREATE TABLE IF NOT EXISTS lesson_progress (
+            lesson_id TEXT PRIMARY KEY NOT NULL,
+            content_version INTEGER NOT NULL,
+            last_section_id TEXT,
+            read_confirmed_at INTEGER,
+            updated_at INTEGER NOT NULL
+          );
+          CREATE TABLE IF NOT EXISTS checkpoint_results (
+            attempt_id TEXT PRIMARY KEY NOT NULL,
+            module_id TEXT NOT NULL,
+            module_version INTEGER NOT NULL,
+            payload TEXT NOT NULL,
+            completed_at INTEGER NOT NULL
+          );
+          CREATE INDEX IF NOT EXISTS checkpoint_module_idx
+            ON checkpoint_results(module_id, module_version, completed_at);
         `);
         return db;
       })
@@ -167,11 +186,24 @@ export async function advanceSavedPractice(session: PracticeSession): Promise<Pr
       );
       if (!row) throw new Error('Practice session is missing.');
       const existing: unknown = JSON.parse(row.payload);
-      if (!isPracticeSession(existing) || existing.id !== session.id ||
-          existing.currentIndex !== session.currentIndex) {
+      if (!isPracticeSession(existing) || existing.id !== session.id) {
         throw new Error('Practice session changed during navigation.');
       }
+      if (existing.checkpoint && existing.currentIndex === existing.questionIds.length) {
+        // Reopening a completed checkpoint cannot alter its original result.
+        advanced = existing;
+        return;
+      }
+      if (existing.currentIndex !== session.currentIndex) throw new Error('Practice session changed during navigation.');
       advanced = nextPractice(existing);
+      if (advanced.checkpoint && advanced.currentIndex === advanced.questionIds.length) {
+        const result = buildCheckpointResult(advanced, questions, Date.now());
+        await txn.runAsync(
+          `INSERT OR IGNORE INTO checkpoint_results
+            (attempt_id, module_id, module_version, payload, completed_at) VALUES (?, ?, ?, ?, ?)`,
+          result.attemptId, result.moduleId, result.moduleVersion, JSON.stringify(result), result.completedAt,
+        );
+      }
       await txn.runAsync('UPDATE active_practice SET payload = ? WHERE slot = 1',
         JSON.stringify(advanced));
     });
@@ -224,6 +256,90 @@ export async function getQuestionProgressRecords(): Promise<QuestionProgressDeta
     correctAttempts: row.correct_attempts,
     lastSelectedIndex: row.last_selected_index,
   }));
+}
+
+let lessonWriteTail: Promise<void> = Promise.resolve();
+
+function enqueueLessonWrite(task: () => Promise<void>): Promise<void> {
+  const operation = lessonWriteTail.then(task, task);
+  lessonWriteTail = operation.catch(() => undefined);
+  return operation;
+}
+
+export async function getLessonProgress(): Promise<LessonProgress[]> {
+  await lessonWriteTail;
+  const db = await openDatabase();
+  const rows = await db.getAllAsync<{
+    lesson_id: string; content_version: number; last_section_id: string | null;
+    read_confirmed_at: number | null; updated_at: number;
+  }>('SELECT lesson_id, content_version, last_section_id, read_confirmed_at, updated_at FROM lesson_progress');
+  return rows.map(row => ({
+    lessonId: row.lesson_id, contentVersion: row.content_version, lastSectionId: row.last_section_id,
+    readConfirmedAt: row.read_confirmed_at, updatedAt: row.updated_at,
+  })).filter(isLessonProgress);
+}
+
+/** A newer lesson version needs a fresh reading confirmation; stale writes cannot downgrade it. */
+export async function saveLessonPosition(lessonId: string, contentVersion: number, sectionId: string): Promise<void> {
+  const updatedAt = Date.now();
+  if (typeof sectionId !== 'string' || !sectionId.trim() ||
+      !isLessonProgress({ lessonId, contentVersion, lastSectionId: sectionId, readConfirmedAt: null, updatedAt })) {
+    throw new Error('Invalid lesson reading position.');
+  }
+  return enqueueLessonWrite(async () => {
+    const db = await openDatabase();
+    await db.runAsync(
+      `INSERT INTO lesson_progress (lesson_id, content_version, last_section_id, read_confirmed_at, updated_at)
+       VALUES (?, ?, ?, NULL, ?)
+       ON CONFLICT(lesson_id) DO UPDATE SET
+         content_version = excluded.content_version,
+         last_section_id = excluded.last_section_id,
+         read_confirmed_at = CASE WHEN lesson_progress.content_version = excluded.content_version
+           THEN lesson_progress.read_confirmed_at ELSE NULL END,
+         updated_at = excluded.updated_at
+       WHERE excluded.content_version >= lesson_progress.content_version`,
+      lessonId, contentVersion, sectionId, updatedAt,
+    );
+  });
+}
+
+export async function markLessonRead(lessonId: string, contentVersion: number): Promise<void> {
+  const updatedAt = Date.now();
+  if (!isLessonProgress({ lessonId, contentVersion, lastSectionId: null, readConfirmedAt: updatedAt, updatedAt })) {
+    throw new Error('Invalid lesson reading confirmation.');
+  }
+  return enqueueLessonWrite(async () => {
+    const db = await openDatabase();
+    await db.runAsync(
+      `INSERT INTO lesson_progress (lesson_id, content_version, last_section_id, read_confirmed_at, updated_at)
+       VALUES (?, ?, NULL, ?, ?)
+       ON CONFLICT(lesson_id) DO UPDATE SET
+         content_version = excluded.content_version,
+         last_section_id = CASE WHEN lesson_progress.content_version = excluded.content_version
+           THEN lesson_progress.last_section_id ELSE NULL END,
+         read_confirmed_at = CASE WHEN lesson_progress.content_version = excluded.content_version
+           THEN COALESCE(lesson_progress.read_confirmed_at, excluded.read_confirmed_at) ELSE excluded.read_confirmed_at END,
+         updated_at = excluded.updated_at
+       WHERE excluded.content_version >= lesson_progress.content_version`,
+      lessonId, contentVersion, updatedAt, updatedAt,
+    );
+  });
+}
+
+export async function getCheckpointResults(): Promise<CheckpointResult[]> {
+  await practiceWriteTail;
+  const db = await openDatabase();
+  const rows = await db.getAllAsync<{ payload: string }>(
+    'SELECT payload FROM checkpoint_results ORDER BY completed_at DESC, rowid DESC',
+  );
+  return rows.flatMap(row => {
+    try {
+      const value: unknown = JSON.parse(row.payload);
+      return isCheckpointResult(value) ? [value] : [];
+    } catch {
+      return [];
+    }
+  });
 }
 
 export async function getBookmarkedQuestionIds(): Promise<string[]> {
@@ -309,7 +425,8 @@ export async function saveMockSession(session: MockSession): Promise<void> {
         VALUES (?, ?, ?, NULL)
         ON CONFLICT(id) DO UPDATE SET
           payload = excluded.payload,
-          updated_at = excluded.updated_at`,
+          updated_at = excluded.updated_at
+        WHERE mock_exam_sessions.completed_at IS NULL`,
       session.id,
       JSON.stringify(session),
       new Date().toISOString(),
@@ -337,25 +454,65 @@ export async function getMockResults(limit: number = 10): Promise<MockResult[]> 
   const db = await openDatabase();
   const rows = await db.getAllAsync<{ payload: string }>(
     'SELECT payload FROM mock_exam_results ORDER BY completed_at DESC LIMIT ?',
-    Math.max(1, Math.min(50, Math.trunc(limit))),
+    Number.isFinite(limit) ? Math.max(1, Math.min(50, Math.trunc(limit))) : 10,
   );
   return rows.flatMap((row) => {
     try {
-      const data: MockResult = JSON.parse(row.payload);
-      return typeof data.id === 'string' && typeof data.correct === 'number' ? [data] : [];
+      const data: unknown = JSON.parse(row.payload);
+      return isMockResult(data) ? [data] : [];
     } catch {
       return [];
     }
   });
 }
 
+function resultIdentity(result: MockResult, includeFinishedAt = true): string {
+  return JSON.stringify({
+    id: result.id, mode: result.mode, questionIds: result.questionIds,
+    answers: result.questionIds.map(id => [id, result.answers[id] ?? null]),
+    correct: result.correct, answered: result.answered, total: result.total,
+    percent: result.percent, passed: result.passed, startedAt: result.startedAt,
+    ...(includeFinishedAt ? { finishedAt: result.finishedAt } : {}),
+    reason: result.reason, studyAcknowledgement: result.studyAcknowledgement ? {
+      confirmedAt: result.studyAcknowledgement.confirmedAt,
+      statementVersion: result.studyAcknowledgement.statementVersion,
+    } : null,
+  });
+}
+
 export async function finishStoredMock(session: MockSession, result: MockResult): Promise<void> {
-  if (session.id !== result.id) throw new Error('Mock result does not match its session.');
+  if (!isMockSession(session) || !isMockResult(result) || session.id !== result.id ||
+      (result.reason === 'timeout' && result.finishedAt !== session.expiresAt) ||
+      resultIdentity(finishMock(session, questions, result.finishedAt, result.reason)) !== resultIdentity(result)) {
+    throw new Error('Mock result does not match its saved answers and session.');
+  }
   return enqueueMockWrite(async () => {
     const db = await openDatabase();
     await db.withExclusiveTransactionAsync(async (txn) => {
+      const previous = await txn.getFirstAsync<{ payload: string }>(
+        'SELECT payload FROM mock_exam_results WHERE id = ?', session.id,
+      );
+      if (previous) {
+        const stored: unknown = JSON.parse(previous.payload);
+        if (!isMockResult(stored) || resultIdentity(stored, false) !== resultIdentity(result, false)) {
+          throw new Error('This mock already has a different completed result.');
+        }
+        return;
+      }
+      const row = await txn.getFirstAsync<{ payload: string; completed_at: string | null }>(
+        'SELECT payload, completed_at FROM mock_exam_sessions WHERE id = ?', session.id,
+      );
+      if (!row || row.completed_at !== null) throw new Error('No active mock is available to finish.');
+      const persisted: unknown = JSON.parse(row.payload);
+      if (!isMockSession(persisted) || persisted.id !== session.id || persisted.mode !== session.mode ||
+          persisted.startedAt !== session.startedAt || persisted.expiresAt !== session.expiresAt ||
+          JSON.stringify(persisted.questionIds) !== JSON.stringify(session.questionIds) ||
+          persisted.studyAcknowledgement?.confirmedAt !== session.studyAcknowledgement?.confirmedAt ||
+          persisted.studyAcknowledgement?.statementVersion !== session.studyAcknowledgement?.statementVersion) {
+        throw new Error('The saved mock changed before completion.');
+      }
       await txn.runAsync(
-        'INSERT OR REPLACE INTO mock_exam_results (id, payload, completed_at) VALUES (?, ?, ?)',
+        'INSERT OR IGNORE INTO mock_exam_results (id, payload, completed_at) VALUES (?, ?, ?)',
         result.id, JSON.stringify(result), new Date(result.finishedAt).toISOString(),
       );
       await txn.runAsync(

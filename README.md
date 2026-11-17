@@ -1,39 +1,25 @@
 # Driving Theory Test UK: Learn
 
-An independent, offline Great Britain car theory revision app built with Expo, React Native, TypeScript and SQLite. Search-name and road-sign identity update **0.5.1**, versionCode **8**. Not affiliated with DVSA.
+Independent, offline Great Britain car-theory study built with Expo, React Native, TypeScript and SQLite. Learning-first internal build **0.7.0**, Android code **10**. Not affiliated with DVSA.
 
-## Included in the MVP
+## Learn, check, revise, then practise an exam
 
-- 228 original questions across 13 topics, with four choices, explanations and primary-source references. All original 208 question records are preserved.
-- A progress-first Home with question coverage, correct-last-try/revisit/unseen counts, recommended next sessions and actionable topic focus areas.
-- Central Progress tab with a learning route, per-topic coverage, separate historical accuracy and real timed-check history. No fabricated test-readiness score.
-- Home → Picture practice starts up to 10 illustrated questions. Learn also offers a Picture questions filter and the Dashboard warnings topic.
-- Practice setup: 5, 10 or 20 questions, multiple topics and all / pictures / smart / incorrect / not-tried / saved filters.
-- Smart revision prioritises recent mistakes and unseen questions using local history.
-- Crash-safe practice resume, explicit session discard without deleting answer history/bookmarks, result review and retry mistakes. Finished practice links back to shared progress.
-- 30 illustrated road-sign notes with search, categories, saved signs and a shuffled 10-question recognition quiz.
-- 30 openly licensed DfT sign illustrations and 52 selected original project images, all bundled offline. Labelled teaching scenes appear only after answering or revealing a flashcard; genuine image questions show uncaptioned technical illustrations. Twenty-one sign lessons also include original roadside examples.
-- Topic flashcards, question search and local progress by topic.
-- Timed five-question practice (six minutes), changeable answers, flags, question navigation, offline resume and result history.
-- No account, ads or subscription.
+- **15 modules / 38 original lessons**: objectives, substantive teaching, worked road scenarios, selected illustrations/video examples, recaps and primary-source references.
+- Explicit lesson-study confirmation and saved reading positions. Opening or scrolling a lesson does not complete it.
+- Dedicated **10-question topic checks**, passing at **8/10**. Every lesson is represented. Topic completion requires current lesson confirmations and a compatible passed check; ordinary question practice does not award course completion.
+- **309 original questions across15topics**: the previous228 records are unchanged, with72 questions for curriculum gaps and9 linked video questions added. Questions include four choices, an explanation and a primary rule reference.
+- **Full multiple-choice practice mocks:50questions/57minutes/43correct**, with47ordinaryquestions sampled across topics and3linkedquestions about one of3original silent20-second video case studies. Five-question warm-ups remain available.
+- Direct exam access requires a fresh explicit study acknowledgement for each new attempt. That confirmation never marks lessons or topic checks complete. Saved attempts retain their acknowledgement, answers, flags, position and absolute timer.
+- Distinct lesson, topic-check, revision-coverage and mock-result progress. Mistakes link to relevant learning material. No invented official pass-readiness percentage.
+- Study tools:30illustrated sign notes and quiz, flashcards, search, saved questions and smart/picture/topic revision. Search begins with an empty prompt rather than dumping the entire bank.
+- Four primary tabs: **Learn, Practise, Exams, Progress**. Study tools are secondary. Only lessons/active answering use focused navigation; exam overview and results retain main navigation.
+- All content and playable videos work offline. No account, advertising, subscription or remote progress server.
 
-The target store product remains a one-time £0.99 Android app. Human editorial sign-off, production signing and store submission remain outstanding. This is an installable test MVP, not a published commercial release.
+The animations are independently authored diagrams, notDVSAfootage. These mocks assess multiple-choice knowledge; there is no hazard-perception simulator. The course is selected independent revision, not a licensed copy of the fullHighwayCode or officialDVSAquestionbank, and it does not cover NorthernIreland-specific rules.
 
-## Scope
+This remains an internal test build. A paid store release requires independent human editorial sign-off of questions, lessons and media, production signing and the separate publication checks. Structural tests and AI source checks do not constitute that approval.
 
-Great Britain car revision. No licensed DVSA question bank, full Highway Code book, Northern Ireland bank, hazard-perception videos or full official-style exam simulation. A future full-exam engine is tested separately but is not exposed as an available MVP feature.
-
-See the [MVP implementation and phone competitor audit](docs/MVP_IMPLEMENTATION_2026-11-10.md), [release target](docs/MVP_RELEASE_TARGET.md), and [asset sources and licences](docs/ASSET_LICENCES.md). No competitor code or media is included.
-
-## Navigation
-
-The main tabs are **Home, Learn, Progress, Signs and Saved**. Home shows your learning position and recommends a next step. Progress is the central destination for your learning route and topics. Learn opens practice setup; illustrated practice, signs, flashcards and timed checks remain available. Search is in the header.
-
-See the [progress-first redesign and competitor review](docs/PROGRESS_FIRST_REDESIGN.md) and [road-sign identity and store name](docs/BRAND.md).
-
-Topics open in a picker rather than a long list above the content. Back returns to the actual previous screen with its search, selections and position retained. The Android Back key closes the topic picker before leaving a screen. A saved practice session is resumed explicitly from Home.
-
-See [navigation changes and validation](docs/NAVIGATION_2026-11-10.md).
+See [learning model and scope](docs/LEARNING_COURSE_2026-11-17.md), [course/source review](docs/COURSE_CONTENT_REVIEW.md), [asset licences](docs/ASSET_LICENCES.md) and [original video authoring](src/assets/case-studies/README.md). Historical MVP/navigation documents describe earlier versions.
 
 ## Development
 

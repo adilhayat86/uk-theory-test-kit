@@ -25,7 +25,8 @@ function makeFullBank(): TheoryQuestion[] {
 
 describe('mock exam engine', () => {
   it('gates real full mocks until 50 unique questions and three video-linked questions exist', () => {
-    expect(fullMockReadiness(questions).eligible).toBe(false);
+    expect(fullMockReadiness(questions.filter(q=>!q.caseStudyVideoAssetId)).eligible).toBe(false);
+    expect(fullMockReadiness(questions).eligible).toBe(true);
     const full = makeFullBank();
     expect(fullMockReadiness(full).eligible).toBe(true);
     expect(fullMockReadiness(full.slice(0, 49)).eligible).toBe(false);
@@ -38,7 +39,7 @@ describe('mock exam engine', () => {
       questionCount: 50,
       hasVideoCaseStudy: false,
     });
-    expect(() => beginMock(questions, 'full', sampleTime)).toThrow(/50 reviewed/);
+    expect(() => beginMock(questions.filter(q=>!q.caseStudyVideoAssetId), 'full', sampleTime)).toThrow(/50 reviewed/);
   });
 
   it('selects unique questions without modifying the source order', () => {

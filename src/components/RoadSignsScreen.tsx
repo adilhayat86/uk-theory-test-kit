@@ -24,6 +24,7 @@ function newQuiz() {
 
 export default function RoadSignsScreen({ onPageChange }: Props) {
   const [mode, setMode] = useState<Mode>('learn');
+  const [filtersOpen,setFiltersOpen]=useState(false);
   const [category, setCategory] = useState<RoadSignCategory | undefined>();
   const [query, setQuery] = useState('');
   const [saved, setSaved] = useState<string[]>([]);
@@ -85,7 +86,7 @@ export default function RoadSignsScreen({ onPageChange }: Props) {
 
   return (
     <View>
-      <Text style={styles.title}>Road signs</Text>
+
       <Text style={styles.subtitle}>{roadSignFacts.length} illustrated notes · learn, save and test yourself.</Text>
       <View style={styles.modeRow}>
         {([
@@ -149,7 +150,8 @@ export default function RoadSignsScreen({ onPageChange }: Props) {
           <TextInput accessibilityLabel="Find a road sign" placeholder="Find a sign or its meaning…"
             placeholderTextColor={colors.muted} value={query} onChangeText={setQuery}
             autoCorrect={false} style={styles.search} />
-          <View style={styles.filters}>
+          <Pressable accessibilityRole="button" accessibilityState={{expanded:filtersOpen}} onPress={()=>setFiltersOpen(value=>!value)} style={styles.saveButton}><Text style={styles.link}>Categories {filtersOpen?'−':'+'}</Text></Pressable>
+          {filtersOpen?<View style={styles.filters}>
             <Pressable accessibilityRole="button" onPress={() => setCategory(undefined)}
               accessibilityState={{ selected: category === undefined }}
               style={[styles.filter, category === undefined && styles.filterActive]}>
@@ -162,7 +164,7 @@ export default function RoadSignsScreen({ onPageChange }: Props) {
                 <Text style={[styles.filterText, category === key && styles.filterActiveText]}>{key}</Text>
               </Pressable>
             ))}
-          </View>
+          </View>:null}
           <Text style={styles.counter}>{filtered.length} {mode === 'saved' ? 'saved' : 'study'} sign note{filtered.length === 1 ? '' : 's'}</Text>
           {filtered.length === 0 ? (
             <Text style={styles.empty}>{mode === 'saved' ? 'No saved signs match your filters. Save a sign in Study.' : 'No signs found. Try another search.'}</Text>

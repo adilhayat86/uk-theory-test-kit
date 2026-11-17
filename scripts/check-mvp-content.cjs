@@ -15,35 +15,149 @@ const MIN_QUESTIONS = 200;
 const MIN_TOPICS = 10;
 const MIN_PER_TOPIC = 10;
 
-function parseLiteral(node) {
-  if (ts.isStringLiteralLike(node)) return node.text;
-  if (ts.isNumericLiteral(node)) return Number(node.text);
-  if (ts.isArrayLiteralExpression(node)) return node.elements.map(parseLiteral);
-  if (ts.isObjectLiteralExpression(node)) {
-    const result = {};
-    for (const property of node.properties) {
-      if (!ts.isPropertyAssignment(property)) continue;
-      const name = ts.isIdentifier(property.name) || ts.isStringLiteralLike(property.name)
-        ? property.name.text : property.name.getText();
-      result[name] = parseLiteral(property.initializer);
-    }
-    return result;
-  }
-  return undefined;
-}
-
+/** Read only a small static TypeScript data subset; never execute imported modules. */
 function loadBank(file) {
-  const source = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'),
-    ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  for (const statement of source.statements) {
-    if (!ts.isVariableStatement(statement)) continue;
-    for (const declaration of statement.declarationList.declarations) {
-      if (!ts.isIdentifier(declaration.name) || declaration.name.text !== 'questions'
-        || !declaration.initializer || !ts.isArrayLiteralExpression(declaration.initializer)) continue;
-      return parseLiteral(declaration.initializer);
+  const modules = new Map();
+  const values = new Map();
+  const resolving = new Set();
+
+  function fail(source, node, message) {
+    const position = source.getLineAndCharacterOfPosition(node.getStart(source));
+    throw new Error(`${source.fileName}:${position.line + 1}:${position.character + 1}: ${message}`);
+  }
+
+  function targetFile(source, node, specifier) {
+    if (!specifier.startsWith('./') && !specifier.startsWith('../')) {
+      fail(source, node, 'Only relative TypeScript data imports are supported');
+    }
+    const target = path.resolve(path.dirname(source.fileName), specifier);
+    const extension = path.extname(target);
+    if (extension && extension !== '.ts') fail(source, node, 'Data imports must resolve to TypeScript files');
+    const candidates = extension ? [target] : [target + '.ts', path.join(target, 'index.ts')];
+    const found = candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile());
+    if (!found) fail(source, node, 'Cannot resolve static data import: ' + specifier);
+    return fs.realpathSync(found);
+  }
+
+  function inspect(moduleFile) {
+    const canonical = fs.realpathSync(moduleFile);
+    if (modules.has(canonical)) return modules.get(canonical);
+    const source = ts.createSourceFile(canonical, fs.readFileSync(canonical, 'utf8'),
+      ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+    if (source.parseDiagnostics.length) throw new Error('Invalid TypeScript data source: ' + canonical);
+    const module = { source, bindings: new Map(), exports: new Map() };
+    modules.set(canonical, module);
+    function add(name, binding, node) {
+      if (module.bindings.has(name)) fail(source, node, 'Duplicate static binding: ' + name);
+      module.bindings.set(name, binding);
+    }
+    for (const statement of source.statements) {
+      if (ts.isImportDeclaration(statement)) {
+        const clause = statement.importClause;
+        if (clause?.isTypeOnly) continue;
+        if (!clause || clause.name || !clause.namedBindings || !ts.isNamedImports(clause.namedBindings)) {
+          fail(source, statement, 'Only named TypeScript data imports are supported');
+        }
+        const imports = clause.namedBindings.elements.filter(item => !item.isTypeOnly);
+        if (!imports.length) continue;
+        if (!ts.isStringLiteralLike(statement.moduleSpecifier)) fail(source, statement, 'Import path must be a literal');
+        const target = targetFile(source, statement, statement.moduleSpecifier.text);
+        for (const item of imports) add(item.name.text,
+          { imported: target, name: item.propertyName?.text ?? item.name.text }, item);
+      } else if (ts.isVariableStatement(statement)) {
+        const constant = Boolean(statement.declarationList.flags & ts.NodeFlags.Const);
+        const exported = statement.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword);
+        for (const declaration of statement.declarationList.declarations) {
+          if (!ts.isIdentifier(declaration.name)) continue;
+          const name = declaration.name.text;
+          add(name, { initializer: declaration.initializer, constant }, declaration);
+          if (exported) module.exports.set(name, name);
+        }
+      } else if (ts.isExportDeclaration(statement) && !statement.isTypeOnly) {
+        if (statement.moduleSpecifier || !statement.exportClause || !ts.isNamedExports(statement.exportClause)) {
+          fail(source, statement, 'Only local named data exports are supported');
+        }
+        for (const item of statement.exportClause.elements) {
+          if (!item.isTypeOnly) module.exports.set(item.name.text, item.propertyName?.text ?? item.name.text);
+        }
+      }
+    }
+    return module;
+  }
+
+  function resolve(module, name) {
+    const key = module.source.fileName + ':' + name;
+    if (values.has(key)) return values.get(key);
+    if (resolving.has(key)) throw new Error('Cyclic static data reference: ' + key);
+    const binding = module.bindings.get(name);
+    if (!binding) throw new Error('Unknown static data identifier: ' + key);
+    resolving.add(key);
+    let value;
+    try {
+      if (binding.imported) {
+        const imported = inspect(binding.imported);
+        const exported = imported.exports.get(binding.name);
+        if (!exported) throw new Error('Missing named data export: ' + binding.name + ' in ' + binding.imported);
+        value = resolve(imported, exported);
+      } else {
+        if (!binding.constant || !binding.initializer) throw new Error('Static data must use initialized const bindings: ' + key);
+        value = literal(binding.initializer, module);
+      }
+      values.set(key, value);
+      return value;
+    } finally {
+      resolving.delete(key);
     }
   }
-  throw new Error('Expected a statically declared questions array in src/data/questions.ts');
+
+  function literal(node, module) {
+    const source = module.source;
+    if (ts.isStringLiteralLike(node)) return node.text;
+    if (ts.isNumericLiteral(node)) return Number(node.text);
+    if (node.kind === ts.SyntaxKind.TrueKeyword) return true;
+    if (node.kind === ts.SyntaxKind.FalseKeyword) return false;
+    if (node.kind === ts.SyntaxKind.NullKeyword) return null;
+    if (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isTypeAssertionExpression(node) || ts.isSatisfiesExpression(node)) {
+      return literal(node.expression, module);
+    }
+    if (ts.isPrefixUnaryExpression(node) && node.operator === ts.SyntaxKind.MinusToken && ts.isNumericLiteral(node.operand)) {
+      return -Number(node.operand.text);
+    }
+    if (ts.isIdentifier(node)) return node.text === 'undefined' ? undefined : resolve(module, node.text);
+    if (ts.isArrayLiteralExpression(node)) {
+      const result = [];
+      for (const element of node.elements) {
+        if (ts.isSpreadElement(element)) {
+          const spread = literal(element.expression, module);
+          if (!Array.isArray(spread)) fail(source, element, 'Array spread requires a static array');
+          result.push(...spread);
+        } else {
+          result.push(literal(element, module));
+        }
+      }
+      return result;
+    }
+    if (ts.isObjectLiteralExpression(node)) {
+      const result = {};
+      for (const property of node.properties) {
+        if (!ts.isPropertyAssignment(property) && !ts.isShorthandPropertyAssignment(property)) {
+          fail(source, property, 'Only static property assignments are supported in question objects');
+        }
+        if (!ts.isIdentifier(property.name) && !ts.isStringLiteralLike(property.name) && !ts.isNumericLiteral(property.name)) {
+          fail(source, property, 'Computed data property names are not supported');
+        }
+        const name = property.name.text;
+        if (['__proto__', 'constructor', 'prototype'].includes(name)) fail(source, property, 'Unsafe static property name');
+        result[name] = ts.isShorthandPropertyAssignment(property) ? resolve(module, name) : literal(property.initializer, module);
+      }
+      return result;
+    }
+    fail(source, node, 'Unsupported static data expression: ' + ts.SyntaxKind[node.kind]);
+  }
+
+  const result = resolve(inspect(path.resolve(file)), 'questions');
+  if (!Array.isArray(result)) throw new Error('Expected a statically declared questions array in ' + file);
+  return result;
 }
 
 function evaluate(bank) {

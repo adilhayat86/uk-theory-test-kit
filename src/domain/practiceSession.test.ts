@@ -55,4 +55,18 @@ describe('resumable offline practice domain', () => {
     expect(() => answerPractice(start(), 'a', 4)).toThrow();
     expect(() => answerPractice(start(), 'a', NaN)).toThrow();
   });
+
+  it('persists optional checkpoint provenance without changing legacy sessions', () => {
+    const checkpointBank = Array.from({ length: 10 }, (_, i) => ({ ...bank[0], id: `check-${i}` }));
+    const context = { moduleId: 'module-a', moduleVersion: 1, lessonVersions: { 'lesson-a': 2 } };
+    const created = beginPractice(checkpointBank, 2, 'check', context);
+    context.lessonVersions['lesson-a'] = 3;
+    expect(created.checkpoint?.lessonVersions['lesson-a']).toBe(2);
+    expect(isPracticeSession(JSON.parse(JSON.stringify(created)))).toBe(true);
+    expect(isPracticeSession({ ...created, checkpoint: { ...context, lessonVersions: {} } })).toBe(false);
+    expect(isPracticeSession({ ...created, answers: { 'check-4': 1 } })).toBe(false);
+    expect(isPracticeSession({ ...created, currentIndex: 1 })).toBe(false);
+    expect(() => beginPractice(bank, 2, 'too-short', context)).toThrow();
+    expect(start().checkpoint).toBeUndefined();
+  });
 });

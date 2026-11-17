@@ -3,16 +3,17 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { questions } from '../data/questions';
 import TopicPicker from './TopicPicker';
+import CaseStudyVideo from './CaseStudyVideo';
 import QuestionIllustration from './QuestionIllustration';
 import type { TheoryQuestion } from '../data/questions';
 
 type Props = {
-  onPageChange: () => void;
+  onPageChange: () => void; active?: boolean;
   onPractise: (items: TheoryQuestion[]) => void;
 };
 
 /** A no-download, no-login, locally bundled revision tool using independently authored questions. */
-export default function FlashcardsScreen({ onPractise, onPageChange }: Props) {
+export default function FlashcardsScreen({ onPractise, onPageChange, active=true }: Props) {
   const [topic, setTopic] = useState<string>('All topics');
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -36,8 +37,7 @@ export default function FlashcardsScreen({ onPractise, onPageChange }: Props) {
 
   return (
     <View>
-      <Text style={styles.title}>Revision flashcards</Text>
-      <Text style={styles.subtitle}>Recall the answer before revealing it. Everything works offline.</Text>
+      <Text style={styles.subtitle}>Recall the answer, then reveal it to check.</Text>
       <TopicPicker accessibilityLabel="Choose flashcard topic" items={topics}
         selected={topic === 'All topics' ? [] : [topic]} onChange={(ids) => chooseTopic(ids[0] ?? 'All topics')} />
       {current ? (
@@ -45,6 +45,7 @@ export default function FlashcardsScreen({ onPractise, onPageChange }: Props) {
           <View style={styles.card}>
             <Text style={styles.counter}>CARD {index + 1} OF {cards.length} • {current.topic.toUpperCase()}</Text>
             <Text style={styles.prompt}>{current.prompt}</Text>
+            {current.caseStudyVideoAssetId?<CaseStudyVideo caseStudyId={current.caseStudyVideoAssetId} active={active}/>:null}
             <QuestionIllustration question={current} context={revealed ? 'review' : 'question'} />
             {revealed ? (
               <View style={styles.answer}>

@@ -1,78 +1,191 @@
-import { colors } from '../theme';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, Alert, Pressable, StyleSheet, Text, View,
-} from 'react-native';
-import { questions } from '../data/questions';
-import QuestionIllustration from './QuestionIllustration';
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { questions } from "../data/questions";
+import { caseStudyIds } from "../data/caseStudies";
+import { courseLessons } from "../data/course";
+import QuestionIllustration from "./QuestionIllustration";
+import CaseStudyVideo from "./CaseStudyVideo";
+import { StudyButton } from "./CourseScreens";
 import {
-  answerQuestion, beginMock, finishMock, flagQuestion, formattedTimeLeft,
-  goToQuestion, isExpired, timeLeftMs,
-} from '../domain/mockExam';
-import type { FinishReason, MockResult, MockSession, MockMode } from '../domain/mockExam';
+  answerQuestion,
+  beginConfirmedMock,
+  finishMock,
+  flagQuestion,
+  formattedTimeLeft,
+  fullMockReadiness,
+  goToQuestion,
+  isExpired,
+  isMockResult,
+  timeLeftMs,
+} from "../domain/mockExam";
+import type {
+  FinishReason,
+  MockResult,
+  MockSession,
+  MockMode,
+} from "../domain/mockExam";
 import {
-  discardActiveMock, finishStoredMock, getActiveMockSession,
-  getMockResults, saveMockSession,
-} from '../storage/database';
+  discardActiveMock,
+  finishStoredMock,
+  getActiveMockSession,
+  getMockResults,
+  saveMockSession,
+} from "../storage/database";
+import { colors } from "../theme";
 
-
-
-export default function MockExamScreen() {
+type Props = {
+  onFocusChange: (active: boolean) => void;
+  onStudy: () => void;
+  topicsCompleted: number;
+  totalTopics: number;
+  onPageChange: () => void;
+  active?: boolean;
+  onReadLesson?: (id: string) => void;
+};
+export default function MockExamScreen({
+  onFocusChange,
+  onStudy,
+  topicsCompleted,
+  totalTopics,
+  onPageChange,
+  active = true,
+  onReadLesson,
+}: Props) {
   const [session, setSession] = useState<MockSession | null>(null);
   const sessionRef = useRef<MockSession | null>(null);
   const [result, setResult] = useState<MockResult | null>(null);
   const [history, setHistory] = useState<MockResult[]>([]);
+  const [view, setView] = useState<"overview" | "exam" | "result">("overview");
+  const [studied, setStudied] = useState(false);
+  const [review, setReview] = useState(false);
+  const [grid, setGrid] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const [loadFailed, setLoadFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const submitting = useRef(false);
-
-
+  const starting = useRef(false);
   useEffect(() => {
     let mounted = true;
-    Promise.all([getActiveMockSession(), getMockResults(5)])
-      .then(([saved, results]) => {
+    Promise.all([getActiveMockSession(), getMockResults(10)])
+      .then(([saved, reports]) => {
         if (!mounted) return;
         sessionRef.current = saved;
         setSession(saved);
-        setHistory(results);
+        setHistory(reports.filter(isMockResult));
       })
-      .catch(() => { if (mounted) setMessage('Unable to load offline exam history.'); })
-      .finally(() => { if (mounted) setLoading(false); });
+      .catch(() => {
+        if (mounted) {
+          setLoadFailed(true);
+          setMessage(
+            "Unable to load exams. Return to learning, then reopen Exams to try again.",
+          );
+        }
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
     const ticker = setInterval(() => setNow(Date.now()), 1000);
-    return () => { mounted = false; clearInterval(ticker); };
+    return () => {
+      mounted = false;
+      clearInterval(ticker);
+    };
   }, []);
-
-  function changeSession(change: (current: MockSession) => MockSession) {
-    const previous = sessionRef.current;
-    if (!previous || busy || submitting.current) return;
-    const next = change(previous);
-    if (next === previous) return;
-    sessionRef.current = next;
-    setSession(next);
-    void saveMockSession(next).catch(() =>
-      setMessage('The latest answer or flag could not be saved. Do not close the app until storage works.'));
-  }
-
+  useEffect(() => {
+    onFocusChange(active && view === "exam" && session !== null);
+    return () => onFocusChange(false);
+  }, [active, view, session?.id, onFocusChange]);
   async function start(mode: MockMode) {
-    if (busy) return;
+    if (
+      loadFailed ||
+      busy ||
+      starting.current ||
+      sessionRef.current ||
+      !studied
+    )
+      return;
+    starting.current = true;
     setBusy(true);
     setMessage(null);
     try {
-      const started = beginMock(questions, mode, Date.now());
+      const started = beginConfirmedMock(
+        questions,
+        mode,
+        Date.now(),
+        studied,
+        caseStudyIds,
+      );
       await saveMockSession(started);
       sessionRef.current = started;
       setSession(started);
       setResult(null);
+      setStudied(false);
+      setGrid(false);
+      setReview(false);
+      setView("exam");
       setNow(Date.now());
+      onPageChange();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to start a mock exam.');
+      setMessage(
+        error instanceof Error ? error.message : "Unable to start the exam.",
+      );
+    } finally {
+      starting.current = false;
+      setBusy(false);
+    }
+  }
+  async function resume() {
+    const current = sessionRef.current;
+    if (!current || busy || (!current.studyAcknowledgement && !studied)) return;
+    setBusy(true);
+    try {
+      const resumed = current.studyAcknowledgement
+        ? current
+        : {
+            ...current,
+            studyAcknowledgement: {
+              confirmedAt: Date.now(),
+              statementVersion: 1 as const,
+            },
+          };
+      await saveMockSession(resumed);
+      sessionRef.current = resumed;
+      setSession(resumed);
+      setStudied(false);
+      setView("exam");
+      onPageChange();
+    } catch {
+      setMessage("The exam could not be resumed. Please try again.");
     } finally {
       setBusy(false);
     }
   }
-
+  function change(changeSession: (value: MockSession) => MockSession) {
+    const current = sessionRef.current;
+    if (!current || busy || submitting.current) return;
+    const next = changeSession(current);
+    if (next === current) return;
+    sessionRef.current = next;
+    setSession(next);
+    void saveMockSession(next).catch(() =>
+      setMessage(
+        "The latest change could not be saved. Keep this screen open and try again.",
+      ),
+    );
+  }
+  function jump(index: number) {
+    change((old) => goToQuestion(old, index));
+    setGrid(false);
+    onPageChange();
+  }
   async function finish(reason: FinishReason) {
     const current = sessionRef.current;
     if (!current || submitting.current) return;
@@ -84,271 +197,605 @@ export default function MockExamScreen() {
       sessionRef.current = null;
       setSession(null);
       setResult(report);
-      setHistory((previous) => [report, ...previous.filter((item) => item.id !== report.id)].slice(0, 5));
+      setHistory((old) =>
+        [report, ...old.filter((item) => item.id !== report.id)].slice(0, 10),
+      );
+      setView("result");
+      setReview(false);
+      setStudied(false);
       setMessage(null);
+      onPageChange();
     } catch {
-      setMessage('Could not save the finished mock. Your active mock is still available to retry.');
+      setMessage(
+        "Your result could not be saved. Keep the exam open and try again.",
+      );
     } finally {
       submitting.current = false;
       setBusy(false);
     }
   }
-
   useEffect(() => {
-    if (session && isExpired(session, now) && !submitting.current) {
-      void finish('timeout');
-    }
-  // Only time and active session identity matter; finish() uses the latest session ref.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (session && isExpired(session, now) && !submitting.current)
+      void finish("timeout");
   }, [now, session?.id]);
-
-  function confirmSubmit() {
+  function submit() {
     const current = sessionRef.current;
     if (!current || busy) return;
-    const unanswered = current.questionIds.length - Object.keys(current.answers).length;
+    const left =
+      current.questionIds.length - Object.keys(current.answers).length;
     Alert.alert(
-      'Finish timed practice?',
-      unanswered ? `You still have ${unanswered} unanswered question(s). Submit anyway?` : 'Submit your answers now?',
+      "Submit exam?",
+      left
+        ? `${left} questions are unanswered. Submit anyway?`
+        : "Submit your answers and see your result?",
       [
-        { text: 'Keep practising', style: 'cancel' },
-        { text: 'Submit answers', onPress: () => { void finish('submitted'); } },
+        { text: "Keep working", style: "cancel" },
+        {
+          text: "Submit answers",
+          onPress: () => {
+            void finish("submitted");
+          },
+        },
       ],
     );
   }
-
-  function confirmDiscard() {
+  function discard() {
     const current = sessionRef.current;
     if (!current || busy) return;
-    Alert.alert('Discard timed practice?', 'This clears the active mock without saving a result.', [
-      { text: 'Keep practising', style: 'cancel' },
-      {
-        text: 'Discard', style: 'destructive', onPress: () => {
-          setBusy(true);
-          void discardActiveMock(current.id)
-            .then(() => {
-              sessionRef.current = null;
-              setSession(null);
-              setMessage(null);
-            })
-            .catch(() => setMessage('Could not discard the active mock.'))
-            .finally(() => setBusy(false));
+    Alert.alert(
+      "End this exam?",
+      "This removes the unfinished exam without adding a result.",
+      [
+        { text: "Keep exam", style: "cancel" },
+        {
+          text: "End exam",
+          style: "destructive",
+          onPress: () => {
+            setBusy(true);
+            void discardActiveMock(current.id)
+              .then(() => {
+                sessionRef.current = null;
+                setSession(null);
+                setView("overview");
+                setStudied(false);
+                onPageChange();
+              })
+              .catch(() => setMessage("The exam could not be ended."))
+              .finally(() => setBusy(false));
+          },
         },
-      },
-    ]);
+      ],
+    );
   }
-
-  if (loading) {
-    return <View style={styles.center}><ActivityIndicator color={colors.primary} /><Text style={styles.dim}>Loading your saved mock…</Text></View>;
-  }
-
-  const currentId = session?.questionIds[session.currentIndex];
-  const question = questions.find((q) => q.id === currentId);
-  const attempted = session ? Object.keys(session.answers).length : 0;
-  const flagged = session ? new Set(session.flaggedIds) : new Set<string>();
-
-  return (
-    <View style={styles.root}>
-      <View style={styles.headingRow}>
-        <Text style={styles.eyebrow}>OFFLINE TIMED PRACTICE</Text>
+  if (loading)
+    return (
+      <View style={s.loading}>
+        <ActivityIndicator color={colors.primary} />
+        <Text style={s.body}>Loading exams…</Text>
       </View>
-      {message ? <Text style={styles.warning}>{message}</Text> : null}
-
-      {!session && !result ? (
+    );
+  const question = session
+    ? questions.find(
+        (item) => item.id === session.questionIds[session.currentIndex],
+      )
+    : undefined;
+  const answered = session ? Object.keys(session.answers).length : 0;
+  const acknowledgement = (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityLabel="I have studied the material, here or elsewhere"
+      accessibilityState={{ checked: studied }}
+      onPress={() => setStudied((old) => !old)}
+      style={[s.confirm, studied && s.confirmed]}
+    >
+      <Text accessible={false} style={s.check}>
+        {studied ? "☑" : "☐"}
+      </Text>
+      <Text style={s.confirmText}>
+        I have studied the material, here or elsewhere, and want to test my
+        understanding.
+      </Text>
+    </Pressable>
+  );
+  return (
+    <View>
+      {message ? (
+        <Text accessibilityRole="alert" style={s.error}>
+          {message}
+        </Text>
+      ) : null}
+      {view === "overview" ? (
         <>
-          <Text style={styles.title}>Timed practice</Text>
-          <Text style={styles.body}>Practise answering under time pressure. Answers can be reviewed and changed, questions can be flagged, and your session is saved locally.</Text>
-          <View style={styles.info}>
-            <Text style={styles.infoTitle}>A short timed session</Text>
-            <Text style={styles.body}>5 original questions · 6 minutes · saved results</Text>
-            <Text style={styles.note}>This short sample does not predict a pass in the official exam.</Text>
-            <Pressable accessibilityRole="button" disabled={busy} style={styles.primary} onPress={() => { void start('sample'); }}>
-              <Text style={styles.primaryText}>Start 5-question timed practice</Text>
-            </Pressable>
+          <Text accessibilityRole="header" style={s.title}>
+            Put your learning to the test
+          </Text>
+          <Text style={s.body}>
+            50 questions · 57 minutes · pass with 43 correct. Includes a silent
+            video case study with three linked questions.
+          </Text>
+          <View style={s.readiness}>
+            <Text style={s.heading}>
+              {topicsCompleted}/{totalTopics} course topics completed
+            </Text>
+            <Text style={s.body}>
+              Follow the course and topic checks, or enter directly if you have
+              studied elsewhere.
+            </Text>
+            <StudyButton
+              title="Return to learning"
+              onPress={onStudy}
+              secondary
+            />
           </View>
-          <Text style={styles.note}>This MVP includes short revision sessions. A full official-style mock and hazard-perception videos are not included.</Text>
-          {history.length > 0 ? (
+          {session ? (
+            <View style={s.card}>
+              <Text style={s.heading}>You have a saved exam</Text>
+              <Text style={s.body}>
+                {answered}/{session.questionIds.length} answered · the timer
+                continues while you are away.
+              </Text>
+              {!session.studyAcknowledgement ? acknowledgement : null}
+              <StudyButton
+                title="Resume exam"
+                onPress={() => {
+                  void resume();
+                }}
+                disabled={busy || (!session.studyAcknowledgement && !studied)}
+              />
+              <StudyButton title="End saved exam" onPress={discard} secondary />
+            </View>
+          ) : (
             <>
-              <Text style={styles.sectionTitle}>Previous attempts</Text>
-              {history.map((item) => (
-                <View key={item.id} style={styles.historyItem}>
-                  <View style={styles.historyCopy}>
-                    <Text style={styles.historyTitle}>{item.mode === 'full' ? 'Full mock' : 'Timed practice'} · {new Date(item.finishedAt).toLocaleDateString('en-GB')}</Text>
-                    <Text style={styles.dim}>{item.answered}/{item.total} answered · {item.reason === 'timeout' ? 'Time expired' : 'Submitted'}</Text>
-                  </View>
-                  <Text style={styles.historyScore}>{item.correct}/{item.total}</Text>
-                </View>
-              ))}
+              {acknowledgement}
+              <StudyButton
+                title="Start full mock exam"
+                onPress={() => {
+                  void start("full");
+                }}
+                disabled={
+                  loadFailed ||
+                  busy ||
+                  !studied ||
+                  !fullMockReadiness(questions, caseStudyIds).eligible
+                }
+              />
+              <StudyButton
+                title="Try a 5-question warm-up"
+                onPress={() => {
+                  void start("sample");
+                }}
+                disabled={loadFailed || busy || !studied}
+                secondary
+              />
             </>
-          ) : null}
+          )}
+          <Text style={s.note}>
+            Independent multiple-choice practice with original questions and
+            animations. Hazard perception is a separate part of the official
+            test and is not assessed here.
+          </Text>
+          <Text style={s.sectionTitle}>Previous exams</Text>
+          {!history.length ? (
+            <Text style={s.body}>
+              Your completed exam results will appear here.
+            </Text>
+          ) : (
+            history.map((report) => (
+              <Pressable
+                key={report.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Review ${report.mode === "full" ? "full mock" : "warm-up"} ${report.correct} of ${report.total}`}
+                onPress={() => {
+                  setResult(report);
+                  setView("result");
+                  setReview(false);
+                  onPageChange();
+                }}
+                style={s.history}
+              >
+                <View style={s.historyCopy}>
+                  <Text style={s.heading}>
+                    {report.mode === "full" ? "Full mock" : "Warm-up"}
+                  </Text>
+                  <Text style={s.note}>
+                    {new Date(report.finishedAt).toLocaleDateString("en-GB")} ·{" "}
+                    {report.reason === "timeout" ? "Time expired" : "Submitted"}
+                  </Text>
+                </View>
+                <Text style={s.scoreSmall}>
+                  {report.correct}/{report.total}
+                </Text>
+              </Pressable>
+            ))
+          )}
         </>
       ) : null}
-
-      {session ? (
+      {view === "exam" && session ? (
         <>
-          <View style={styles.timerCard}>
-            <View style={styles.timerCopy}>
-              <Text style={styles.eyebrow}>{session.mode === 'full' ? 'FULL MOCK' : 'SAMPLE MOCK'}</Text>
-              <Text style={styles.timerLabel}>{attempted} of {session.questionIds.length} answered</Text>
-            </View>
-            <View style={styles.timerRight}>
-              <Text style={[styles.timer, timeLeftMs(session, now) <= 60_000 && styles.timerDanger]}>{formattedTimeLeft(timeLeftMs(session, now))}</Text>
-              <Text style={styles.dim}>Time remaining</Text>
-            </View>
+          <View style={s.timerCard}>
+            <Text style={s.heading}>
+              {answered}/{session.questionIds.length} answered
+            </Text>
+            <Text
+              accessibilityLabel={`Time remaining ${formattedTimeLeft(timeLeftMs(session, now))}`}
+              style={[s.timer, timeLeftMs(session, now) <= 60000 && s.error]}
+            >
+              {formattedTimeLeft(timeLeftMs(session, now))}
+            </Text>
           </View>
           {question ? (
-            <View style={styles.questionCard}>
-              <View style={styles.inline}>
-                <Text style={styles.topic}>{question.topic.toUpperCase()}</Text>
-                <Pressable accessibilityRole="button" style={styles.flagButton} onPress={() => changeSession((old) => flagQuestion(old, question.id, Date.now()))}>
-                  <Text style={styles.link}>{flagged.has(question.id) ? '★ Flagged' : '☆ Flag for review'}</Text>
+            <>
+              <View style={s.meta}>
+                <Text style={s.kicker}>
+                  QUESTION {session.currentIndex + 1} OF{" "}
+                  {session.questionIds.length}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    session.flaggedIds.includes(question.id)
+                      ? "Unflag question"
+                      : "Flag question"
+                  }
+                  onPress={() =>
+                    change((old) => flagQuestion(old, question.id, Date.now()))
+                  }
+                  style={s.flag}
+                >
+                  <Text style={s.link}>
+                    {session.flaggedIds.includes(question.id)
+                      ? "★ Flagged"
+                      : "☆ Flag"}
+                  </Text>
                 </Pressable>
               </View>
-              <Text style={styles.number}>QUESTION {session.currentIndex + 1} / {session.questionIds.length}</Text>
-              <Text style={styles.prompt}>{question.prompt}</Text>
+              {question.caseStudyVideoAssetId ? (
+                <CaseStudyVideo
+                  caseStudyId={question.caseStudyVideoAssetId}
+                  active={active && view === "exam"}
+                />
+              ) : null}
+              <Text accessibilityRole="header" style={s.question}>
+                {question.prompt}
+              </Text>
               <QuestionIllustration question={question} />
-              {question.options.map((option, index) => {
-                const selected = session.answers[question.id] === index;
-                return (
-                  <Pressable
-                    key={`${question.id}-${index}`}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected }}
-                    onPress={() => changeSession((old) => answerQuestion(old, question.id, index, Date.now()))}
-                    style={[styles.option, selected && styles.optionSelected]}
-                  >
-                    <Text style={[styles.optionLetter, selected && styles.selectedText]}>{String.fromCharCode(65 + index)}</Text>
-                    <Text style={[styles.optionText, selected && styles.selectedText]}>{option}</Text>
-                  </Pressable>
-                );
-              })}
-              <Text style={styles.note}>Correct answers appear after you submit, as in a real exam.</Text>
+              {question.options.map((option, index) => (
+                <Pressable
+                  key={index}
+                  accessibilityRole="radio"
+                  accessibilityLabel={option}
+                  accessibilityState={{
+                    checked: session.answers[question.id] === index,
+                  }}
+                  disabled={busy}
+                  onPress={() =>
+                    change((old) =>
+                      answerQuestion(old, question.id, index, Date.now()),
+                    )
+                  }
+                  style={[
+                    s.option,
+                    session.answers[question.id] === index && s.chosen,
+                  ]}
+                >
+                  <Text style={s.letter}>
+                    {String.fromCharCode(65 + index)}
+                  </Text>
+                  <Text style={s.optionText}>{option}</Text>
+                </Pressable>
+              ))}
+            </>
+          ) : (
+            <Text style={s.error}>
+              This question is unavailable. End the saved exam and start again.
+            </Text>
+          )}
+          <View style={s.nav}>
+            <View style={s.navItem}>
+              <StudyButton
+                title="Previous"
+                onPress={() => jump(session.currentIndex - 1)}
+                disabled={busy || session.currentIndex === 0}
+                secondary
+              />
             </View>
-          ) : <Text style={styles.warning}>A saved question is no longer available. Discard this outdated mock to start again.</Text>}
-          <View style={styles.navButtons}>
-            <Pressable accessibilityRole="button" disabled={session.currentIndex === 0} onPress={() => changeSession((old) => goToQuestion(old, old.currentIndex - 1))} style={[styles.secondary, session.currentIndex === 0 && styles.disabled]}>
-              <Text style={styles.secondaryText}>‹ Previous</Text>
-            </Pressable>
-            <Pressable accessibilityRole="button" disabled={session.currentIndex === session.questionIds.length - 1} onPress={() => changeSession((old) => goToQuestion(old, old.currentIndex + 1))} style={[styles.secondary, session.currentIndex === session.questionIds.length - 1 && styles.disabled]}>
-              <Text style={styles.secondaryText}>Next ›</Text>
-            </Pressable>
+            <View style={s.navItem}>
+              <StudyButton
+                title="Next question"
+                onPress={() => jump(session.currentIndex + 1)}
+                disabled={
+                  busy ||
+                  session.currentIndex + 1 === session.questionIds.length
+                }
+              />
+            </View>
           </View>
-          <Text style={styles.sectionTitle}>Jump to a question</Text>
-          <View style={styles.questionGrid}>
-            {session.questionIds.map((id, index) => (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Question ${index + 1}, ${Object.prototype.hasOwnProperty.call(session.answers, id) ? 'answered' : 'not answered'}${flagged.has(id) ? ', flagged' : ''}`}
-                key={id}
-                onPress={() => changeSession((old) => goToQuestion(old, index))}
-                style={[styles.questionChip, Object.prototype.hasOwnProperty.call(session.answers, id) && styles.answeredChip, session.currentIndex === index && styles.activeChip]}
-              >
-                <Text style={[styles.chipText, session.currentIndex === index && styles.activeChipText]}>{index + 1}{flagged.has(id) ? '★' : ''}</Text>
-              </Pressable>
-            ))}
-          </View>
-          <Pressable accessibilityRole="button" disabled={busy} style={[styles.primary, busy && styles.disabled]} onPress={confirmSubmit}>
-            <Text style={styles.primaryText}>{busy ? 'Saving…' : 'Submit mock and see results'}</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" onPress={confirmDiscard} style={styles.discardButton}>
-            <Text style={styles.discardText}>Discard this mock</Text>
-          </Pressable>
+          <StudyButton
+            title={
+              grid
+                ? "Hide question list"
+                : `Question list · ${session.flaggedIds.length} flagged`
+            }
+            onPress={() => setGrid((old) => !old)}
+            secondary
+          />
+          {grid ? (
+            <View style={s.grid}>
+              {session.questionIds.map((id, index) => (
+                <Pressable
+                  key={id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Question ${index + 1}, ${Object.prototype.hasOwnProperty.call(session.answers, id) ? "answered" : "not answered"}${session.flaggedIds.includes(id) ? ", flagged" : ""}`}
+                  accessibilityState={{
+                    selected: session.currentIndex === index,
+                  }}
+                  onPress={() => jump(index)}
+                  style={[
+                    s.gridItem,
+                    session.currentIndex === index && s.chosen,
+                  ]}
+                >
+                  <Text style={s.link}>
+                    {index + 1}
+                    {session.flaggedIds.includes(id) ? "★" : ""}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+          <StudyButton title="Submit exam" onPress={submit} disabled={busy} />
+          <StudyButton
+            title="End exam without result"
+            onPress={discard}
+            secondary
+          />
+          <Text style={s.note}>
+            Your answers are saved. Correct answers appear after submission.
+          </Text>
         </>
       ) : null}
-
-      {result ? (
+      {view === "result" && result ? (
         <>
-          <View style={styles.resultCard}>
-            <Text style={styles.eyebrow}>{result.mode === 'full' ? 'FULL MOCK RESULT' : 'SAMPLE MOCK RESULT'}</Text>
-            <Text style={styles.resultValue}>{result.correct}/{result.total}</Text>
-            <Text style={styles.body}>{result.percent}% correct · {result.answered} answered</Text>
-            <Text style={styles.note}>{result.mode === 'sample'
-              ? 'Practice feedback only: a sample mock cannot predict the official test result.'
-              : result.passed ? 'Passed the multiple-choice part (not hazard perception).' : 'Below the multiple-choice pass mark.'}</Text>
-            {result.reason === 'timeout' ? <Text style={styles.warning}>Time expired before submission.</Text> : null}
-          </View>
-          <Text style={styles.sectionTitle}>Review answers</Text>
-          {result.questionIds.map((id, index) => {
-            const item = questions.find((q) => q.id === id);
-            if (!item) return null;
-            const selected = result.answers[id];
-            const correct = selected === item.correctIndex;
-            return (
-              <View key={id} style={styles.reviewCard}>
-                <Text style={styles.number}>QUESTION {index + 1} · {correct ? 'CORRECT' : 'REVIEW'}</Text>
-                <Text style={styles.reviewPrompt}>{item.prompt}</Text>
-                <QuestionIllustration question={item} context="review" />
-                <Text style={styles.body}>Your answer: {selected === undefined ? 'Unanswered' : item.options[selected]}</Text>
-                <Text style={styles.correctAnswer}>Correct: {item.options[item.correctIndex]}</Text>
-                <Text style={styles.body}>{item.explanation}</Text>
-                <Text style={styles.reference}>{item.reference}</Text>
-              </View>
-            );
-          })}
-          <Pressable accessibilityRole="button" disabled={busy} style={styles.primary} onPress={() => { void start('sample'); }}>
-            <Text style={styles.primaryText}>Start another sample</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" style={styles.secondary} onPress={() => setResult(null)}>
-            <Text style={styles.secondaryText}>Timed practice overview</Text>
-          </Pressable>
+          <Text style={s.kicker}>
+            {result.mode === "full" ? "FULL MOCK RESULT" : "WARM-UP RESULT"}
+          </Text>
+          <Text style={s.resultScore}>
+            {result.correct}/{result.total}
+          </Text>
+          <Text style={s.heading}>
+            {result.mode === "full"
+              ? result.passed
+                ? "Practice pass"
+                : "More revision needed"
+              : "Warm-up completed"}
+          </Text>
+          <Text style={s.body}>
+            {result.answered} answered ·{" "}
+            {result.reason === "timeout" ? "Time expired" : "Submitted"}
+          </Text>
+          <Text style={s.note}>
+            This is an independent practice result, not a guarantee of an
+            official pass.
+          </Text>
+          <StudyButton
+            title="Back to exams"
+            onPress={() => {
+              setView("overview");
+              setResult(null);
+              setStudied(false);
+              onPageChange();
+            }}
+          />
+          <StudyButton
+            title={review ? "Hide answer review" : "Review exam answers"}
+            onPress={() => setReview((old) => !old)}
+            secondary
+          />
+          {review
+            ? result.questionIds.map((id, index) => {
+                const item = questions.find((q) => q.id === id);
+                if (!item) return null;
+                const selected = result.answers[id];
+                const lesson = courseLessons.find(
+                  (value) =>
+                    value.questionIds.includes(id) ||
+                    (item.caseStudyVideoAssetId &&
+                      value.sections.some(
+                        (section) =>
+                          section.caseStudyId === item.caseStudyVideoAssetId,
+                      )),
+                );
+                const firstVideo =
+                  item.caseStudyVideoAssetId &&
+                  result.questionIds.findIndex(
+                    (qid) =>
+                      questions.find((q) => q.id === qid)
+                        ?.caseStudyVideoAssetId === item.caseStudyVideoAssetId,
+                  ) === index;
+                return (
+                  <View key={id} style={s.reviewCard}>
+                    <Text
+                      style={[
+                        s.kicker,
+                        selected === item.correctIndex && s.good,
+                      ]}
+                    >
+                      QUESTION {index + 1} ·{" "}
+                      {selected === item.correctIndex ? "CORRECT" : "REVISE"}
+                    </Text>
+                    {firstVideo ? (
+                      <CaseStudyVideo
+                        caseStudyId={item.caseStudyVideoAssetId!}
+                        active={active && view === "result"}
+                      />
+                    ) : null}
+                    <Text style={s.heading}>{item.prompt}</Text>
+                    <QuestionIllustration question={item} context="review" />
+                    <Text style={s.body}>
+                      Your answer:{" "}
+                      {selected === undefined
+                        ? "Unanswered"
+                        : item.options[selected]}
+                    </Text>
+                    <Text style={s.correct}>
+                      Correct: {item.options[item.correctIndex]}
+                    </Text>
+                    <Text style={s.body}>{item.explanation}</Text>
+                    {lesson && onReadLesson ? (
+                      <StudyButton
+                        title={"Revise: " + lesson.title}
+                        onPress={() => onReadLesson(lesson.id)}
+                        secondary
+                      />
+                    ) : null}
+                  </View>
+                );
+              })
+            : null}
         </>
       ) : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { paddingBottom: 24 },
-  center: { alignItems: 'center', padding: 36, gap: 8 },
-  headingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  link: { color: colors.primary, fontWeight: '800', fontSize: 13 },
-  eyebrow: { color: colors.primary, fontWeight: '900', fontSize: 10, letterSpacing: 1 },
-  title: { color: colors.ink, fontSize: 25, fontWeight: '900', marginBottom: 8 },
-  body: { color: colors.ink, fontSize: 14, lineHeight: 21, marginTop: 5 },
-  dim: { color: colors.muted, fontSize: 12, marginTop: 4 },
-  note: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 12 },
-  warning: { padding: 12, backgroundColor: '#FFF5E6', color: '#895B1F', borderRadius: 12, marginVertical: 8, fontSize: 13, lineHeight: 19 },
-  info: { marginTop: 18, backgroundColor: colors.surface, padding: 18, borderRadius: 18, borderColor: colors.border, borderWidth: 1 },
-  infoTitle: { color: colors.ink, fontSize: 18, fontWeight: '900' },
-  sectionTitle: { color: colors.ink, fontWeight: '900', fontSize: 17, marginTop: 24, marginBottom: 12 },
-  primary: { backgroundColor: colors.primary, borderRadius: 12, minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16, marginTop: 15 },
-  primaryText: { color: 'white', fontSize: 14, fontWeight: '800', textAlign: 'center' },
-  secondary: { backgroundColor: colors.primarySoft, borderRadius: 12, minHeight: 42, paddingHorizontal: 15, justifyContent: 'center', alignItems: 'center', flex: 1 },
-  secondaryText: { color: colors.primary, fontSize: 13, fontWeight: '800', textAlign: 'center' },
-  disabled: { opacity: 0.4 },
-  timerCard: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: colors.primarySoft, borderRadius: 16 },
-  timerCopy: { maxWidth: '100%' },
-  timerRight: { alignItems: 'flex-end', flexGrow: 1, maxWidth: '100%' },
-  timerLabel: { color: colors.ink, fontSize: 14, fontWeight: '700', marginTop: 8 },
-  timer: { color: colors.primary, fontWeight: '900', fontSize: 28, fontVariant: ['tabular-nums'] },
-  timerDanger: { color: '#C73236' },
-  questionCard: { backgroundColor: colors.surface, borderRadius: 18, padding: 18, marginTop: 15, borderWidth: 1, borderColor: colors.border },
-  inline: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  flagButton: { minHeight: 44, justifyContent: 'center', maxWidth: '100%' },
-  topic: { color: colors.primary, fontWeight: '900', fontSize: 10, flexShrink: 1 },
-  number: { color: colors.muted, fontSize: 11, fontWeight: '900', marginTop: 14, marginBottom: 7 },
-  prompt: { color: colors.ink, fontSize: 19, lineHeight: 26, fontWeight: '800', marginBottom: 15 },
-  option: { flexDirection: 'row', padding: 14, borderWidth: 1, borderColor: colors.border, borderRadius: 12, marginBottom: 10, gap: 12, alignItems: 'center' },
-  optionSelected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
-  optionLetter: { color: colors.muted, fontSize: 13, fontWeight: '900' },
-  optionText: { flex: 1, fontSize: 14, lineHeight: 20, color: colors.ink },
-  selectedText: { color: colors.primary, fontWeight: '800' },
-  navButtons: { flexDirection: 'row', gap: 10, marginTop: 15 },
-  questionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  questionChip: { width: 47, height: 44, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, justifyContent: 'center', alignItems: 'center' },
-  answeredChip: { borderColor: '#7EB69A', backgroundColor: '#EDF9F2' },
-  activeChip: { borderColor: colors.primary, backgroundColor: colors.primary },
-  chipText: { color: colors.ink, fontSize: 12, fontWeight: '800' },
-  activeChipText: { color: 'white' },
-  discardButton: { padding: 15, alignItems: 'center', marginTop: 6 },
-  discardText: { color: '#B9414D', fontSize: 13, fontWeight: '800' },
-  resultCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 22 },
-  resultValue: { color: colors.primary, fontSize: 48, fontWeight: '900', marginTop: 8 },
-  reviewCard: { padding: 15, backgroundColor: colors.surface, borderRadius: 13, marginBottom: 12, borderColor: colors.border, borderWidth: 1 },
-  reviewPrompt: { color: colors.ink, fontSize: 15, fontWeight: '800', lineHeight: 22 },
-  correctAnswer: { color: '#167448', fontWeight: '800', fontSize: 13, lineHeight: 19, marginTop: 8 },
-  reference: { color: colors.muted, fontSize: 11, marginTop: 7, fontWeight: '700' },
-  historyItem: { padding: 14, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border, marginBottom: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center', justifyContent: 'space-between' },
-  historyCopy: { flex: 1, minWidth: 0 },
-  historyTitle: { color: colors.ink, fontWeight: '800', fontSize: 13 },
-  historyScore: { color: colors.primary, fontWeight: '900', fontSize: 18 }
+const s = StyleSheet.create({
+  title: { fontSize: 25, lineHeight: 33, fontWeight: "800", color: colors.ink },
+  body: { fontSize: 14, lineHeight: 22, color: colors.muted, marginTop: 8 },
+  heading: {
+    fontSize: 17,
+    lineHeight: 25,
+    fontWeight: "700",
+    color: colors.ink,
+  },
+  readiness: {
+    padding: 16,
+    backgroundColor: colors.primarySoft,
+    borderRadius: 14,
+    marginVertical: 18,
+  },
+  card: {
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+  },
+  note: { fontSize: 12, lineHeight: 19, color: colors.muted, marginTop: 10 },
+  sectionTitle: {
+    fontSize: 19,
+    lineHeight: 27,
+    fontWeight: "800",
+    color: colors.ink,
+    marginTop: 28,
+    marginBottom: 8,
+  },
+  confirm: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 14,
+    borderRadius: 12,
+    minHeight: 54,
+  },
+  confirmed: {
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
+  },
+  check: { fontSize: 24, color: colors.primary },
+  confirmText: { fontSize: 14, lineHeight: 22, color: colors.ink, flex: 1 },
+  history: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 14,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+  },
+  historyCopy: { flex: 1, minWidth: 150 },
+  scoreSmall: { fontSize: 22, fontWeight: "800", color: colors.primary },
+  loading: { padding: 20, gap: 12 },
+  error: { fontSize: 14, lineHeight: 21, color: colors.danger },
+  timerCard: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: colors.primarySoft,
+    marginBottom: 18,
+  },
+  timer: { fontSize: 26, fontWeight: "800", color: colors.primary },
+  meta: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  kicker: {
+    fontSize: 11,
+    lineHeight: 17,
+    fontWeight: "800",
+    color: colors.primary,
+  },
+  flag: { minHeight: 44, minWidth: 44, justifyContent: "center", padding: 8 },
+  link: { fontSize: 13, fontWeight: "700", color: colors.primary },
+  question: {
+    fontSize: 20,
+    lineHeight: 29,
+    fontWeight: "700",
+    color: colors.ink,
+    marginVertical: 16,
+  },
+  option: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    minHeight: 54,
+  },
+  chosen: { backgroundColor: colors.primarySoft, borderColor: colors.primary },
+  letter: { fontSize: 14, fontWeight: "800", color: colors.primary },
+  optionText: { flex: 1, fontSize: 14, lineHeight: 22, color: colors.ink },
+  nav: { flexDirection: "row", gap: 12 },
+  navItem: { flex: 1 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginVertical: 14 },
+  gridItem: {
+    minWidth: 44,
+    minHeight: 44,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  resultScore: {
+    fontSize: 48,
+    fontWeight: "800",
+    color: colors.primary,
+    marginVertical: 18,
+  },
+  good: { color: colors.success },
+  correct: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: "700",
+    color: colors.success,
+    marginTop: 8,
+  },
+  reviewCard: {
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    marginTop: 14,
+  },
 });

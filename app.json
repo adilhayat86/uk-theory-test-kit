@@ -2,7 +2,7 @@
   "expo": {
     "name": "Driving Theory Test UK: Learn",
     "slug": "uk-theory-test-kit",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "description": "Independent offline revision questions for Great Britain car learners. Not affiliated with DVSA.",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -11,7 +11,8 @@
       "android"
     ],
     "plugins": [
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-video"
     ],
     "ios": {
       "supportsTablet": true,
@@ -19,7 +20,7 @@
     },
     "android": {
       "package": "com.adilhayat.uktheorytestkit",
-      "versionCode": 9,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/brand/adaptive-icon.png",
         "backgroundImage": "./src/assets/brand/adaptive-background.png",

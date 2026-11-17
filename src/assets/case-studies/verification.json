@@ -1,0 +1,60 @@
+{
+  "validatedAt": "2026-11-17",
+  "sourceChecks": "PrimaryGOVreferences; independenthumanreviewpending",
+  "studies": [
+    {
+      "id": "case-zebra-crossing",
+      "duration": 20,
+      "bytes": 109071,
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 960,
+        "height": 540,
+        "pix_fmt": "yuv420p",
+        "r_frame_rate": "20/1"
+      },
+      "questionIds": [
+        "case-zebra-001",
+        "case-zebra-002",
+        "case-zebra-003"
+      ]
+    },
+    {
+      "id": "case-wet-following",
+      "duration": 20,
+      "bytes": 614129,
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 960,
+        "height": 540,
+        "pix_fmt": "yuv420p",
+        "r_frame_rate": "20/1"
+      },
+      "questionIds": [
+        "case-wet-001",
+        "case-wet-002",
+        "case-wet-003"
+      ]
+    },
+    {
+      "id": "case-cyclist-oncoming",
+      "duration": 20,
+      "bytes": 93500,
+      "video": {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 960,
+        "height": 540,
+        "pix_fmt": "yuv420p",
+        "r_frame_rate": "20/1"
+      },
+      "questionIds": [
+        "case-cyclist-001",
+        "case-cyclist-002",
+        "case-cyclist-003"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Driving Theory Test UK: Learn identity
 
-The descriptive app title is **Driving Theory Test UK: Learn** (29 characters). The core phrase, “Driving Theory Test UK”, appears first; “Learn” describes the progress-led learning flow. The title is used in Expo/native app metadata, the README and the draft privacy notice. The compact in-app header splits the name across “Driving Theory Test” and “UK: LEARN”.
+The descriptive app title is **Driving Theory Test UK: Learn** (29 characters). The core phrase, “Driving Theory Test UK”, appears first; “Learn” describes the progress-led learning flow. The title is used in Expo/native app metadata, the README and the draft privacy notice. The compact in-app header uses the current screen name beside the brand mark; the full app title remains in native metadata and study-tool information.
 
 This wording follows the vocabulary of current [Google Play](https://play.google.com/store/apps/details?id=com.ablab.driving.theory.test.uk) and [Apple App Store](https://apps.apple.com/gb/app/driving-theory-test-uk-kit/id596040849) category listings. Both [Google Play](https://support.google.com/googleplay/android-developer/answer/9898842) and [Apple](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information) allow titles up to 30 characters. This is a descriptive naming choice, not measured search-volume evidence or a search-ranking promise. No store listing has been published or renamed by this internal update.
 

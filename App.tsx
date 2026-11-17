@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,33 +17,63 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { questions } from './src/data/questions';
-import { brandAssets } from './src/data/brandAssets';
-import MoreScreen from './src/components/MoreScreen';
-import HomeScreen from './src/components/HomeScreen';
-import ProgressScreen from './src/components/ProgressScreen';
-import { buildLearningOverview } from './src/domain/learningProgress';
-import { eligiblePracticeQuestions } from './src/domain/practiceSelection';
-import { colors as palette } from './src/theme';
-import BottomNavigation from './src/components/BottomNavigation';
-import { activeRoot, initialNavigation, navigationReducer, previousScreen, screenTitles } from './src/domain/navigation';
-import type { Screen, RootScreen } from './src/domain/navigation';
-import MockExamScreen from './src/components/MockExamScreen';
-import QuestionIllustration from './src/components/QuestionIllustration';
-import FlashcardsScreen from './src/components/FlashcardsScreen';
-import QuestionSearchScreen from './src/components/QuestionSearchScreen';
-import PracticeSetupScreen from './src/components/PracticeSetupScreen';
-import ImageReviewScreen from './src/components/ImageReviewScreen';
-import RoadSignsScreen from './src/components/RoadSignsScreen';
-import PracticeResultsScreen from './src/components/PracticeResultsScreen';
-import { chooseQuestions } from './src/domain/mockExam';
-import { beginPractice, practiceIsCompatible } from './src/domain/practiceSession';
-import type { PracticeSession } from './src/domain/practiceSession';
-import type { TheoryQuestion } from './src/data/questions';
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { questions } from "./src/data/questions";
+import { brandAssets } from "./src/data/brandAssets";
+import MoreScreen from "./src/components/MoreScreen";
 import {
+  CourseHome,
+  ModuleScreen,
+  LessonReader,
+  CourseProgressSummary,
+} from "./src/components/CourseScreens";
+import { courseModules, courseLessons } from "./src/data/course";
+import {
+  buildCourseProgress,
+  isCurrentCheckpointContext,
+} from "./src/domain/courseProgress";
+import type {
+  LessonProgress,
+  CheckpointResult,
+  CheckpointContext,
+} from "./src/domain/courseProgress";
+import { selectCheckpointQuestions } from "./src/domain/courseAssessment";
+import ProgressScreen from "./src/components/ProgressScreen";
+import { buildLearningOverview } from "./src/domain/learningProgress";
+import { eligiblePracticeQuestions } from "./src/domain/practiceSelection";
+import { colors as palette } from "./src/theme";
+import BottomNavigation from "./src/components/BottomNavigation";
+import {
+  activeRoot,
+  initialNavigation,
+  navigationReducer,
+  previousScreen,
+  screenTitles,
+} from "./src/domain/navigation";
+import type { Screen, RootScreen } from "./src/domain/navigation";
+import MockExamScreen from "./src/components/MockExamScreen";
+import QuestionIllustration from "./src/components/QuestionIllustration";
+import CaseStudyVideo from "./src/components/CaseStudyVideo";
+import FlashcardsScreen from "./src/components/FlashcardsScreen";
+import QuestionSearchScreen from "./src/components/QuestionSearchScreen";
+import PracticeSetupScreen from "./src/components/PracticeSetupScreen";
+import ImageReviewScreen from "./src/components/ImageReviewScreen";
+import RoadSignsScreen from "./src/components/RoadSignsScreen";
+import PracticeResultsScreen from "./src/components/PracticeResultsScreen";
+import { chooseQuestions } from "./src/domain/mockExam";
+import {
+  beginPractice,
+  practiceIsCompatible,
+} from "./src/domain/practiceSession";
+import type { PracticeSession } from "./src/domain/practiceSession";
+import type { TheoryQuestion } from "./src/data/questions";
+import {
+  getLessonProgress,
+  getCheckpointResults,
+  saveLessonPosition,
+  markLessonRead,
   getBookmarkedQuestionIds,
   getProgressSummary,
   getQuestionProgressRecords,
@@ -46,10 +83,10 @@ import {
   advanceSavedPractice,
   clearSavedPractice,
   toggleBookmark,
-} from './src/storage/database';
-import type { ProgressSummary } from './src/domain/progress';
-import { getQuestionsToRetry } from './src/domain/revision';
-import type { QuestionProgressDetail } from './src/domain/revision';
+} from "./src/storage/database";
+import type { ProgressSummary } from "./src/domain/progress";
+import { getQuestionsToRetry } from "./src/domain/revision";
+import type { QuestionProgressDetail } from "./src/domain/revision";
 
 const EMPTY_PROGRESS: ProgressSummary = {
   questionsAnswered: 0,
@@ -59,35 +96,47 @@ const EMPTY_PROGRESS: ProgressSummary = {
 };
 
 function AppContent() {
-  const [navigation, dispatchNavigation] = useReducer(navigationReducer, initialNavigation);
+  const [navigation, dispatchNavigation] = useReducer(
+    navigationReducer,
+    initialNavigation,
+  );
   const tab = navigation.stack[navigation.stack.length - 1];
-  const focused = tab === 'practice' || tab === 'mock';
+  const [mockFocused, setMockFocused] = useState(false);
+  const [selectedModuleId, setSelectedModuleId] = useState<string>();
+  const [selectedLessonId, setSelectedLessonId] = useState<string>();
+  const [lessonRecords, setLessonRecords] = useState<LessonProgress[]>([]);
+  const [checkpointResults, setCheckpointResults] = useState<
+    CheckpointResult[]
+  >([]);
   const returnScreen = previousScreen(navigation);
-  const backLabel = returnScreen ? screenTitles[returnScreen] : 'Home';
+  const backLabel = returnScreen ? screenTitles[returnScreen] : "Home";
   const navigate = useCallback((screen: Screen) => {
     Keyboard.dismiss();
-    dispatchNavigation({ type: 'open', screen });
+    dispatchNavigation({ type: "open", screen });
   }, []);
   const goBack = useCallback(() => {
     Keyboard.dismiss();
-    dispatchNavigation({ type: 'back' });
+    dispatchNavigation({ type: "back" });
   }, []);
   const selectTab = useCallback((screen: RootScreen) => {
     Keyboard.dismiss();
-    dispatchNavigation({ type: 'tab', screen });
+    dispatchNavigation({ type: "tab", screen });
   }, []);
   const [setupTopic, setSetupTopic] = useState<string | undefined>();
 
   function openPracticeSetup(topic?: string) {
     setSetupTopic(topic);
-    navigate('setup');
+    navigate("setup");
   }
-  const [practiceSession, setPracticeSession] = useState<PracticeSession | null>(null);
+  const [practiceSession, setPracticeSession] =
+    useState<PracticeSession | null>(null);
   const practiceRef = useRef<PracticeSession | null>(null);
   const practiceSavingRef = useRef(false);
   const [progress, setProgress] = useState<ProgressSummary>(EMPTY_PROGRESS);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
-  const [progressRecords, setProgressRecords] = useState<QuestionProgressDetail[]>([]);
+  const [progressRecords, setProgressRecords] = useState<
+    QuestionProgressDetail[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [storageMessage, setStorageMessage] = useState<string | null>(null);
@@ -95,11 +144,16 @@ function AppContent() {
   const pendingBookmarksRef = useRef<Set<string>>(new Set());
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
-  const scrollToTop = useCallback(() => scrollRef.current?.scrollTo({ y: 0, animated: false }), []);
+  const scrollToTop = useCallback(
+    () => scrollRef.current?.scrollTo({ y: 0, animated: false }),
+    [],
+  );
 
   const practiceQuestions = useMemo(() => {
     if (!practiceSession) return questions;
-    const indexed = new Map(questions.map((question) => [question.id, question]));
+    const indexed = new Map(
+      questions.map((question) => [question.id, question]),
+    );
     return practiceSession.questionIds.flatMap((id) => {
       const match = indexed.get(id);
       return match ? [match] : [];
@@ -107,27 +161,70 @@ function AppContent() {
   }, [practiceSession?.id]);
   const questionIndex = practiceSession?.currentIndex ?? 0;
   const currentQuestion = practiceQuestions[questionIndex];
-  const selectedAnswer = practiceSession && currentQuestion
-    ? (practiceSession.answers[currentQuestion.id] ?? null) : null;
+  const selectedAnswer =
+    practiceSession && currentQuestion
+      ? (practiceSession.answers[currentQuestion.id] ?? null)
+      : null;
+  const focused =
+    (tab === "practice" && !!currentQuestion) ||
+    (tab === "mock" && mockFocused) ||
+    tab === "lesson";
+  const courseProgress = useMemo(
+    () =>
+      buildCourseProgress(
+        courseModules,
+        courseLessons,
+        lessonRecords,
+        checkpointResults,
+      ),
+    [lessonRecords, checkpointResults],
+  );
+  const selectedModule =
+    courseModules.find((item) => item.id === selectedModuleId) ??
+    courseModules[0];
+  const selectedLesson =
+    courseLessons.find((item) => item.id === selectedLessonId) ??
+    courseLessons[0];
   const sessionAnswers = practiceSession?.answers ?? {};
   const savedQuestions = useMemo(
     () => questions.filter((question) => bookmarkedIds.includes(question.id)),
     [bookmarkedIds],
   );
 
-  const retryQuestions = useMemo(() => getQuestionsToRetry(questions, progressRecords), [progressRecords]);
-  const learningOverview = useMemo(() => buildLearningOverview(questions, progressRecords), [progressRecords]);
-  const unseenQuestions = useMemo(() => eligiblePracticeQuestions(questions, progressRecords, [], [], 'unseen').slice(0, 10), [progressRecords]);
+  const retryQuestions = useMemo(
+    () => getQuestionsToRetry(questions, progressRecords),
+    [progressRecords],
+  );
+  const learningOverview = useMemo(
+    () => buildLearningOverview(questions, progressRecords),
+    [progressRecords],
+  );
+  const unseenQuestions = useMemo(
+    () =>
+      eligiblePracticeQuestions(
+        questions,
+        progressRecords,
+        [],
+        [],
+        "unseen",
+      ).slice(0, 10),
+    [progressRecords],
+  );
 
   const refreshLocalData = useCallback(async () => {
-    const [nextProgress, nextBookmarks, nextRecords] = await Promise.all([
-      getProgressSummary(),
-      getBookmarkedQuestionIds(),
-      getQuestionProgressRecords(),
-    ]);
+    const [nextProgress, nextBookmarks, nextRecords, nextLessons, nextChecks] =
+      await Promise.all([
+        getProgressSummary(),
+        getBookmarkedQuestionIds(),
+        getQuestionProgressRecords(),
+        getLessonProgress(),
+        getCheckpointResults(),
+      ]);
     setProgress(nextProgress);
     setBookmarkedIds(nextBookmarks);
     setProgressRecords(nextRecords);
+    setLessonRecords(nextLessons);
+    setCheckpointResults(nextChecks);
   }, []);
 
   useEffect(() => {
@@ -137,32 +234,87 @@ function AppContent() {
       getBookmarkedQuestionIds(),
       getQuestionProgressRecords(),
       getSavedPracticeSession(),
-    ]).then(([nextProgress, nextBookmarks, nextRecords, savedPractice]) => {
-        if (!mounted) return;
-        setProgress(nextProgress);
-        setBookmarkedIds(nextBookmarks);
-        setProgressRecords(nextRecords);
-        if (savedPractice && practiceIsCompatible(savedPractice, questions)) {
-          practiceRef.current = savedPractice;
-          setPracticeSession(savedPractice);
-        } else if (savedPractice) {
-          setStorageMessage('Saved practice uses outdated questions. Start a new session to continue.');
-        }
-      })
+      getLessonProgress(),
+      getCheckpointResults(),
+    ])
+      .then(
+        ([
+          nextProgress,
+          nextBookmarks,
+          nextRecords,
+          savedPractice,
+          nextLessons,
+          nextChecks,
+        ]) => {
+          if (!mounted) return;
+          setProgress(nextProgress);
+          setBookmarkedIds(nextBookmarks);
+          setProgressRecords(nextRecords);
+          setLessonRecords(nextLessons);
+          setCheckpointResults(nextChecks);
+          if (
+            savedPractice &&
+            practiceIsCompatible(savedPractice, questions) &&
+            (!savedPractice.checkpoint ||
+              (isCurrentCheckpointContext(
+                savedPractice.checkpoint,
+                courseModules,
+                courseLessons,
+              ) &&
+                savedPractice.questionIds.every((id) =>
+                  courseModules
+                    .find(
+                      (item) => item.id === savedPractice.checkpoint!.moduleId,
+                    )
+                    ?.questionIds.includes(id),
+                )))
+          ) {
+            practiceRef.current = savedPractice;
+            setPracticeSession(savedPractice);
+          } else if (savedPractice) {
+            setStorageMessage(
+              "Your saved practice belongs to an older course or question set. Start a new session; your earlier answer history is retained.",
+            );
+          }
+        },
+      )
       .catch(() => {
-        if (mounted) setStorageMessage('Local storage could not be opened. Your current practice screen is still available.');
+        if (mounted)
+          setStorageMessage(
+            "Local storage could not be opened. Your current practice screen is still available.",
+          );
       })
       .finally(() => {
         if (mounted) setIsLoading(false);
       });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  function startPractice(items: TheoryQuestion[] = questions, questionLimit?: number) {
+  function startPractice(
+    items: TheoryQuestion[] = questions,
+    questionLimit?: number,
+    checkpoint?: CheckpointContext,
+  ) {
     if (practiceSavingRef.current) return;
+    if (
+      checkpoint &&
+      (!isCurrentCheckpointContext(checkpoint, courseModules, courseLessons) ||
+        !items.every((item) =>
+          courseModules
+            .find((module) => module.id === checkpoint.moduleId)
+            ?.questionIds.includes(item.id),
+        ))
+    ) {
+      setStorageMessage(
+        "This course has changed. Open the topic to start an updated check.",
+      );
+      return;
+    }
     if (items.length === 0) {
-      setStorageMessage('There are no questions in this selection yet.');
-      navigate('saved');
+      setStorageMessage("There are no questions in this selection yet.");
+      navigate("saved");
       return;
     }
 
@@ -171,21 +323,29 @@ function AppContent() {
       practiceSavingRef.current = true;
       setIsSaving(true);
       try {
-        const selected = questionLimit === undefined ? items
-          : chooseQuestions(items, Math.min(questionLimit, items.length));
+        const selected =
+          questionLimit === undefined
+            ? items
+            : chooseQuestions(items, Math.min(questionLimit, items.length));
         const started = beginPractice(
           selected,
           Date.now(),
-          'practice-' + Date.now() + '-' + Math.floor(Math.random() * 1_000_000_000),
+          "practice-" +
+            Date.now() +
+            "-" +
+            Math.floor(Math.random() * 1_000_000_000),
+          checkpoint,
         );
         await replaceSavedPractice(started);
         practiceRef.current = started;
         setPracticeSession(started);
         answerLockedRef.current = false;
         setStorageMessage(null);
-        navigate('practice');
+        navigate("practice");
       } catch {
-        setStorageMessage('Could not create an offline practice session. Please try again.');
+        setStorageMessage(
+          "Could not create an offline practice session. Please try again.",
+        );
       } finally {
         practiceSavingRef.current = false;
         setIsSaving(false);
@@ -193,14 +353,24 @@ function AppContent() {
     }
 
     const unfinished = practiceRef.current;
-    if (unfinished && unfinished.currentIndex < unfinished.questionIds.length &&
-        (unfinished.currentIndex > 0 || Object.keys(unfinished.answers).length > 0)) {
+    if (
+      unfinished &&
+      unfinished.currentIndex < unfinished.questionIds.length &&
+      (unfinished.currentIndex > 0 ||
+        Object.keys(unfinished.answers).length > 0)
+    ) {
       Alert.alert(
-        'Replace unfinished practice?',
-        'Your current answers are saved. Start a new session or continue where you left off.',
+        "Replace unfinished practice?",
+        "Your current answers are saved. Start a new session or continue where you left off.",
         [
-          { text: 'Continue existing', onPress: () => navigate('practice') },
-          { text: 'Start new', style: 'destructive', onPress: () => { void createSession(); } },
+          { text: "Continue existing", onPress: () => navigate("practice") },
+          {
+            text: "Start new",
+            style: "destructive",
+            onPress: () => {
+              void createSession();
+            },
+          },
         ],
       );
       return;
@@ -210,10 +380,20 @@ function AppContent() {
 
   function requestDiscardPractice() {
     if (practiceSavingRef.current) return;
-    Alert.alert('Discard this session?', 'Your answer history and saved questions will stay. Only the current practice session will be removed.', [
-      { text: 'Keep session', style: 'cancel' },
-      { text: 'Discard session', style: 'destructive', onPress: () => { void discardPractice(); } },
-    ]);
+    Alert.alert(
+      "Discard this session?",
+      "Your answer history and saved questions will stay. Only the current practice session will be removed.",
+      [
+        { text: "Keep session", style: "cancel" },
+        {
+          text: "Discard session",
+          style: "destructive",
+          onPress: () => {
+            void discardPractice();
+          },
+        },
+      ],
+    );
   }
 
   async function discardPractice() {
@@ -226,10 +406,10 @@ function AppContent() {
       setPracticeSession(null);
       answerLockedRef.current = false;
       setStorageMessage(null);
-      selectTab('home');
+      selectTab("home");
       scrollToTop();
     } catch {
-      setStorageMessage('Could not discard the session. Please try again.');
+      setStorageMessage("Could not discard the session. Please try again.");
     } finally {
       practiceSavingRef.current = false;
       setIsSaving(false);
@@ -238,26 +418,38 @@ function AppContent() {
 
   async function chooseAnswer(index: number) {
     const active = practiceRef.current;
-    if (!active || !currentQuestion || selectedAnswer !== null ||
-        practiceSavingRef.current || answerLockedRef.current) return;
+    if (
+      !active ||
+      !currentQuestion ||
+      selectedAnswer !== null ||
+      practiceSavingRef.current ||
+      answerLockedRef.current
+    )
+      return;
     answerLockedRef.current = true;
     practiceSavingRef.current = true;
     setIsSaving(true);
     try {
-      const persisted = await recordSavedPracticeAnswer(active, currentQuestion, index);
+      const persisted = await recordSavedPracticeAnswer(
+        active,
+        currentQuestion,
+        index,
+      );
       practiceRef.current = persisted;
       setPracticeSession(persisted);
       setStorageMessage(null);
       try {
         await refreshLocalData();
       } catch {
-        setStorageMessage('Your answer was saved, but progress could not be refreshed.');
+        setStorageMessage(
+          "Your answer was saved, but progress could not be refreshed.",
+        );
       }
     } catch {
       // Neither the answer nor the accuracy counter changes if the SQLite
       // transaction fails. Allow the learner to tap again rather than lose it.
       answerLockedRef.current = false;
-      setStorageMessage('Answer not saved. Tap your answer again to retry.');
+      setStorageMessage("Answer not saved. Tap your answer again to retry.");
     } finally {
       practiceSavingRef.current = false;
       setIsSaving(false);
@@ -269,12 +461,14 @@ function AppContent() {
     pendingBookmarksRef.current.add(questionId);
     try {
       const isSaved = await toggleBookmark(questionId);
-      setBookmarkedIds((previous) => isSaved
-        ? [...previous.filter((id) => id !== questionId), questionId]
-        : previous.filter((id) => id !== questionId));
+      setBookmarkedIds((previous) =>
+        isSaved
+          ? [...previous.filter((id) => id !== questionId), questionId]
+          : previous.filter((id) => id !== questionId),
+      );
       setStorageMessage(null);
     } catch {
-      setStorageMessage('The bookmark could not be saved on this device.');
+      setStorageMessage("The bookmark could not be saved on this device.");
     } finally {
       pendingBookmarksRef.current.delete(questionId);
     }
@@ -291,20 +485,125 @@ function AppContent() {
       setPracticeSession(persisted);
       answerLockedRef.current = false;
       setStorageMessage(null);
+      try {
+        await refreshLocalData();
+      } catch {
+        setStorageMessage(
+          "Your position was saved, but progress could not be refreshed.",
+        );
+      }
     } catch {
-      setStorageMessage('Could not save the next position. Try again.');
+      setStorageMessage("Could not save the next position. Try again.");
     } finally {
       practiceSavingRef.current = false;
       setIsSaving(false);
     }
   }
 
-  useEffect(() => {
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (returnScreen === null) return false;
+  function openModule(id: string) {
+    setSelectedModuleId(id);
+    navigate("module");
+  }
+  function openLesson(id: string) {
+    const lesson = courseLessons.find((item) => item.id === id);
+    if (!lesson) return;
+    setSelectedModuleId(lesson.moduleId);
+    setSelectedLessonId(id);
+    const record = lessonRecords.find(
+      (item) => item.lessonId === id && item.contentVersion === lesson.version,
+    );
+    if (!record)
+      void saveLessonPosition(id, lesson.version, lesson.sections[0].id)
+        .then(refreshLocalData)
+        .catch(() =>
+          setStorageMessage("Your reading position could not be saved."),
+        );
+    if (tab === "home") navigate("module");
+    navigate("lesson");
+  }
+  async function storeLessonPosition(sectionId: string) {
+    setIsSaving(true);
+    try {
+      await saveLessonPosition(
+        selectedLesson.id,
+        selectedLesson.version,
+        sectionId,
+      );
+      try {
+        await refreshLocalData();
+      } catch {
+        setStorageMessage(
+          "Your reading position was saved, but progress could not be refreshed.",
+        );
+      }
+    } catch {
+      setStorageMessage(
+        "Your reading position could not be saved. Please try again.",
+      );
+      throw new Error("Position not saved");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+  async function confirmLessonRead() {
+    setIsSaving(true);
+    try {
+      await markLessonRead(selectedLesson.id, selectedLesson.version);
+      await refreshLocalData();
       goBack();
-      return true;
-    });
+      scrollToTop();
+    } catch {
+      setStorageMessage(
+        "Your study confirmation could not be saved. Please try again.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+  function startModuleCheck(moduleId = selectedModule.id) {
+    const module = courseModules.find((item) => item.id === moduleId);
+    if (!module) return;
+    const state = courseProgress.modules.find(
+      (item) => item.moduleId === module.id,
+    );
+    if (!state || state.lessonsRead < state.totalLessons) return;
+    try {
+      const pool = selectCheckpointQuestions(module, courseLessons, questions);
+      const checkpoint = {
+        moduleId: module.id,
+        moduleVersion: module.version,
+        lessonVersions: Object.fromEntries(
+          module.lessonIds.map((id) => [
+            id,
+            courseLessons.find((item) => item.id === id)!.version,
+          ]),
+        ),
+      };
+      startPractice(pool, undefined, checkpoint);
+    } catch {
+      setStorageMessage(
+        "This topic check is unavailable. Please choose another topic.",
+      );
+    }
+  }
+  function finishPracticeReview() {
+    const checkpoint = practiceSession?.checkpoint;
+    if (checkpoint) {
+      setSelectedModuleId(checkpoint.moduleId);
+      selectTab("home");
+      navigate("module");
+    } else selectTab("progress");
+  }
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        if (returnScreen === null) return false;
+        goBack();
+        return true;
+      },
+    );
     return () => subscription.remove();
   }, [returnScreen, goBack]);
 
@@ -318,18 +617,71 @@ function AppContent() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top", "left", "right", "bottom"]}
+    >
       <StatusBar style="dark" />
       <View style={styles.appShell}>
         <View style={styles.header}>
-          {navigation.stack.length>1?<Pressable accessibilityRole="button" accessibilityLabel={'Back to '+backLabel} onPress={goBack} style={styles.globalBack}><Text style={styles.backText}>‹ Back</Text></Pressable>:null}
-          {!focused?<Image accessible={false} source={brandAssets['brand-mark']} style={styles.brandMark}/>:null}
-          <Text style={[styles.headerTitle,{flex:1}]}>{screenTitles[tab]}</Text>
-          {tab==='practice'&&practiceSession?<Pressable accessibilityRole="button" accessibilityLabel="Session options" onPress={()=>Alert.alert('Session options','',[{text:'Keep session',style:'cancel'},{text:'End session',style:'destructive',onPress:requestDiscardPractice}])} style={styles.globalBack}><Text style={styles.backText}>•••</Text></Pressable>:null}
+          {navigation.stack.length > 1 || focused ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={"Back to " + backLabel}
+              onPress={goBack}
+              style={styles.globalBack}
+            >
+              <Text style={styles.backText}>‹ Back</Text>
+            </Pressable>
+          ) : null}
+          {!focused ? (
+            <Image
+              accessible={false}
+              source={brandAssets["brand-mark"]}
+              style={styles.brandMark}
+            />
+          ) : null}
+          <Text style={[styles.headerTitle, { flex: 1 }]}>
+            {tab === "practice" && practiceSession?.checkpoint
+              ? "Topic check"
+              : screenTitles[tab]}
+          </Text>
+          {!focused && tab !== "more" ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Study tools"
+              onPress={() => navigate("more")}
+              style={styles.globalBack}
+            >
+              <Text style={styles.backText}>Tools</Text>
+            </Pressable>
+          ) : null}
+          {tab === "practice" && practiceSession ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Session options"
+              onPress={() =>
+                Alert.alert("Session options", "", [
+                  { text: "Keep session", style: "cancel" },
+                  {
+                    text: "End session",
+                    style: "destructive",
+                    onPress: requestDiscardPractice,
+                  },
+                ])
+              }
+              style={styles.globalBack}
+            >
+              <Text style={styles.backText}>•••</Text>
+            </Pressable>
+          ) : null}
         </View>
 
         {storageMessage ? (
-          <Pressable style={styles.notice} onPress={() => setStorageMessage(null)}>
+          <Pressable
+            style={styles.notice}
+            onPress={() => setStorageMessage(null)}
+          >
             <Text style={styles.noticeText}>{storageMessage}</Text>
             <Text style={styles.noticeDismiss}>Dismiss</Text>
           </Pressable>
@@ -338,138 +690,368 @@ function AppContent() {
         {navigation.stack.map((screen, screenIndex) => {
           const tab = screen;
           const visible = screenIndex === navigation.stack.length - 1;
-          return <ScrollView ref={visible ? scrollRef : null}
-            key={tab === 'practice' ? tab + '-' + practiceSession?.id + '-' + questionIndex : tab}
-            style={[styles.screen, !visible && styles.hiddenScreen]}
-            accessibilityElementsHidden={!visible} importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}
-            contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {tab === 'home' && <HomeScreen session={practiceSession} overview={learningOverview}
-            onNext={() => retryQuestions.length > 0 ? startPractice(retryQuestions.slice(0,10)) : learningOverview.unseen > 0 ? startPractice(unseenQuestions) : startPractice(questions,10)}
-            onResume={() => navigate('practice')} onProgress={() => navigate('progress')} />}
-          {tab === 'more' && <MoreScreen onOpen={navigate} artworkReview={__DEV__ || process.env.EXPO_PUBLIC_IMAGE_REVIEW === 'true'} />}
-
-          {tab === 'practice' && (
-            <>
-              {!currentQuestion ? (
-                <PracticeResultsScreen
-                  questions={practiceQuestions}
-                  answers={sessionAnswers}
-                  savedIds={bookmarkedIds}
-                  onFinish={() => selectTab('home')}
-                  onRetry={startPractice}
-                  onRestart={() => startPractice(practiceQuestions)}
+          return (
+            <ScrollView
+              ref={visible ? scrollRef : null}
+              key={
+                tab === "practice"
+                  ? tab + "-" + practiceSession?.id + "-" + questionIndex
+                  : tab
+              }
+              style={[styles.screen, !visible && styles.hiddenScreen]}
+              accessibilityElementsHidden={!visible}
+              importantForAccessibility={
+                visible ? "auto" : "no-hide-descendants"
+              }
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {tab === "home" && (
+                <CourseHome
+                  progress={courseProgress}
+                  records={lessonRecords}
+                  session={practiceSession}
+                  onLesson={openLesson}
+                  onModule={openModule}
+                  onResume={() => navigate("practice")}
+                  onTools={() => navigate("more")}
+                  onExams={() => selectTab("mock")}
                 />
-              ) : (
+              )}
+              {tab === "module" && selectedModule && (
+                <ModuleScreen
+                  module={selectedModule}
+                  progress={courseProgress}
+                  onLesson={openLesson}
+                  onCheck={() => startModuleCheck()}
+                  onPractise={() =>
+                    startPractice(
+                      questions.filter((item) =>
+                        selectedModule.questionIds.includes(item.id),
+                      ),
+                      10,
+                    )
+                  }
+                />
+              )}
+              {tab === "lesson" && selectedLesson && (
+                <LessonReader
+                  key={selectedLesson.id}
+                  lesson={selectedLesson}
+                  record={lessonRecords.find(
+                    (item) => item.lessonId === selectedLesson.id,
+                  )}
+                  onPosition={storeLessonPosition}
+                  onRead={confirmLessonRead}
+                  busy={isSaving}
+                  active={visible}
+                  onPageChange={scrollToTop}
+                />
+              )}
+
+              {tab === "more" && (
+                <MoreScreen
+                  onOpen={navigate}
+                  artworkReview={
+                    __DEV__ || process.env.EXPO_PUBLIC_IMAGE_REVIEW === "true"
+                  }
+                />
+              )}
+
+              {tab === "practice" && (
                 <>
-                  <View style={styles.practiceTop}>
-                    <Text style={styles.practiceCounter}>QUESTION {questionIndex + 1} OF {practiceQuestions.length}</Text>
-                  </View>
-                  <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${((questionIndex + (selectedAnswer === null ? 0 : 1)) / practiceQuestions.length) * 100}%` }]} /></View>
-                  <View style={styles.questionCard}>
-                    <View style={styles.questionMeta}>
-                      <Text style={styles.topicPill}>{currentQuestion.topic.toUpperCase()}</Text>
-                      <Pressable accessibilityRole="button" accessibilityLabel={bookmarkedIds.includes(currentQuestion.id) ? 'Remove saved question' : 'Save question'}
-                        onPress={() => { void handleBookmark(currentQuestion.id); }} style={styles.bookmarkButton}>
-                        <Text style={styles.bookmarkText}>{bookmarkedIds.includes(currentQuestion.id) ? '★ Saved' : '☆ Save'}</Text>
-                      </Pressable>
-                    </View>
-                    <Text style={styles.questionPrompt}>{currentQuestion.prompt}</Text>
-                     <QuestionIllustration question={currentQuestion} context={selectedAnswer === null ? 'question' : 'review'} />
-                    {currentQuestion.options.map((option, index) => {
-                      const isChosen = selectedAnswer === index;
-                      const isCorrectOption = selectedAnswer !== null && index === currentQuestion.correctIndex;
-                      return (
-                        <Pressable
-                          key={`${currentQuestion.id}-${index}`}
-                          accessibilityRole="button"
-                          accessibilityState={{ selected: isChosen, disabled: selectedAnswer !== null }}
-                          disabled={selectedAnswer !== null || isSaving}
-                          onPress={() => { void chooseAnswer(index); }}
-                          style={[
-                            styles.answerOption,
-                            isChosen && (isCorrectOption ? styles.answerCorrect : styles.answerIncorrect),
-                            isCorrectOption && selectedAnswer !== null && styles.answerCorrect,
-                          ]}
-                        >
-                          <View style={styles.optionLetter}><Text style={styles.optionLetterText}>{String.fromCharCode(65 + index)}</Text></View>
-                          <Text style={styles.answerText}>{option}</Text>
-                          {isCorrectOption ? <Text style={styles.answerMark}>✓</Text> : null}
-                        </Pressable>
-                      );
-                    })}
-                    {selectedAnswer !== null ? (
-                      <View style={styles.explanationBox}>
-                        <Text style={[styles.explanationHeading, selectedAnswer === currentQuestion.correctIndex ? styles.correctLabel : styles.incorrectLabel]}>
-                          {selectedAnswer === currentQuestion.correctIndex ? 'Correct answer' : 'Review this one'}
+                  {!currentQuestion ? (
+                    <PracticeResultsScreen
+                      questions={practiceQuestions}
+                      answers={sessionAnswers}
+                      savedIds={bookmarkedIds}
+                      onFinish={finishPracticeReview}
+                      checkpoint={practiceSession?.checkpoint}
+                      onReadLesson={(id) => openLesson(id)}
+                      onRetry={startPractice}
+                      onRestart={() =>
+                        practiceSession?.checkpoint
+                          ? startModuleCheck(
+                              practiceSession.checkpoint.moduleId,
+                            )
+                          : startPractice(practiceQuestions)
+                      }
+                    />
+                  ) : (
+                    <>
+                      <View style={styles.practiceTop}>
+                        <Text style={styles.practiceCounter}>
+                          QUESTION {questionIndex + 1} OF{" "}
+                          {practiceQuestions.length}
                         </Text>
-                        <Text style={styles.explanationBody}>{currentQuestion.explanation}</Text>
-                        <Text style={styles.referenceText}>{currentQuestion.reference}</Text>
-                        <Pressable
-                          accessibilityRole="button"
-                          disabled={isSaving}
-                          style={[styles.primaryButton, isSaving && styles.disabledButton]}
-                          onPress={() => { void goToNextQuestion(); }}
-                        >
-                          <Text style={styles.primaryButtonText}>{isSaving ? 'Saving answer…' : questionIndex + 1 === practiceQuestions.length ? 'Finish practice' : 'Next question  ›'}</Text>
-                        </Pressable>
                       </View>
-                    ) : (
-                      <Text style={styles.selectHint}>{isSaving ? 'Saving your answer on this device…' : 'Choose one answer to see the explanation.'}</Text>
-                    )}
-                  </View>
+                      <View style={styles.progressTrack}>
+                        <View
+                          style={[
+                            styles.progressFill,
+                            {
+                              width: `${((questionIndex + (selectedAnswer === null ? 0 : 1)) / practiceQuestions.length) * 100}%`,
+                            },
+                          ]}
+                        />
+                      </View>
+                      <View style={styles.questionCard}>
+                        <View style={styles.questionMeta}>
+                          <Text style={styles.topicPill}>
+                            {currentQuestion.topic.toUpperCase()}
+                          </Text>
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={
+                              bookmarkedIds.includes(currentQuestion.id)
+                                ? "Remove saved question"
+                                : "Save question"
+                            }
+                            onPress={() => {
+                              void handleBookmark(currentQuestion.id);
+                            }}
+                            style={styles.bookmarkButton}
+                          >
+                            <Text style={styles.bookmarkText}>
+                              {bookmarkedIds.includes(currentQuestion.id)
+                                ? "★ Saved"
+                                : "☆ Save"}
+                            </Text>
+                          </Pressable>
+                        </View>
+                        {currentQuestion.caseStudyVideoAssetId ? (
+                          <CaseStudyVideo
+                            caseStudyId={currentQuestion.caseStudyVideoAssetId}
+                            active={visible}
+                          />
+                        ) : null}
+                        <Text style={styles.questionPrompt}>
+                          {currentQuestion.prompt}
+                        </Text>
+                        <QuestionIllustration
+                          question={currentQuestion}
+                          context={
+                            selectedAnswer === null ? "question" : "review"
+                          }
+                        />
+                        {currentQuestion.options.map((option, index) => {
+                          const isChosen = selectedAnswer === index;
+                          const isCorrectOption =
+                            selectedAnswer !== null &&
+                            index === currentQuestion.correctIndex;
+                          return (
+                            <Pressable
+                              key={`${currentQuestion.id}-${index}`}
+                              accessibilityRole="button"
+                              accessibilityState={{
+                                selected: isChosen,
+                                disabled: selectedAnswer !== null,
+                              }}
+                              disabled={selectedAnswer !== null || isSaving}
+                              onPress={() => {
+                                void chooseAnswer(index);
+                              }}
+                              style={[
+                                styles.answerOption,
+                                isChosen &&
+                                  (isCorrectOption
+                                    ? styles.answerCorrect
+                                    : styles.answerIncorrect),
+                                isCorrectOption &&
+                                  selectedAnswer !== null &&
+                                  styles.answerCorrect,
+                              ]}
+                            >
+                              <View style={styles.optionLetter}>
+                                <Text style={styles.optionLetterText}>
+                                  {String.fromCharCode(65 + index)}
+                                </Text>
+                              </View>
+                              <Text style={styles.answerText}>{option}</Text>
+                              {isCorrectOption ? (
+                                <Text style={styles.answerMark}>✓</Text>
+                              ) : null}
+                            </Pressable>
+                          );
+                        })}
+                        {selectedAnswer !== null ? (
+                          <View style={styles.explanationBox}>
+                            <Text
+                              style={[
+                                styles.explanationHeading,
+                                selectedAnswer === currentQuestion.correctIndex
+                                  ? styles.correctLabel
+                                  : styles.incorrectLabel,
+                              ]}
+                            >
+                              {selectedAnswer === currentQuestion.correctIndex
+                                ? "Correct answer"
+                                : "Review this one"}
+                            </Text>
+                            <Text style={styles.explanationBody}>
+                              {currentQuestion.explanation}
+                            </Text>
+                            <Text style={styles.referenceText}>
+                              {currentQuestion.reference}
+                            </Text>
+                            <Pressable
+                              accessibilityRole="button"
+                              disabled={isSaving}
+                              style={[
+                                styles.primaryButton,
+                                isSaving && styles.disabledButton,
+                              ]}
+                              onPress={() => {
+                                void goToNextQuestion();
+                              }}
+                            >
+                              <Text style={styles.primaryButtonText}>
+                                {isSaving
+                                  ? "Saving answer…"
+                                  : questionIndex + 1 ===
+                                      practiceQuestions.length
+                                    ? practiceSession?.checkpoint
+                                      ? "Finish topic check"
+                                      : "Finish practice"
+                                    : "Next question  ›"}
+                              </Text>
+                            </Pressable>
+                          </View>
+                        ) : (
+                          <Text style={styles.selectHint}>
+                            {isSaving
+                              ? "Saving your answer on this device…"
+                              : "Choose one answer to see the explanation."}
+                          </Text>
+                        )}
+                      </View>
+                    </>
+                  )}
                 </>
               )}
-            </>
-          )}
 
-          {tab === 'setup' && <>
-            <PracticeSetupScreen key={setupTopic ?? 'all'} initialTopic={setupTopic}
-              records={progressRecords} savedIds={bookmarkedIds} onStart={startPractice} />
-
-          </>}
-          {tab === 'mock' && <MockExamScreen />}
-          {tab === 'search' && <QuestionSearchScreen onPractise={startPractice} />}
-          {tab === 'imageReview' && <ImageReviewScreen />}
-          {tab === 'roadSigns' && <RoadSignsScreen onPageChange={scrollToTop} />}
-          {tab === 'flashcards' && <FlashcardsScreen onPageChange={scrollToTop} onPractise={startPractice} />}
-
-          {tab === 'saved' && (
-            <>
-              <Text style={styles.pageTitle}>Saved questions</Text>
-              <Text style={styles.pageSubtitle}>Your bookmarks are stored locally on this device.</Text>
-              {savedQuestions.length === 0 ? (
-                <View style={styles.emptyCard}>
-                  <Text style={styles.emptyTitle}>Nothing saved yet</Text>
-                  <Text style={styles.emptyBody}>Tap ☆ Save during practice to keep a question here for revision.</Text>
-                  <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={() => selectTab('setup')}>
-                    <Text style={styles.primaryButtonText}>Find questions to save</Text>
-                  </Pressable>
-                </View>
-              ) : (
+              {tab === "setup" && (
                 <>
-                  <Pressable style={styles.primaryButton} onPress={() => startPractice(savedQuestions)}>
-                    <Text style={styles.primaryButtonText}>Practise saved questions</Text>
-                  </Pressable>
-                  {savedQuestions.map((question) => (
-                    <View key={question.id} style={styles.savedQuestionCard}>
-                      <Text style={styles.savedQuestionTopic}>{question.topic.toUpperCase()}</Text>
-                      <Text style={styles.savedQuestionPrompt}>{question.prompt}</Text>
-                      <Pressable onPress={() => handleBookmark(question.id)}>
-                        <Text style={styles.removeSaved}>Remove from saved</Text>
+                  <PracticeSetupScreen
+                    key={setupTopic ?? "all"}
+                    initialTopic={setupTopic}
+                    records={progressRecords}
+                    savedIds={bookmarkedIds}
+                    onStart={startPractice}
+                  />
+                </>
+              )}
+              {tab === "mock" && (
+                <MockExamScreen
+                  active={visible}
+                  onReadLesson={openLesson}
+                  onFocusChange={setMockFocused}
+                  onStudy={() => selectTab("home")}
+                  topicsCompleted={courseProgress.modulesCompleted}
+                  totalTopics={courseProgress.totalModules}
+                  onPageChange={scrollToTop}
+                />
+              )}
+              {tab === "search" && (
+                <QuestionSearchScreen onPractise={startPractice} />
+              )}
+              {tab === "imageReview" && <ImageReviewScreen />}
+              {tab === "roadSigns" && (
+                <RoadSignsScreen onPageChange={scrollToTop} />
+              )}
+              {tab === "flashcards" && (
+                <FlashcardsScreen
+                  active={visible}
+                  onPageChange={scrollToTop}
+                  onPractise={(items) => startPractice(items, 10)}
+                />
+              )}
+
+              {tab === "saved" && (
+                <>
+                  {savedQuestions.length === 0 ? (
+                    <View style={styles.emptyCard}>
+                      <Text style={styles.emptyTitle}>Nothing saved yet</Text>
+                      <Text style={styles.emptyBody}>
+                        Tap ☆ Save during practice to keep a question here for
+                        revision.
+                      </Text>
+                      <Pressable
+                        accessibilityRole="button"
+                        style={styles.primaryButton}
+                        onPress={() => selectTab("setup")}
+                      >
+                        <Text style={styles.primaryButtonText}>
+                          Find questions to save
+                        </Text>
                       </Pressable>
                     </View>
-                  ))}
+                  ) : (
+                    <>
+                      <Pressable
+                        style={styles.primaryButton}
+                        onPress={() => startPractice(savedQuestions)}
+                      >
+                        <Text style={styles.primaryButtonText}>
+                          Practise saved questions
+                        </Text>
+                      </Pressable>
+                      {savedQuestions.map((question) => (
+                        <View
+                          key={question.id}
+                          style={styles.savedQuestionCard}
+                        >
+                          <Text style={styles.savedQuestionTopic}>
+                            {question.topic.toUpperCase()}
+                          </Text>
+                          <Text style={styles.savedQuestionPrompt}>
+                            {question.prompt}
+                          </Text>
+                          <Pressable
+                            onPress={() => handleBookmark(question.id)}
+                          >
+                            <Text style={styles.removeSaved}>
+                              Remove from saved
+                            </Text>
+                          </Pressable>
+                        </View>
+                      ))}
+                    </>
+                  )}
                 </>
               )}
-            </>
-          )}
 
-          {tab === 'progress' && <ProgressScreen overview={learningOverview} summary={progress} active={visible}
-            onTimed={() => navigate('mock')} onTopic={openPracticeSetup} />}
-        </ScrollView>;
+              {tab === "progress" && (
+                <>
+                  <CourseProgressSummary
+                    progress={courseProgress}
+                    onModule={openModule}
+                    onContinue={() => selectTab("home")}
+                    onExams={() => selectTab("mock")}
+                  />
+                  <ProgressScreen
+                    overview={learningOverview}
+                    summary={progress}
+                    active={visible}
+                    onTimed={() => selectTab("mock")}
+                    onTopic={openPracticeSetup}
+                  />
+                </>
+              )}
+            </ScrollView>
+          );
         })}
 
-        {!focused?<BottomNavigation active={activeRoot(navigation)} onSelect={(screen)=>{if(screen==='setup')setSetupTopic(undefined);selectTab(screen);}} />:null}
+        {!focused ? (
+          <BottomNavigation
+            active={activeRoot(navigation)}
+            onSelect={(screen) => {
+              if (screen === "setup") setSetupTopic(undefined);
+              selectTab(screen);
+            }}
+          />
+        ) : null}
       </View>
     </SafeAreaView>
   );
@@ -496,60 +1078,263 @@ const colors = {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: palette.background },
   appShell: { flex: 1, backgroundColor: palette.background },
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.background },
+  loading: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.background,
+  },
   loadingText: { color: colors.muted, marginTop: 12, fontSize: 13 },
-  header: { backgroundColor: '#FFFFFF', paddingHorizontal: 18, paddingTop: 8, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    paddingBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
   brandMark: { width: 38, height: 38, marginRight: 10, borderRadius: 11 },
   headerCopy: { flex: 1, minWidth: 0, marginRight: 12 },
-  headerEyebrow: { color: colors.muted, fontSize: 8, fontWeight: '700', letterSpacing: 1, marginTop: 3 },
-  headerTitle: { color: colors.ink, fontSize: 17, fontWeight: '900' },
-  notice: { marginHorizontal: 16, marginTop: 10, padding: 12, backgroundColor: '#FFF7E6', borderRadius: 12, borderWidth: 1, borderColor: '#F3D89E' },
-  noticeText: { color: '#795A1A', fontSize: 12, lineHeight: 17 },
-  noticeDismiss: { color: '#795A1A', fontWeight: '800', fontSize: 11, marginTop: 5 },
-  headerSearch: { minHeight: 44, minWidth: 60, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primarySoft, borderRadius: 13 },
-  backBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderColor: '#E5E4ED', gap: 12 },
-  globalBack: { minHeight: 44, justifyContent: 'center', paddingRight: 15 },
+  headerEyebrow: {
+    color: colors.muted,
+    fontSize: 8,
+    fontWeight: "700",
+    letterSpacing: 1,
+    marginTop: 3,
+  },
+  headerTitle: { color: colors.ink, fontSize: 17, fontWeight: "900" },
+  notice: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    padding: 12,
+    backgroundColor: "#FFF7E6",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#F3D89E",
+  },
+  noticeText: { color: "#795A1A", fontSize: 12, lineHeight: 17 },
+  noticeDismiss: {
+    color: "#795A1A",
+    fontWeight: "800",
+    fontSize: 11,
+    marginTop: 5,
+  },
+  headerSearch: {
+    minHeight: 44,
+    minWidth: 60,
+    paddingHorizontal: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.primarySoft,
+    borderRadius: 13,
+  },
+  backBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderColor: "#E5E4ED",
+    gap: 12,
+  },
+  globalBack: { minHeight: 44, justifyContent: "center", paddingRight: 15 },
   breadcrumb: { color: colors.muted, fontSize: 11, flexShrink: 1 },
   screen: { flex: 1 },
-  hiddenScreen: { display: 'none' },
-  toolLinks: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  toolLink: { flex: 1, minHeight: 48, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E4ED', padding: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  hiddenScreen: { display: "none" },
+  toolLinks: { flexDirection: "row", gap: 10, marginTop: 12 },
+  toolLink: {
+    flex: 1,
+    minHeight: 48,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E5E4ED",
+    padding: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   scrollContent: { padding: 16, paddingBottom: 24 },
-  primaryButton: { backgroundColor: colors.blue, borderRadius: 13, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, marginTop: 12 },
-  primaryButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
+  primaryButton: {
+    backgroundColor: colors.blue,
+    borderRadius: 13,
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+    marginTop: 12,
+  },
+  primaryButtonText: { color: "#FFFFFF", fontWeight: "800", fontSize: 14 },
   disabledButton: { opacity: 0.55 },
-  practiceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  backText: { color: colors.blue, fontSize: 13, fontWeight: '800' },
-  practiceCounter: { color: colors.muted, fontSize: 10, letterSpacing: 0.8, fontWeight: '900' },
-  progressTrack: { height: 6, backgroundColor: '#E5E4ED', borderRadius: 5, overflow: 'hidden', marginBottom: 16 },
+  practiceTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  backText: { color: colors.blue, fontSize: 13, fontWeight: "800" },
+  practiceCounter: {
+    color: colors.muted,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    fontWeight: "900",
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: "#E5E4ED",
+    borderRadius: 5,
+    overflow: "hidden",
+    marginBottom: 16,
+  },
   progressFill: { height: 6, backgroundColor: colors.blue, borderRadius: 5 },
-  questionCard: { backgroundColor: '#FFFFFF', padding: 18, borderRadius: 20, borderWidth: 1, borderColor: colors.border },
-  questionMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  topicPill: { color: colors.blue, fontSize: 10, letterSpacing: 0.8, fontWeight: '900', flexShrink: 1 },
-  bookmarkButton: { backgroundColor: '#EFEDFF', minHeight: 44, minWidth: 44, justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20 },
-  bookmarkText: { color: colors.blue, fontSize: 11, fontWeight: '800' },
-  questionPrompt: { color: colors.ink, fontWeight: '800', fontSize: 21, lineHeight: 29, marginBottom: 18 },
-  answerOption: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 13, padding: 12, marginBottom: 10, minHeight: 54 },
-  optionLetter: { minHeight: 28, minWidth: 28, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EFEDFF', marginRight: 10 },
-  optionLetterText: { color: colors.ink, fontWeight: '900', fontSize: 12 },
-  answerText: { color: '#414154', fontSize: 13, lineHeight: 19, flex: 1 },
-  answerCorrect: { borderColor: '#8DCEA9', backgroundColor: '#F0FAF4' },
-  answerIncorrect: { borderColor: '#E8A4A7', backgroundColor: '#FFF3F3' },
-  answerMark: { color: colors.green, fontWeight: '900', fontSize: 17, marginLeft: 8 },
-  explanationBox: { backgroundColor: '#EFEDFF', borderRadius: 14, padding: 14, marginTop: 7 },
-  explanationHeading: { fontSize: 13, fontWeight: '900', marginBottom: 6 },
+  questionCard: {
+    backgroundColor: "#FFFFFF",
+    padding: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  questionMeta: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  topicPill: {
+    color: colors.blue,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    fontWeight: "900",
+    flexShrink: 1,
+  },
+  bookmarkButton: {
+    backgroundColor: "#EFEDFF",
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+  bookmarkText: { color: colors.blue, fontSize: 11, fontWeight: "800" },
+  questionPrompt: {
+    color: colors.ink,
+    fontWeight: "800",
+    fontSize: 21,
+    lineHeight: 29,
+    marginBottom: 18,
+  },
+  answerOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 13,
+    padding: 12,
+    marginBottom: 10,
+    minHeight: 54,
+  },
+  optionLetter: {
+    minHeight: 28,
+    minWidth: 28,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EFEDFF",
+    marginRight: 10,
+  },
+  optionLetterText: { color: colors.ink, fontWeight: "900", fontSize: 12 },
+  answerText: { color: "#414154", fontSize: 13, lineHeight: 19, flex: 1 },
+  answerCorrect: { borderColor: "#8DCEA9", backgroundColor: "#F0FAF4" },
+  answerIncorrect: { borderColor: "#E8A4A7", backgroundColor: "#FFF3F3" },
+  answerMark: {
+    color: colors.green,
+    fontWeight: "900",
+    fontSize: 17,
+    marginLeft: 8,
+  },
+  explanationBox: {
+    backgroundColor: "#EFEDFF",
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 7,
+  },
+  explanationHeading: { fontSize: 13, fontWeight: "900", marginBottom: 6 },
   correctLabel: { color: colors.green },
   incorrectLabel: { color: colors.red },
-  explanationBody: { color: '#505064', fontSize: 13, lineHeight: 20 },
-  referenceText: { color: '#6A6A7C', fontSize: 10, marginTop: 8, fontWeight: '700' },
-  selectHint: { color: '#6A6A7C', fontSize: 11, textAlign: 'center', marginTop: 8 },
-  pageTitle: { color: colors.ink, fontSize: 25, fontWeight: '900', marginTop: 5 },
-  pageSubtitle: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 20 },
-  emptyCard: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 20, marginTop: 6 },
-  emptyTitle: { color: colors.ink, fontSize: 17, fontWeight: '800' },
-  emptyBody: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 8 },
-  savedQuestionCard: { backgroundColor: '#FFFFFF', borderRadius: 15, borderWidth: 1, borderColor: colors.border, padding: 15, marginTop: 12 },
-  savedQuestionTopic: { color: colors.blue, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
-  savedQuestionPrompt: { color: colors.ink, fontSize: 14, lineHeight: 20, fontWeight: '700', marginTop: 8 },
-  removeSaved: { color: colors.red, fontSize: 11, fontWeight: '800', marginTop: 12 },
+  explanationBody: { color: "#505064", fontSize: 13, lineHeight: 20 },
+  referenceText: {
+    color: "#6A6A7C",
+    fontSize: 10,
+    marginTop: 8,
+    fontWeight: "700",
+  },
+  selectHint: {
+    color: "#6A6A7C",
+    fontSize: 11,
+    textAlign: "center",
+    marginTop: 8,
+  },
+  pageTitle: {
+    color: colors.ink,
+    fontSize: 25,
+    fontWeight: "900",
+    marginTop: 5,
+  },
+  pageSubtitle: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 6,
+    marginBottom: 20,
+  },
+  emptyCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 18,
+    padding: 20,
+    marginTop: 6,
+  },
+  emptyTitle: { color: colors.ink, fontSize: 17, fontWeight: "800" },
+  emptyBody: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 8,
+  },
+  savedQuestionCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 15,
+    marginTop: 12,
+  },
+  savedQuestionTopic: {
+    color: colors.blue,
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+  savedQuestionPrompt: {
+    color: colors.ink,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "700",
+    marginTop: 8,
+  },
+  removeSaved: {
+    color: colors.red,
+    fontSize: 11,
+    fontWeight: "800",
+    marginTop: 12,
+  },
 });

@@ -1,6 +1,6 @@
 # Driving Theory Test UK: Learn — privacy notice (DRAFT, NOT YET PUBLISHED)
 
-Last revised: 6 November 2026
+Last revised: 17 November 2026
 
 This draft explains the intended data handling of **Driving Theory Test UK: Learn**, an
 independent Great Britain car-theory revision app. The app is not operated by,
@@ -11,9 +11,9 @@ affiliated with or endorsed by DVSA.
 The app stores learning data **on your own device** using its local SQLite
 database. This includes your chosen answers, answer counts and progress,
 bookmarked questions, saved road-sign notes, and active/completed timed
-or ordinary practice sessions. These details help you resume and review your
+or ordinary practice sessions. It also stores lesson versions and reading positions, explicit study confirmations, topic-check answer snapshots and results, and the study acknowledgement attached to each mock attempt. These details help you resume and review your
 studies. The app is designed to operate without an account or network
-connection after installation.
+connection after installation. Lessons, illustrations and the original case-study videos are bundled locally. Optional source-reference links open official websites in your browser and require a connection; the lessons themselves do not.
 
 ## Information the developer does not request
 
