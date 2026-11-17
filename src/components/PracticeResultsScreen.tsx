@@ -12,11 +12,9 @@ type Props = {
   questions: TheoryQuestion[];
   answers: Record<string, number>;
   savedIds: string[];
-  backLabel: string;
   onFinish: () => void;
   onRetry: (items: TheoryQuestion[]) => void;
   onRestart: () => void;
-  onProgress: () => void;
 };
 
 const filters: { key: PracticeReviewFilter; title: string }[] = [
@@ -27,7 +25,7 @@ const filters: { key: PracticeReviewFilter; title: string }[] = [
 ];
 
 export default function PracticeResultsScreen({
-  questions, answers, savedIds, backLabel, onFinish, onRetry, onRestart, onProgress,
+  questions, answers, savedIds, onFinish, onRetry, onRestart,
 }: Props) {
   const [filter, setFilter] = useState<PracticeReviewFilter>('all');
   const [showReview, setShowReview] = useState(false);

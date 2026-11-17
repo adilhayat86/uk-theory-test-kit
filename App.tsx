@@ -355,10 +355,9 @@ function AppContent() {
                   questions={practiceQuestions}
                   answers={sessionAnswers}
                   savedIds={bookmarkedIds}
-                  backLabel={backLabel} onFinish={() => selectTab('home')}
+                  onFinish={() => selectTab('home')}
                   onRetry={startPractice}
                   onRestart={() => startPractice(practiceQuestions)}
-                  onProgress={() => navigate('progress')}
                 />
               ) : (
                 <>
@@ -442,7 +441,7 @@ function AppContent() {
                 <View style={styles.emptyCard}>
                   <Text style={styles.emptyTitle}>Nothing saved yet</Text>
                   <Text style={styles.emptyBody}>Tap ☆ Save during practice to keep a question here for revision.</Text>
-                  <Pressable style={styles.primaryButton} onPress={() => startPractice()}>
+                  <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={() => selectTab('setup')}>
                     <Text style={styles.primaryButtonText}>Find questions to save</Text>
                   </Pressable>
                 </View>
