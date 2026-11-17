@@ -124,6 +124,7 @@ export default function RoadSignsScreen({ onPageChange }: Props) {
                 <Text style={answer === current.quiz.correctIndex ? styles.correct : styles.incorrect}>
                   {answer === current.quiz.correctIndex ? 'Correct' : 'Review this sign'}
                 </Text>
+                <Text style={styles.takeaway}>Correct answer: {current.quiz.answers[current.quiz.correctIndex]}</Text>
                 <Text style={styles.description}>{current.takeaway}</Text>
                 <Text style={styles.reference}>{current.reference}</Text>
                 {index + 1 < practiceFacts.length ? (
@@ -150,11 +151,13 @@ export default function RoadSignsScreen({ onPageChange }: Props) {
             autoCorrect={false} style={styles.search} />
           <View style={styles.filters}>
             <Pressable accessibilityRole="button" onPress={() => setCategory(undefined)}
+              accessibilityState={{ selected: category === undefined }}
               style={[styles.filter, category === undefined && styles.filterActive]}>
               <Text style={[styles.filterText, category === undefined && styles.filterActiveText]}>All</Text>
             </Pressable>
             {roadSignCategories.map((key) => (
               <Pressable key={key} accessibilityRole="button" onPress={() => setCategory(key)}
+                accessibilityState={{ selected: category === key }}
                 style={[styles.filter, category === key && styles.filterActive]}>
                 <Text style={[styles.filterText, category === key && styles.filterActiveText]}>{key}</Text>
               </Pressable>
@@ -221,7 +224,7 @@ const styles = StyleSheet.create({
     color: colors.ink, minHeight: 52 },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   filter: { borderWidth: 1, borderColor: colors.border, borderRadius: 20,
-    backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 9, minHeight: 40 },
+    backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 9, minHeight: 44 },
   filterActive: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   filterText: { color: colors.muted, fontWeight: '700', fontSize: 12 },
   filterActiveText: { color: colors.primary },
@@ -235,7 +238,7 @@ const styles = StyleSheet.create({
   expandHint: { color: colors.primary, fontSize: 12, fontWeight: '700', paddingVertical: 10 },
   eyebrow: { fontWeight: '900', fontSize: 10, color: colors.primary, letterSpacing: 0.5 },
   cardTitle: { fontWeight: '800', fontSize: 17, color: colors.ink, marginTop: 6 },
-  saveButton: { paddingVertical: 8, paddingHorizontal: 6 },
+  saveButton: { paddingVertical: 8, paddingHorizontal: 6, minHeight: 44 },
   description: { color: colors.ink, fontSize: 14, lineHeight: 21, marginTop: 12 },
   takeaway: { color: colors.ink, fontSize: 13, fontWeight: '700', lineHeight: 20, marginTop: 10 },
   reference: { color: colors.muted, fontSize: 11, marginTop: 10 },
