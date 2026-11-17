@@ -6,6 +6,8 @@ This wording follows the vocabulary of current [Google Play](https://play.google
 
 ## Road-sign variation
 
+A compact Union Flag inset sits in the lower-right part of the sign, below the car and beside the checkmark. It reuses the project's existing flag geometry and stays inside the adaptive icon's safe area. The red sign remains the main silhouette; the flag is a regional detail.
+
 The original mark uses the familiar red octagonal silhouette of a STOP sign, with a white inset border. Its central symbol is a newly drawn front-view car and checkmark, replacing the STOP lettering. It represents driving knowledge and practice; it is not an actual instructional sign or an official approval badge. [DfT describes the STOP sign's distinctive octagonal shape](https://www.gov.uk/government/publications/know-your-traffic-signs/the-signing-system).
 
 Editable SVG masters and matching PNG exports are in `src/assets/brand/`. The 1024px app icon has an opaque warm-offwhite background (#F7F7F2), red octagon (#DC333C), and white symbols. The adaptive foreground is transparent and inset so the complete sign fits launcher masks; its separate background is offwhite. The header mark has a rounded-square background. Full-size and 64px versions were inspected for legibility.
