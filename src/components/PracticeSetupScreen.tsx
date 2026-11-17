@@ -25,7 +25,8 @@ type Props = {
 
 export default function PracticeSetupScreen({ records, savedIds, initialTopic, onStart }: Props) {
   const [topics, setTopics] = useState<string[]>(initialTopic ? [initialTopic] : []);
-  const [mode, setMode] = useState<PracticeMode>('all');
+  const [mode, setMode] = useState<PracticeMode>('smart');
+  const [expanded, setExpanded] = useState(false);
   const [limit, setLimit] = useState(10);
   const topicStats = useMemo(() => getTopicReview(questions, records), [records]);
   const eligible = useMemo(() => eligiblePracticeQuestions(questions, records, savedIds, topics, mode),
@@ -45,7 +46,16 @@ export default function PracticeSetupScreen({ records, savedIds, initialTopic, o
   }
 
   return <View>
-    <Text style={styles.title}>Practice</Text>
+    <Text style={styles.title}>Ready to practise?</Text>
+    <Text style={styles.summaryHint}>{count} questions · {topics.length?topics.join(', '):'All topics'}</Text>
+    <Text style={styles.summaryHint}>{mode==='smart'?'A mix based on your progress':modes.find(item=>item.id===mode)?.title}</Text>
+    <Pressable accessibilityRole="button" accessibilityLabel={'Start practice with ' + count + ' questions'}
+      accessibilityState={{disabled:count===0}} disabled={count===0} onPress={start} style={[styles.primary,count===0&&styles.disabled]}>
+      <Text style={styles.primaryText}>Start practice</Text></Pressable>
+    {count===0?<Text style={styles.summaryHint}>No matching questions. Change your practice options.</Text>:null}
+    <Pressable accessibilityRole="button" accessibilityState={{expanded}} onPress={()=>setExpanded(value=>!value)} style={styles.options}>
+      <Text style={styles.chipText}>Practice options {expanded?'−':'+'}</Text></Pressable>
+    {expanded?<>
     <Text style={styles.heading}>Focus</Text>
     <View style={styles.row}>{modes.map((item) => <Pressable key={item.id} accessibilityRole="button"
       accessibilityState={{ selected: mode === item.id }} accessibilityHint={item.detail} onPress={() => setMode(item.id)}
@@ -60,21 +70,14 @@ export default function PracticeSetupScreen({ records, savedIds, initialTopic, o
     </Pressable>)}</View>
     <TopicPicker multiple accessibilityLabel="Choose practice topics" selected={topics} onChange={setTopics}
       items={topicStats.map((item) => ({ id: item.topic, detail: item.questionsTried + '/' + item.totalQuestions + ' tried · ' + item.recentMistakes + ' to retry' }))} />
-    <View style={styles.summary}>
-      <Text style={styles.summaryTitle}>{count ? count + (count === 1 ? ' question ready' : ' questions ready') : 'No matching questions yet'}</Text>
-      <Text style={styles.summaryBody}>{eligible.length} available · {topics.length ? topics.length + ' selected topics' : 'All topics'}</Text>
-      {count === 0 ? <Text style={styles.summaryBody}>Try All questions or choose more topics.</Text> : null}
-      {count > 0 && count < limit ? <Text style={styles.summaryBody}>This session uses all {count} matching questions.</Text> : null}
-      <Pressable accessibilityRole="button" accessibilityLabel={'Start practice with ' + count + ' questions'}
-        accessibilityState={{ disabled: count === 0 }} disabled={count === 0} onPress={start}
-        style={[styles.primary, count === 0 && styles.disabled]}>
-        <Text style={styles.primaryText}>Start practice ›</Text>
-      </Pressable>
-    </View>
+    <Text style={styles.summaryHint}>{eligible.length} available</Text>
+    </>:null}
   </View>;
 }
 
 const styles = StyleSheet.create({
+  summaryHint: {color:colors.muted,fontSize:13,lineHeight:20,marginVertical:6},
+  options: {minHeight:48,justifyContent:'center',marginVertical:18},
   title: { color: colors.ink, fontSize: 26, fontWeight: '900', marginTop: 8 },
   heading: { color: colors.ink, fontSize: 17, fontWeight: '800', marginBottom: 8, marginTop: 6 },
   length: { flex: 1, minHeight: 44, padding: 11, alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.surface },

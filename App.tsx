@@ -15,6 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { questions } from './src/data/questions';
 import { brandAssets } from './src/data/brandAssets';
+import MoreScreen from './src/components/MoreScreen';
 import HomeScreen from './src/components/HomeScreen';
 import ProgressScreen from './src/components/ProgressScreen';
 import { buildLearningOverview } from './src/domain/learningProgress';
@@ -60,6 +61,7 @@ const EMPTY_PROGRESS: ProgressSummary = {
 function AppContent() {
   const [navigation, dispatchNavigation] = useReducer(navigationReducer, initialNavigation);
   const tab = navigation.stack[navigation.stack.length - 1];
+  const focused = tab === 'practice' || tab === 'mock';
   const returnScreen = previousScreen(navigation);
   const backLabel = returnScreen ? screenTitles[returnScreen] : 'Home';
   const navigate = useCallback((screen: Screen) => {
@@ -320,21 +322,11 @@ function AppContent() {
       <StatusBar style="dark" />
       <View style={styles.appShell}>
         <View style={styles.header}>
-          <Image accessible={false} source={brandAssets['brand-mark']} style={styles.brandMark} />
-          <View style={styles.headerCopy}>
-            <Text style={styles.headerTitle}>Driving Theory Test</Text>
-            <Text style={styles.headerEyebrow}>UK: LEARN · TEST BUILD</Text>
-          </View>
-          {tab !== 'search' ? <Pressable accessibilityRole="button" accessibilityLabel="Search questions"
-            onPress={() => navigate('search')} style={styles.headerSearch}><Text style={styles.backText}>Search</Text></Pressable> : null}
+          {navigation.stack.length>1?<Pressable accessibilityRole="button" accessibilityLabel={'Back to '+backLabel} onPress={goBack} style={styles.globalBack}><Text style={styles.backText}>‹ Back</Text></Pressable>:null}
+          {!focused?<Image accessible={false} source={brandAssets['brand-mark']} style={styles.brandMark}/>:null}
+          <Text style={[styles.headerTitle,{flex:1}]}>{screenTitles[tab]}</Text>
+          {tab==='practice'&&practiceSession?<Pressable accessibilityRole="button" accessibilityLabel="Session options" onPress={()=>Alert.alert('Session options','',[{text:'Keep session',style:'cancel'},{text:'End session',style:'destructive',onPress:requestDiscardPractice}])} style={styles.globalBack}><Text style={styles.backText}>•••</Text></Pressable>:null}
         </View>
-
-        {navigation.stack.length > 1 ? <View style={styles.backBar}>
-          <Pressable accessibilityRole="button" accessibilityLabel={'Back to ' + backLabel} onPress={goBack} style={styles.globalBack}>
-            <Text style={styles.backText}>‹ {backLabel}</Text>
-          </Pressable>
-          <Text style={styles.breadcrumb}>{screenTitles[tab]}</Text>
-        </View> : null}
 
         {storageMessage ? (
           <Pressable style={styles.notice} onPress={() => setStorageMessage(null)}>
@@ -353,12 +345,8 @@ function AppContent() {
             contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {tab === 'home' && <HomeScreen session={practiceSession} overview={learningOverview}
             onNext={() => retryQuestions.length > 0 ? startPractice(retryQuestions.slice(0,10)) : learningOverview.unseen > 0 ? startPractice(unseenQuestions) : startPractice(questions,10)}
-            onResume={() => navigate('practice')} onDiscard={requestDiscardPractice}
-            onProgress={() => selectTab('progress')} onTopic={openPracticeSetup}
-            onPicturePractice={() => startPractice(questions.filter((question) => question.imageAssetId !== undefined), 10)}
-            onPractice={() => { setSetupTopic(undefined); selectTab('setup'); }} onSigns={() => selectTab('roadSigns')}
-            onFlashcards={() => navigate('flashcards')} onTimed={() => navigate('mock')}
-            onArtworkReview={(__DEV__ || process.env.EXPO_PUBLIC_IMAGE_REVIEW === 'true') ? () => navigate('imageReview') : undefined} />}
+            onResume={() => navigate('practice')} onProgress={() => navigate('progress')} />}
+          {tab === 'more' && <MoreScreen onOpen={navigate} artworkReview={__DEV__ || process.env.EXPO_PUBLIC_IMAGE_REVIEW === 'true'} />}
 
           {tab === 'practice' && (
             <>
@@ -367,10 +355,10 @@ function AppContent() {
                   questions={practiceQuestions}
                   answers={sessionAnswers}
                   savedIds={bookmarkedIds}
-                  backLabel={backLabel} onFinish={goBack}
+                  backLabel={backLabel} onFinish={() => selectTab('home')}
                   onRetry={startPractice}
                   onRestart={() => startPractice(practiceQuestions)}
-                  onProgress={() => selectTab('progress')}
+                  onProgress={() => navigate('progress')}
                 />
               ) : (
                 <>
@@ -438,10 +426,7 @@ function AppContent() {
           {tab === 'setup' && <>
             <PracticeSetupScreen key={setupTopic ?? 'all'} initialTopic={setupTopic}
               records={progressRecords} savedIds={bookmarkedIds} onStart={startPractice} />
-            <View style={styles.toolLinks}>
-              <Pressable accessibilityRole="button" onPress={() => navigate('flashcards')} style={styles.toolLink}><Text style={styles.backText}>Flashcards ›</Text></Pressable>
-              <Pressable accessibilityRole="button" onPress={() => navigate('mock')} style={styles.toolLink}><Text style={styles.backText}>Timed practice ›</Text></Pressable>
-            </View>
+
           </>}
           {tab === 'mock' && <MockExamScreen />}
           {tab === 'search' && <QuestionSearchScreen onPractise={startPractice} />}
@@ -481,12 +466,11 @@ function AppContent() {
           )}
 
           {tab === 'progress' && <ProgressScreen overview={learningOverview} summary={progress} active={visible}
-            onNew={() => startPractice(unseenQuestions)} onRetry={() => startPractice(retryQuestions.slice(0,10))}
-            onMixed={() => startPractice(questions,10)} onTimed={() => navigate('mock')} onTopic={openPracticeSetup} />}
+            onTimed={() => navigate('mock')} onTopic={openPracticeSetup} />}
         </ScrollView>;
         })}
 
-        <BottomNavigation active={activeRoot(navigation)} onSelect={selectTab} />
+        {!focused?<BottomNavigation active={activeRoot(navigation)} onSelect={(screen)=>{if(screen==='setup')setSetupTopic(undefined);selectTab(screen);}} />:null}
       </View>
     </SafeAreaView>
   );

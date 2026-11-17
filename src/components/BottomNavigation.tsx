@@ -6,10 +6,8 @@ import { colors } from '../theme';
 
 const tabs: { screen: RootScreen; label: string; icon: keyof typeof brandAssets }[] = [
   { screen: 'home', label: 'Home', icon: 'home' },
-  { screen: 'setup', label: 'Learn', icon: 'practice' },
-  { screen: 'progress', label: 'Progress', icon: 'progress' },
-  { screen: 'roadSigns', label: 'Signs', icon: 'signs' },
-  { screen: 'saved', label: 'Saved', icon: 'saved' },
+  { screen: 'setup', label: 'Practice', icon: 'practice' },
+  { screen: 'more', label: 'More', icon: 'signs' },
 ];
 
 export default function BottomNavigation({ active, onSelect }: { active: RootScreen; onSelect: (screen: RootScreen) => void }) {
@@ -19,11 +17,10 @@ export default function BottomNavigation({ active, onSelect }: { active: RootScr
   return <View style={styles.bar}>{tabs.map((tab) => <Pressable key={tab.screen}
     accessibilityRole="tab" accessibilityLabel={tab.label + ' tab'} accessibilityState={{ selected: active === tab.screen }}
     onPress={() => onSelect(tab.screen)} style={styles.tab}>
-    <View style={[styles.iconFrame, tab.screen === 'progress' && styles.progressFrame,
+    <View style={[styles.iconFrame,
       active === tab.screen && styles.selected]}>
       <Image accessible={false} source={brandAssets[tab.icon]} style={[styles.iconImage,
-        active !== tab.screen && styles.mutedIcon,
-        tab.screen === 'progress' && active !== 'progress' && styles.progressIcon]} />
+        active !== tab.screen && styles.mutedIcon]} />
     </View>
     <Text style={[styles.label, largeText && styles.largeLabel, active === tab.screen && styles.active]}>{tab.label}</Text>
   </Pressable>)}</View>;
@@ -34,11 +31,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface, paddingTop: 7, paddingBottom: 4 },
   tab: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
   iconFrame: { width: 44, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 11 },
-  progressFrame: { backgroundColor: colors.primary },
   selected: { backgroundColor: colors.lime },
   iconImage: { width: 22, height: 22 },
   mutedIcon: { tintColor: colors.muted },
-  progressIcon: { tintColor: colors.white },
   label: { color: colors.muted, fontSize: 10, fontWeight: '700', marginTop: 4, textAlign: 'center' },
   largeLabel: { fontSize: 9 },
   active: { color: colors.ink, fontWeight: '900' },

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { LearningOverview } from '../domain/learningProgress';
 import type { ProgressSummary } from '../domain/progress';
@@ -6,36 +6,27 @@ import { colors } from '../theme';
 import { CoverageCard, TopicProgressRow } from './LearningOverview';
 import TimedProgress from './TimedProgress';
 
-type Props={overview:LearningOverview;summary:ProgressSummary;active:boolean;onNew:()=>void;onRetry:()=>void;onMixed:()=>void;onTimed:()=>void;onTopic:(topic:string)=>void};
-export default function ProgressScreen({overview,summary,active,onNew,onRetry,onMixed,onTimed,onTopic}:Props) {
-  const topicsStarted=overview.topics.filter(t=>t.tried>0).length;
+type Props={overview:LearningOverview;summary:ProgressSummary;active:boolean;onTimed:()=>void;onTopic:(topic:string)=>void};
+export default function ProgressScreen({overview,summary,active,onTimed,onTopic}:Props) {
+  const [details,setDetails]=useState(false);
   return <View>
-    <Text style={s.eyebrow}>EVERY ANSWER MOVES YOU FORWARD</Text>
-    <Text accessibilityRole="header" style={s.title}>Your progress</Text>
-    <Text style={s.subtitle}>A clear picture of what you have explored and what needs another look.</Text>
+    <Text accessibilityRole="header" style={s.title}>Progress details</Text>
     <CoverageCard overview={overview} />
+    <Text accessibilityRole="header" style={s.sectionTitle}>Progress by topic</Text>
+    {overview.topics.map(item=><TopicProgressRow key={item.topic} item={item} onPress={()=>onTopic(item.topic)} />)}
+    <Pressable accessibilityRole="button" accessibilityState={{expanded:details}} onPress={()=>setDetails(v=>!v)} style={s.goalAction}>
+      <Text style={s.actionText}>More details {details?'−':'+'}</Text></Pressable>
+    {details?<>
     <View style={s.accuracy}>
       <Text style={s.accuracyValue}>{summary.totalAttempts ? `${summary.accuracyPercent}%` : '—'}</Text>
       <View style={s.accuracyCopy}><Text style={s.cardTitle}>Answer accuracy</Text><Text style={s.body}>{summary.correctAttempts} correct across {summary.totalAttempts} attempts</Text></View>
     </View>
-    <Text accessibilityRole="header" style={s.sectionTitle}>Your learning route</Text>
-    <Goal number="01" title="Explore the question bank" detail={`${overview.tried} of ${overview.total} questions · ${topicsStarted} of ${overview.topics.length} topics started`}
-      action={overview.unseen>0?'Explore new questions':'Revisit the full bank'} onPress={overview.unseen>0?onNew:onMixed} />
-    <Goal number="02" title="Work through your mistakes" detail={overview.tried===0?'Your latest mistakes will appear here after practice.':overview.needsReview>0?`${overview.needsReview} questions were incorrect on your last try.`:'No unresolved mistakes in the questions you have tried.'}
-      action={overview.needsReview>0?'Revisit mistakes':undefined} onPress={onRetry} />
-    <Goal number="03" title="Keep building your knowledge" detail={`${overview.correctLastTime} questions correct on the last try. A mixed session helps you check them again.`}
-      action="Start mixed practice" onPress={onMixed} />
-    <Text accessibilityRole="header" style={s.sectionTitle}>Progress by topic</Text>
-    {overview.topics.map(item=><TopicProgressRow key={item.topic} item={item} onPress={()=>onTopic(item.topic)} />)}
     {active ? <TimedProgress onOpen={onTimed} /> : null}
     <View style={s.note}><Text style={s.cardTitle}>What these numbers mean</Text>
       <Text style={s.body}>Coverage counts questions you have answered. Correct last try and to revisit use your most recent answer; they change as you practise. Accuracy includes repeated attempts.</Text>
       <Text style={s.body}>These are study measures for this {overview.total}-question bank, not a prediction of an official test result. Progress stays on this device.</Text></View>
+    </>:null}
   </View>;
-}
-function Goal({number,title,detail,action,onPress}:{number:string;title:string;detail:string;action?:string;onPress:()=>void}) {
-  return <View style={s.goal}><View style={s.goalHeading}><Text style={s.number}>{number}</Text><Text style={s.cardTitle}>{title}</Text></View>
-    <Text style={s.body}>{detail}</Text>{action ? <Pressable accessibilityRole="button" onPress={onPress} style={s.goalAction}><Text style={s.actionText}>{action} →</Text></Pressable> : null}</View>;
 }
 const s=StyleSheet.create({
   eyebrow:{color:colors.primary,fontSize:9,fontWeight:'800',letterSpacing:1},

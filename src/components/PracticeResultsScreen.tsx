@@ -34,7 +34,8 @@ export default function PracticeResultsScreen({
   const entries = useMemo(() => buildPracticeReview(questions, answers), [questions, answers]);
   const reviewed = useMemo(() => filterPracticeReview(entries, filter, savedIds),
     [entries, filter, savedIds]);
-  const topicScores = useMemo(() => topicPracticeScores(entries), [entries]);
+
+  const topicScores=useMemo(()=>topicPracticeScores(entries),[entries]);
   const right = entries.filter((entry) => entry.correct).length;
   const wrongQuestions = entries.filter((entry) => !entry.correct).map((entry) => entry.question);
   const percent = entries.length ? Math.round(right / entries.length * 100) : 0;
@@ -48,35 +49,13 @@ export default function PracticeResultsScreen({
         <Text style={styles.note}>This short practice result does not predict your official test score.</Text>
       </View>
 
-      <View style={styles.progressCard}>
-        <Text style={styles.progressEyebrow}>YOUR NEXT STEP</Text>
-        <Text style={styles.progressTitle}>Keep moving forward</Text>
-        <Text style={styles.progressBody}>{entries.length > 0
-          ? 'Your answers are saved to your progress. See what you have covered and what to revisit next.'
-          : 'See your question coverage and choose what to practise next.'}</Text>
-        <Pressable accessibilityRole="button" style={styles.primary} onPress={onProgress}>
-          <Text style={styles.primaryText}>See your progress</Text>
-        </Pressable>
-      </View>
-
-      {topicScores.length ? (
-        <>
-          <Text style={styles.sectionTitle}>How you did by topic</Text>
-          {topicScores.map((item) => (
-            <View key={item.topic} style={styles.topicRow}>
-              <Text style={styles.topicTitle}>{item.topic}</Text>
-              <Text style={styles.topicMetric}>{item.correct}/{item.attempted} · {item.percentage}%</Text>
-            </View>
-          ))}
-        </>
-      ) : null}
-
+      <Pressable accessibilityRole="button" style={styles.primary} onPress={onFinish}><Text style={styles.primaryText}>Done</Text></Pressable>
       <Pressable accessibilityRole="button" accessibilityState={{ expanded: showReview }} style={styles.secondary}
         onPress={() => setShowReview((previous) => !previous)}>
         <Text style={styles.secondaryText}>{showReview ? 'Hide answer review' : 'Review your answers'}</Text>
       </Pressable>
 
-      {wrongQuestions.length > 0 ? (
+      {showReview && wrongQuestions.length > 0 ? (
         <Pressable accessibilityRole="button" style={styles.secondary}
           onPress={() => onRetry(wrongQuestions)}>
           <Text style={styles.secondaryText}>Retry {wrongQuestions.length} incorrect answer{wrongQuestions.length === 1 ? '' : 's'}</Text>
@@ -85,6 +64,8 @@ export default function PracticeResultsScreen({
 
       {showReview ? (
         <>
+          <Text style={styles.sectionTitle}>By topic</Text>
+          {topicScores.map(item=><View key={item.topic} style={styles.topicRow}><Text style={styles.topicTitle}>{item.topic}</Text><Text style={styles.topicMetric}>{item.correct}/{item.attempted}</Text></View>)}
           <Text style={styles.sectionTitle}>Your answers</Text>
           <View style={styles.filterRow}>
             {filters.map(({ key, title }) => (
@@ -115,12 +96,10 @@ export default function PracticeResultsScreen({
         </>
       ) : null}
 
-      <Pressable accessibilityRole="button" style={styles.textAction} onPress={onRestart}>
+      {showReview?<Pressable accessibilityRole="button" style={styles.textAction} onPress={onRestart}>
         <Text style={styles.link}>Practise these questions again</Text>
-      </Pressable>
-      <Pressable accessibilityRole="button" style={styles.textAction} onPress={onFinish}>
-        <Text style={styles.link}>Back to {backLabel}</Text>
-      </Pressable>
+      </Pressable>:null}
+
     </View>
   );
 }

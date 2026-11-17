@@ -29,8 +29,8 @@ function renderHome(session: PracticeSession | null) {
     session,
     overview: { total: 2, tried: 0, unseen: 2, correctLastTime: 0,
       needsReview: 0, coveragePercent: 0, topics: [] },
-    onResume, onNext, onDiscard: noop, onPractice: noop, onProgress: noop,
-    onTopic: noop, onPicturePractice: noop, onSigns: noop, onFlashcards: noop, onTimed: noop,
+    onResume, onNext, onProgress: noop,
+
   });
   const controls = elements(tree);
   const find = (label: string) => controls.find((element) => element.props.accessibilityLabel === label);
@@ -44,8 +44,8 @@ test('completed practice remains reviewable from Home without starting or cleari
   review!.props.onPress!();
   expect(onResume).toHaveBeenCalledTimes(1);
   expect(onNext).not.toHaveBeenCalled();
-  expect(find('Start next session')).toBeDefined();
-  expect(find('Discard practice session')).toBeDefined();
+  expect(find('Start practice')).toBeDefined();
+  expect(find('Discard practice session')).toBeUndefined();
   expect(find('Continue practice')).toBeUndefined();
 });
 
@@ -63,7 +63,7 @@ test('Home without a session offers a new session and no stale review action', (
   const { find, onResume, onNext } = renderHome(null);
   expect(find('Review last practice result')).toBeUndefined();
   expect(find('Discard practice session')).toBeUndefined();
-  find('Start next session')!.props.onPress!();
+  find('Start practice')!.props.onPress!();
   expect(onNext).toHaveBeenCalledTimes(1);
   expect(onResume).not.toHaveBeenCalled();
 });

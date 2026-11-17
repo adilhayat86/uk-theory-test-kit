@@ -1,5 +1,5 @@
-export type RootScreen = 'home' | 'setup' | 'roadSigns' | 'saved' | 'progress';
-export type Screen = RootScreen | 'practice' | 'mock' | 'flashcards' | 'search' | 'imageReview';
+export type RootScreen = 'home' | 'setup' | 'more';
+export type Screen = RootScreen | 'roadSigns' | 'saved' | 'progress' | 'practice' | 'mock' | 'flashcards' | 'search' | 'imageReview';
 export type NavigationState = { stack: Screen[] };
 export type NavigationAction =
   | { type: 'tab'; screen: RootScreen }
@@ -8,14 +8,16 @@ export type NavigationAction =
 
 export const initialNavigation: NavigationState = { stack: ['home'] };
 export const screenTitles: Record<Screen, string> = {
-  home: 'Home', setup: 'Learn', roadSigns: 'Signs', saved: 'Saved', progress: 'Progress',
+  home: 'Home', setup: 'Practice', more: 'More', roadSigns: 'Signs', saved: 'Saved', progress: 'Progress',
   practice: 'Your session', mock: 'Timed practice', flashcards: 'Flashcards',
   search: 'Search', imageReview: 'My images',
 };
 export function activeRoot({ stack }: NavigationState): RootScreen {
-  const current = stack[stack.length - 1];
-  if (current === 'practice' || current === 'mock' || current === 'flashcards' || current === 'search') return 'setup';
-  return current === 'imageReview' ? 'home' : current;
+  for (let i=stack.length-1;i>=0;i-=1) {
+    const screen=stack[i];
+    if (screen==='home'||screen==='setup'||screen==='more') return screen;
+  }
+  return 'home';
 }
 
 export function previousScreen({ stack }: NavigationState): Screen | null {
