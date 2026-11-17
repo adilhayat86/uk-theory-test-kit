@@ -10,8 +10,9 @@ third-party analytics or in-app purchases required for study.
 
 MVP positioning: **independent car theory revision**, not an official DVSA
 app and not a full "4-in-1" mock test replacement. The working repository
-name can remain while we settle a distinct Play Store title and approved
-store metadata. Do not imply Great Britain content covers Northern Ireland.
+name can remain. The current descriptive title is **Driving Theory Test UK: Learn**
+(17 November 2026), pending the existing store-publication process and metadata
+approval. Do not imply Great Britain content covers Northern Ireland.
 
 ## In-scope user journey
 

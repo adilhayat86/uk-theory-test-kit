@@ -1,4 +1,4 @@
-# Roadstep progress-first test build
+# Progress-first theory test build
 
 ## Competitor review
 
@@ -10,7 +10,7 @@ Public references checked: [4 in 1 product listing](https://play.google.com/stor
 
 ## Product changes
 
-- Roadstep is the working internal brand: an original ascending checkpoint mark, warm neutral surfaces, indigo actions and lime accents. It has not undergone public brand clearance.
+- The identity uses the descriptive title **Driving Theory Test UK: Learn**, an original STOP-sign-inspired mark, warm neutral surfaces, indigo actions and lime accents. See `BRAND.md` for naming sources and artwork details.
 - Home starts with question coverage and one recommended next step: a saved session, up to ten unresolved mistakes, up to ten unseen questions, then mixed revision. Focus areas link directly to their topic setup.
 - Progress is the central navigation destination. The learning route links bank exploration, mistakes and mixed revision to practice; each topic has an actionable coverage row.
 - Coverage, correct last try, questions to revisit and historical answer accuracy have separate definitions. A later wrong answer moves a question back into review. Incomplete coverage cannot round up to 100%.
@@ -20,6 +20,6 @@ Public references checked: [4 in 1 product listing](https://play.google.com/stor
 
 ## Scope and validation
 
-Version 0.5.0 / Android code 7 retains the existing package, SQLite database and update signing identity. This is a Great Britain car-theory internal test build, not a licensed complete DVSA question bank or a hazard-perception product. Coverage and current answers are study measures, not an official-test readiness probability.
+Version 0.5.1 / Android code 8 retains the existing package, SQLite database and update signing identity. This is a Great Britain car-theory internal test build, not a licensed complete DVSA question bank or a hazard-perception product. Coverage and current answers are study measures, not an official-test readiness probability.
 
 Validation covers TypeScript, regression tests for the learning model and existing session/revision engines, learner Android/iOS exports and selected-image checks, the internal full-image export, and native CI. Device QA must verify the rebrand, current-session discard with unchanged answer/bookmark history, actionable progress rows, answer updates and cold restart. Record final build/device results in the workspace result document.

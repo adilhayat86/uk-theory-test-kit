@@ -322,8 +322,8 @@ function AppContent() {
         <View style={styles.header}>
           <Image accessible={false} source={brandAssets['brand-mark']} style={styles.brandMark} />
           <View style={styles.headerCopy}>
-            <Text style={styles.headerTitle}>Roadstep</Text>
-            <Text style={styles.headerEyebrow}>UK THEORY · TEST BUILD</Text>
+            <Text style={styles.headerTitle}>Driving Theory Test</Text>
+            <Text style={styles.headerEyebrow}>UK: LEARN · TEST BUILD</Text>
           </View>
           {tab !== 'search' ? <Pressable accessibilityRole="button" accessibilityLabel="Search questions"
             onPress={() => navigate('search')} style={styles.headerSearch}><Text style={styles.backText}>Search</Text></Pressable> : null}
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
   brandMark: { width: 38, height: 38, marginRight: 10, borderRadius: 11 },
   headerCopy: { flex: 1, minWidth: 0, marginRight: 12 },
   headerEyebrow: { color: colors.muted, fontSize: 8, fontWeight: '700', letterSpacing: 1, marginTop: 3 },
-  headerTitle: { color: colors.ink, fontSize: 20, fontWeight: '900' },
+  headerTitle: { color: colors.ink, fontSize: 17, fontWeight: '900' },
   notice: { marginHorizontal: 16, marginTop: 10, padding: 12, backgroundColor: '#FFF7E6', borderRadius: 12, borderWidth: 1, borderColor: '#F3D89E' },
   noticeText: { color: '#795A1A', fontSize: 12, lineHeight: 17 },
   noticeDismiss: { color: '#795A1A', fontWeight: '800', fontSize: 11, marginTop: 5 },

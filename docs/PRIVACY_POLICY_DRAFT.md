@@ -1,8 +1,8 @@
-# UK Theory Test Kit — privacy notice (DRAFT, NOT YET PUBLISHED)
+# Driving Theory Test UK: Learn — privacy notice (DRAFT, NOT YET PUBLISHED)
 
 Last revised: 6 November 2026
 
-This draft explains the intended data handling of **UK Theory Test Kit**, an
+This draft explains the intended data handling of **Driving Theory Test UK: Learn**, an
 independent Great Britain car-theory revision app. The app is not operated by,
 affiliated with or endorsed by DVSA.
 

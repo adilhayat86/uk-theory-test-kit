@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Roadstep",
+    "name": "Driving Theory Test UK: Learn",
     "slug": "uk-theory-test-kit",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "description": "Independent offline revision questions for Great Britain car learners. Not affiliated with DVSA.",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -19,10 +19,10 @@
     },
     "android": {
       "package": "com.adilhayat.uktheorytestkit",
-      "versionCode": 7,
+      "versionCode": 8,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/brand/adaptive-icon.png",
-        "backgroundColor": "#4F46E5"
+        "backgroundColor": "#F7F7F2"
       }
     },
     "icon": "./src/assets/brand/app-icon.png"

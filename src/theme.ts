@@ -1,4 +1,4 @@
-/** Shared Roadstep palette. Answer feedback keeps familiar green/red meaning. */
+/** Shared study palette. Answer feedback keeps familiar green/red meaning. */
 export const colors = {
   background: '#F7F7F2',
   surface: '#FFFFFF',

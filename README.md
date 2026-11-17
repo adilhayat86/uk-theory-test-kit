@@ -1,6 +1,6 @@
-# Roadstep
+# Driving Theory Test UK: Learn
 
-An independent, offline Great Britain car theory revision app built with Expo, React Native, TypeScript and SQLite. Progress-first test update **0.5.0**, versionCode **7**. Not affiliated with DVSA.
+An independent, offline Great Britain car theory revision app built with Expo, React Native, TypeScript and SQLite. Search-name and road-sign identity update **0.5.1**, versionCode **8**. Not affiliated with DVSA.
 
 ## Included in the MVP
 
@@ -29,7 +29,7 @@ See the [MVP implementation and phone competitor audit](docs/MVP_IMPLEMENTATION_
 
 The main tabs are **Home, Learn, Progress, Signs and Saved**. Home shows your learning position and recommends a next step. Progress is the central destination for your learning route and topics. Learn opens practice setup; illustrated practice, signs, flashcards and timed checks remain available. Search is in the header.
 
-See the [progress-first redesign and competitor review](docs/PROGRESS_FIRST_REDESIGN.md) and [Roadstep identity](docs/BRAND.md).
+See the [progress-first redesign and competitor review](docs/PROGRESS_FIRST_REDESIGN.md) and [road-sign identity and store name](docs/BRAND.md).
 
 Topics open in a picker rather than a long list above the content. Back returns to the actual previous screen with its search, selections and position retained. The Android Back key closes the topic picker before leaving a screen. A saved practice session is resumed explicitly from Home.
 
