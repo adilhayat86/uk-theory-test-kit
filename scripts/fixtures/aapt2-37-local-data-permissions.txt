@@ -1,0 +1,2 @@
+package: com.example.theory
+uses-permission: name='android.permission.WAKE_LOCK'

@@ -115,11 +115,37 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/android-apk-verifier"
           "$RUNNER_TEMP/android-apk-verifier/bin/python" -m pip install --disable-pip-version-check --no-input -r scripts/android-verify-requirements.txt
       - name: Verify native APK identity, permissions, backup, artwork and 16 KB support
+        id: verify_apk
         run: |
           "$RUNNER_TEMP/android-apk-verifier/bin/python" scripts/verify_android_apk.py \
             android/app/build/outputs/apk/release/app-release.apk \
             --mode learner --signing test \
             --output dist/native/android-verification.json
+      - name: Collect unverified APK and decoded diagnostics after verification failure
+        if: ${{ failure() && steps.verify_apk.outcome == 'failure' }}
+        run: |
+          mkdir -p dist/native-failure
+          DIAGNOSTIC_APK="android/app/build/outputs/apk/release/app-release.apk"
+          DIAGNOSTIC_AAPT="$ANDROID_HOME/build-tools/37.0.0/aapt2"
+          "$DIAGNOSTIC_AAPT" dump badging "$DIAGNOSTIC_APK" > dist/native-failure/badging.txt 2>&1 || true
+          "$DIAGNOSTIC_AAPT" dump xmltree --file AndroidManifest.xml "$DIAGNOSTIC_APK" > dist/native-failure/manifest.txt 2>&1 || true
+          "$DIAGNOSTIC_AAPT" dump resources "$DIAGNOSTIC_APK" > dist/native-failure/resources.txt 2>&1 || true
+          "$DIAGNOSTIC_AAPT" dump permissions "$DIAGNOSTIC_APK" > dist/native-failure/permissions.txt 2>&1 || true
+          sha256sum "$DIAGNOSTIC_APK" > dist/native-failure/apk-sha256.txt || true
+          cp "$DIAGNOSTIC_APK" dist/native-failure/UNVERIFIED-app-release.apk
+          cat > dist/native-failure/README.txt <<'TXT'
+          This APK failed automated verification and is retained for diagnosis only.
+          It is not an approved learner artifact or a production Play upload.
+          Inspect the decoded outputs and run the complete corrected verifier before use.
+          TXT
+      - name: Upload failure-only APK verification diagnostics (UNVERIFIED)
+        if: ${{ failure() && steps.verify_apk.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-verification-failure-diagnostics
+          path: dist/native-failure/
+          if-no-files-found: warn
+          retention-days: 7
       # Expo's development certificate is intentionally retained for Samsung QA.
       # Publication requires owner credentials and the separate production gate.
       - name: Upload verified standalone Android learner APK

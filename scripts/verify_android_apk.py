@@ -131,14 +131,26 @@ def verify_badging(output, app_config, release_config):
     require(package is not None, "Cannot read APK identity")
     expected = (app_config["android"]["package"], str(app_config["android"]["versionCode"]), app_config["version"])
     require(package.groups() == expected, "APK package/version differs from source app.json")
-    minimum = re.search(r"^sdkVersion:'(\d+)'", output, re.M)
-    target = re.search(r"^targetSdkVersion:'(\d+)'", output, re.M)
-    require(minimum is not None and target is not None, "Cannot read Android SDK requirements")
-    require(int(minimum[1]) == release_config["minimumAndroidApi"],
+    def sdk_requirement(labels, description):
+        values = []
+        for label in labels:
+            for raw in re.findall(r"^" + label + r":([^\r\n]*)", output, re.M):
+                value = re.fullmatch(r"'(\d+)'", raw.strip())
+                require(value is not None, "Cannot read Android " + description + " SDK requirement")
+                values.append(int(value[1]))
+        require(bool(values), "Cannot read Android " + description + " SDK requirement")
+        require(len(set(values)) == 1, "Conflicting Android " + description + " SDK requirements")
+        return values[0]
+
+    # Build Tools 37 calls this minSdkVersion; earlier aapt output used sdkVersion.
+    # If both labels occur, they must agree rather than silently picking one.
+    minimum = sdk_requirement(("minSdkVersion", "sdkVersion"), "minimum")
+    target = sdk_requirement(("targetSdkVersion",), "target")
+    require(minimum == release_config["minimumAndroidApi"],
             "Minimum Android API changed; reconcile supported-device promises")
-    require(int(target[1]) >= release_config["minimumTargetApi"], "Target API is below the release policy minimum")
+    require(target >= release_config["minimumTargetApi"], "Target API is below the release policy minimum")
     return {"package": package[1], "version_code": int(package[2]), "version": package[3],
-            "min_sdk": int(minimum[1]), "target_sdk": int(target[1])}
+            "min_sdk": minimum, "target_sdk": target}
 
 
 def load_segment_alignments(data):

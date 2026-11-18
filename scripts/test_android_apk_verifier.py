@@ -1,4 +1,5 @@
 import copy
+from pathlib import Path
 import struct
 import unittest
 from verify_android_apk import (
@@ -70,7 +71,17 @@ class ManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Legacy Android backup"):
             verify_manifest(tree, "uses-permission: name='android.permission.WAKE_LOCK'", APP, RELEASE)
 
-    def test_correct_identity_and_api_requirements_pass(self):
+    def test_real_build_tools_37_badging_verifies_api_values_before_rejecting_wrong_target(self):
+        output = (Path(__file__).parent / "fixtures/aapt2-37-badging.txt").read_text(encoding="utf-8")
+        fixture_app = {"version": "0.7.0", "android": {"package": "com.adilhayat.uktheorytestkit", "versionCode": 10}}
+        result = verify_badging(output, fixture_app, RELEASE)
+        self.assertEqual((result["min_sdk"], result["target_sdk"]), (24, 36))
+        with self.assertRaisesRegex(ValueError, "Target API is below"):
+            verify_badging(output.replace("targetSdkVersion:'36'", "targetSdkVersion:'35'"), fixture_app, RELEASE)
+        with self.assertRaisesRegex(ValueError, "Minimum Android API changed"):
+            verify_badging(output.replace("minSdkVersion:'24'", "minSdkVersion:'25'"), fixture_app, RELEASE)
+
+    def test_legacy_badging_format_and_identity_checks_remain_supported(self):
         output = ("package: name='com.example.theory' versionCode='11' versionName='0.8.0'\n"
                   "sdkVersion:'24'\ntargetSdkVersion:'36'\n")
         self.assertEqual(verify_badging(output, APP, RELEASE)["target_sdk"], 36)
@@ -79,8 +90,35 @@ class ManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "package/version"):
             verify_badging(output.replace("versionCode='11'", "versionCode='10'"), APP, RELEASE)
 
+    def test_minimum_sdk_aliases_must_agree(self):
+        output = ("package: name='com.example.theory' versionCode='11' versionName='0.8.0'\n"
+                  "minSdkVersion:'24'\nsdkVersion:'24'\ntargetSdkVersion:'36'\n")
+        self.assertEqual(verify_badging(output, APP, RELEASE)["min_sdk"], 24)
+        with self.assertRaisesRegex(ValueError, "Conflicting Android minimum SDK"):
+            verify_badging(output.replace("sdkVersion:'24'", "sdkVersion:'25'"), APP, RELEASE)
+        with self.assertRaisesRegex(ValueError, "Conflicting Android target SDK"):
+            verify_badging(output + "targetSdkVersion:'35'\n", APP, RELEASE)
+
+    def test_malformed_sdk_value_cannot_hide_behind_a_valid_alias(self):
+        output = ("package: name='com.example.theory' versionCode='11' versionName='0.8.0'\n"
+                  "minSdkVersion:'unknown'\nsdkVersion:'24'\ntargetSdkVersion:'36'\n")
+        with self.assertRaisesRegex(ValueError, "Cannot read Android minimum SDK"):
+            verify_badging(output, APP, RELEASE)
+
 
 class BackupRuleTests(unittest.TestCase):
+    def test_real_sdk37_compiled_and_path_shortened_local_data_fixture(self):
+        fixtures = Path(__file__).parent / "fixtures"
+        read = lambda part: (fixtures / ("aapt2-37-local-data-" + part + ".txt")).read_text(encoding="utf-8")
+        identity = verify_badging(read("badging"), APP, RELEASE)
+        self.assertEqual((identity["min_sdk"], identity["target_sdk"]), (24, 36))
+        app, permissions = verify_manifest(parse_xmltree(read("manifest")), read("permissions"), APP, RELEASE)
+        self.assertEqual(permissions, ["android.permission.WAKE_LOCK"])
+        rule_file = extraction_resource(read("resources"), app.attrs["dataExtractionRules"])
+        self.assertTrue(rule_file.startswith("res/") and rule_file.endswith(".xml"))
+        self.assertNotIn("android_mvp_data_extraction_rules", rule_file)
+        verify_extraction_rules(parse_xmltree(read("rules")))
+
     def test_all_local_storage_is_excluded_in_both_modes(self):
         verify_extraction_rules(extraction())
 
