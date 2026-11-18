@@ -1,13 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { questions } from "../data/questions";
+import type { TheoryQuestion } from "../data/questions";
 import { caseStudyIds } from "../data/caseStudies";
 import { courseLessons } from "../data/course";
 import QuestionIllustration from "./QuestionIllustration";
@@ -22,7 +24,6 @@ import {
   fullMockReadiness,
   goToQuestion,
   isExpired,
-  isMockResult,
   timeLeftMs,
 } from "../domain/mockExam";
 import type {
@@ -39,6 +40,9 @@ import {
   saveMockSession,
 } from "../storage/database";
 import { colors } from "../theme";
+import { buildMockReview, currentMockResults, filterMockReview,
+  mockTopicScores, relatedLessonId } from "../domain/revisionFocus";
+import type { MockReviewFilter } from "../domain/revisionFocus";
 
 type Props = {
   onFocusChange: (active: boolean) => void;
@@ -48,6 +52,8 @@ type Props = {
   onPageChange: () => void;
   active?: boolean;
   onReadLesson?: (id: string) => void;
+  onPractiseQuestions?: (items: TheoryQuestion[]) => void;
+  onResultSaved?: (result: MockResult) => void | Promise<void>;
 };
 export default function MockExamScreen({
   onFocusChange,
@@ -57,6 +63,8 @@ export default function MockExamScreen({
   onPageChange,
   active = true,
   onReadLesson,
+  onPractiseQuestions,
+  onResultSaved,
 }: Props) {
   const [session, setSession] = useState<MockSession | null>(null);
   const sessionRef = useRef<MockSession | null>(null);
@@ -65,6 +73,9 @@ export default function MockExamScreen({
   const [view, setView] = useState<"overview" | "exam" | "result">("overview");
   const [studied, setStudied] = useState(false);
   const [review, setReview] = useState(false);
+  const [reviewFilter, setReviewFilter] = useState<MockReviewFilter>("incorrect");
+  const [reviewPage, setReviewPage] = useState(0);
+  const [allTopicScores, setAllTopicScores] = useState(false);
   const [grid, setGrid] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [loadFailed, setLoadFailed] = useState(false);
@@ -73,6 +84,21 @@ export default function MockExamScreen({
   const [message, setMessage] = useState<string | null>(null);
   const submitting = useRef(false);
   const starting = useRef(false);
+  const reviewEntries = useMemo(() => result ? buildMockReview(result, questions) : [], [result]);
+  const wrongQuestions = useMemo(() => reviewEntries.filter((entry) => entry.status === "incorrect")
+    .map((entry) => entry.question), [reviewEntries]);
+  const unansweredCount = reviewEntries.filter((entry) => entry.status === "unanswered").length;
+  const topicScores = useMemo(() => mockTopicScores(reviewEntries), [reviewEntries]);
+  const filteredReview = filterMockReview(reviewEntries, reviewFilter);
+  const reviewPageCount = Math.max(1, Math.ceil(filteredReview.length / 5));
+  const currentReviewPage = Math.min(reviewPage, reviewPageCount - 1);
+  const reviewPageEntries = filteredReview.slice(currentReviewPage * 5, currentReviewPage * 5 + 5);
+  useEffect(() => {
+    setReviewPage(0);
+    setAllTopicScores(false);
+    setReviewFilter(reviewEntries.some((entry) => entry.status === "incorrect")
+      ? "incorrect" : reviewEntries.some((entry) => entry.status === "unanswered") ? "unanswered" : "all");
+  }, [reviewEntries]);
   useEffect(() => {
     let mounted = true;
     Promise.all([getActiveMockSession(), getMockResults(10)])
@@ -80,7 +106,7 @@ export default function MockExamScreen({
         if (!mounted) return;
         sessionRef.current = saved;
         setSession(saved);
-        setHistory(reports.filter(isMockResult));
+        setHistory(currentMockResults(questions, reports));
       })
       .catch(() => {
         if (mounted) {
@@ -205,6 +231,13 @@ export default function MockExamScreen({
       setStudied(false);
       setMessage(null);
       onPageChange();
+      if (onResultSaved) {
+        try {
+          await onResultSaved(report);
+        } catch {
+          setMessage("Your exam result was saved. Reopen Progress to refresh your revision suggestions.");
+        }
+      }
     } catch {
       setMessage(
         "Your result could not be saved. Keep the exam open and try again.",
@@ -577,8 +610,13 @@ export default function MockExamScreen({
             This is an independent practice result, not a guarantee of an
             official pass.
           </Text>
+          {onPractiseQuestions && wrongQuestions.length ? <StudyButton
+            title={`Practise ${wrongQuestions.length} incorrect answer${wrongQuestions.length === 1 ? "" : "s"}`}
+            onPress={() => onPractiseQuestions(wrongQuestions)}
+          /> : null}
           <StudyButton
             title="Back to exams"
+            secondary={!!onPractiseQuestions && wrongQuestions.length > 0}
             onPress={() => {
               setView("overview");
               setResult(null);
@@ -586,42 +624,55 @@ export default function MockExamScreen({
               onPageChange();
             }}
           />
+          <Text accessibilityRole="header" style={s.sectionTitle}>By topic</Text>
+          {(allTopicScores ? topicScores : topicScores.slice(0, 3)).map((score) => <View key={score.topic} style={s.topicScore}>
+            <Text style={s.topicTitle}>{score.topic}</Text>
+            <Text style={s.body}>{score.correct}/{score.total} correct · {score.incorrect} incorrect · {score.unanswered} unanswered</Text>
+          </View>)}
+          {topicScores.length > 3 ? <Pressable accessibilityRole="button"
+            accessibilityState={{ expanded: allTopicScores }}
+            onPress={() => setAllTopicScores((old) => !old)} style={s.textAction}>
+            <Text style={s.link}>{allTopicScores ? "Show focus topics" : `See all ${topicScores.length} topic scores`}</Text>
+          </Pressable> : null}
           <StudyButton
             title={review ? "Hide answer review" : "Review exam answers"}
             onPress={() => setReview((old) => !old)}
             secondary
           />
-          {review
-            ? result.questionIds.map((id, index) => {
-                const item = questions.find((q) => q.id === id);
-                if (!item) return null;
-                const selected = result.answers[id];
-                const lesson = courseLessons.find(
-                  (value) =>
-                    value.questionIds.includes(id) ||
-                    (item.caseStudyVideoAssetId &&
-                      value.sections.some(
-                        (section) =>
-                          section.caseStudyId === item.caseStudyVideoAssetId,
-                      )),
-                );
+          {review ? <>
+            <View style={s.reviewFilters}>
+              {([
+                ["incorrect", `Incorrect (${wrongQuestions.length})`],
+                ["unanswered", `Unanswered (${unansweredCount})`],
+                ["all", `All (${reviewEntries.length})`],
+              ] as [MockReviewFilter, string][]).map(([filter, label]) => <Pressable key={filter}
+                accessibilityRole="button" accessibilityState={{ selected: reviewFilter === filter }}
+                onPress={() => { setReviewFilter(filter); setReviewPage(0); }}
+                style={[s.reviewFilter, reviewFilter === filter && s.chosen]}>
+                <Text style={s.link}>{label}</Text>
+              </Pressable>)}
+            </View>
+            <Text accessibilityLiveRegion="polite" style={s.note}>
+              {filteredReview.length ? `${currentReviewPage * 5 + 1}–${Math.min((currentReviewPage + 1) * 5, filteredReview.length)} of ${filteredReview.length} answers` : "No answers in this filter."}
+            </Text>
+            {reviewPageEntries.map((entry, pageIndex) => {
+                const item = entry.question;
+                const selected = entry.selectedIndex;
+                const lessonId = relatedLessonId(item, courseLessons);
+                const lesson = courseLessons.find((value) => value.id === lessonId);
                 const firstVideo =
                   item.caseStudyVideoAssetId &&
-                  result.questionIds.findIndex(
-                    (qid) =>
-                      questions.find((q) => q.id === qid)
-                        ?.caseStudyVideoAssetId === item.caseStudyVideoAssetId,
-                  ) === index;
+                  reviewPageEntries.findIndex((other) => other.question.caseStudyVideoAssetId === item.caseStudyVideoAssetId) === pageIndex;
                 return (
-                  <View key={id} style={s.reviewCard}>
+                  <View key={item.id} style={s.reviewCard}>
                     <Text
                       style={[
                         s.kicker,
                         selected === item.correctIndex && s.good,
                       ]}
                     >
-                      QUESTION {index + 1} ·{" "}
-                      {selected === item.correctIndex ? "CORRECT" : "REVISE"}
+                      QUESTION {entry.number} ·{" "}
+                      {entry.status === "correct" ? "CORRECT" : entry.status === "unanswered" ? "UNANSWERED" : "REVISE"}
                     </Text>
                     {firstVideo ? (
                       <CaseStudyVideo
@@ -641,6 +692,13 @@ export default function MockExamScreen({
                       Correct: {item.options[item.correctIndex]}
                     </Text>
                     <Text style={s.body}>{item.explanation}</Text>
+                    <Text style={s.note}>{item.reference}</Text>
+                    {item.sourceUrl?.startsWith("https://") ? <Pressable accessibilityRole="link"
+                      accessibilityLabel={`Read source for question ${entry.number}`}
+                      onPress={() => { void Linking.openURL(item.sourceUrl!).catch(() =>
+                        setMessage("Source links need a browser and an internet connection.")); }} style={s.textAction}>
+                      <Text style={s.link}>Check the source ↗</Text>
+                    </Pressable> : null}
                     {lesson && onReadLesson ? (
                       <StudyButton
                         title={"Revise: " + lesson.title}
@@ -650,14 +708,25 @@ export default function MockExamScreen({
                     ) : null}
                   </View>
                 );
-              })
-            : null}
+              })}
+            {reviewPageCount > 1 ? <View style={s.nav}>
+              <View style={s.navItem}><StudyButton title="Previous answers" secondary disabled={currentReviewPage === 0}
+                onPress={() => { setReviewPage((page) => Math.max(0, page - 1)); onPageChange(); }} /></View>
+              <View style={s.navItem}><StudyButton title="Next answers" disabled={currentReviewPage + 1 >= reviewPageCount}
+                onPress={() => { setReviewPage((page) => Math.min(reviewPageCount - 1, page + 1)); onPageChange(); }} /></View>
+            </View> : null}
+          </> : null}
         </>
       ) : null}
     </View>
   );
 }
 const s = StyleSheet.create({
+  topicScore: { paddingVertical: 10, borderBottomWidth: 1, borderColor: colors.border },
+  topicTitle: { color: colors.ink, fontSize: 14, lineHeight: 22, fontWeight: "700" },
+  textAction: { minHeight: 44, justifyContent: "center", paddingVertical: 10 },
+  reviewFilters: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
+  reviewFilter: { minHeight: 44, padding: 12, borderRadius: 11, borderWidth: 1, borderColor: colors.border, justifyContent: "center" },
   title: { fontSize: 25, lineHeight: 33, fontWeight: "800", color: colors.ink },
   body: { fontSize: 14, lineHeight: 22, color: colors.muted, marginTop: 8 },
   heading: {

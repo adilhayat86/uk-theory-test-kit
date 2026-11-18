@@ -1,0 +1,4 @@
+content_id,content_kind,title,content_sha256,review_status,reviewer,review_date,notes
+case-zebra-crossing,video,A town road,b64fae9326d3ca907a050b97e10d8c38e1bdce2bed02aec3cb8c183c1e420d5c,PENDING_INDEPENDENT_REVIEW,,,
+case-wet-following,video,A wet dual carriageway,11920b9e99c4efb7930eff0ebd26cd4464fddf957178e3c5193c9d52b0b2c658,PENDING_INDEPENDENT_REVIEW,,,
+case-cyclist-oncoming,video,A road with parked vehicles,7fbcebf1dcc0507aa9dc5bbb102de9dee687d6b57f0b2150e72e449c172b4b34,PENDING_INDEPENDENT_REVIEW,,,

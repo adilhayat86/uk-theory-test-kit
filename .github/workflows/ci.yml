@@ -1,21 +1,26 @@
-name: Mobile CI
+name: Android MVP CI
 
 on:
   push:
     branches: [main, develop, 'feature/**']
   pull_request:
   workflow_dispatch:
+    inputs:
+      artwork_review:
+        description: Export the separate internal draft-artwork reviewer
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: mobile-ci-${{ github.workflow }}-${{ github.ref }}
+  group: android-mvp-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
-    name: TypeScript, tests and Expo diagnostics
+    name: Android MVP checks and tests
     runs-on: ubuntu-24.04
     steps:
       - name: Check out source
@@ -28,17 +33,21 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Check Expo dependency compatibility
         run: npm run doctor
+      - name: Check Android-only MVP configuration
+        run: node scripts/check-android-release.cjs
       - name: Type-check
         run: npm run typecheck
-      - name: Run domain tests
+      - name: Run domain and configuration tests
         run: npm test -- --coverage
-      - name: Report Android MVP content readiness (not a release approval)
-        run: npm run check:mvp:content -- --report-only
-      - name: Report human editorial sign-off status (not release approval)
+      - name: Test native APK verification guards
+        run: python3 -m unittest discover -s scripts -p 'test_android_apk_verifier.py'
+      - name: Enforce structural content requirements
+        run: npm run check:mvp:content
+      - name: Report independent editorial status (not paid-release approval)
         run: npm run check:mvp:editorial -- --report-only
 
-  javascript-bundles:
-    name: Export Android and iOS JavaScript bundles
+  android-export:
+    name: Export offline Android learner bundle
     runs-on: ubuntu-24.04
     needs: quality
     env:
@@ -52,36 +61,25 @@ jobs:
           node-version: 22.13.1
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
-      - name: Export Android bundle
+      - name: Export Android learner bundle
         run: npm run export:android
-      - name: Export iOS bundle
-        run: npm run export:ios
-      - name: Verify learner exports include selected illustrations only
-        run: |
-          node scripts/check-export-assets.cjs dist/android android learner
-          node scripts/check-export-assets.cjs dist/ios ios learner
-      - name: Export internal offline artwork review bundle
-        env:
-          EXPO_PUBLIC_IMAGE_REVIEW: 'true'
-        run: npx expo export --platform android --output-dir dist/android-artwork-review --clear
-      - name: Verify all draft artwork is available offline for review
-        run: node scripts/check-export-assets.cjs dist/android-artwork-review android review
-      - name: Upload bundles
+      - name: Verify selected images and original offline videos
+        run: node scripts/check-export-assets.cjs dist/android android learner
+      - name: Upload Android learner bundle
         uses: actions/upload-artifact@v4
         with:
-          name: mobile-js-bundles
-          path: dist/
+          name: android-learner-js-bundle
+          path: dist/android/
           if-no-files-found: error
           retention-days: 7
 
-  android-debug:
-    name: Build Android device-test APK and bundles
+  android-release:
+    name: Build and verify offline Android learner APK
     runs-on: ubuntu-24.04
     needs: quality
     env:
-      # Internal device-test APK includes Home → My images and the complete offline collection.
-      # Store/learner exports above still exclude the unselected draft artwork.
-      EXPO_PUBLIC_IMAGE_REVIEW: 'true'
+      EXPO_PUBLIC_IMAGE_REVIEW: 'false'
+      ANDROID_BUILD_CHANNEL: internal
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -96,10 +94,9 @@ jobs:
           java-version: '17'
       - name: Install Android API 37 platform
         run: |
-          SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           if [[ ! -x "$SDKMANAGER" ]]; then
-            echo "Android SDK Manager unavailable at $SDKMANAGER"
-            ls -la "${ANDROID_HOME}/cmdline-tools" || true
+            echo "Android SDK Manager is unavailable."
             exit 1
           fi
           yes | "$SDKMANAGER" --licenses >/dev/null || true
@@ -107,39 +104,39 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
       - name: Generate Android native project
-        run: npx expo prebuild --platform android --non-interactive
-      - name: Build debug APK and release-mode Android App Bundle
+        run: npx expo prebuild --platform android --no-install
+      - name: Build standalone learner APK and CI-only App Bundle
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug assembleRelease bundleRelease --no-daemon
-      - name: Verify standalone APK contains the offline JavaScript bundle
+          ./gradlew assembleRelease bundleRelease --no-daemon
+      - name: Install isolated APK verification tools
         run: |
-          python3 - <<'PY'
-          import zipfile
-          with zipfile.ZipFile("android/app/build/outputs/apk/release/app-release.apk") as apk:
-              bundle = apk.getinfo("assets/index.android.bundle")
-              assert bundle.file_size > 0, "Offline JavaScript bundle is empty"
-          PY
-      # Expo's generated release signing uses the development key here.
-      # This APK is for physical-device QA only, never Play publishing.
-      - name: Upload standalone device-test APK
+          python3 -m venv "$RUNNER_TEMP/android-apk-verifier"
+          "$RUNNER_TEMP/android-apk-verifier/bin/python" -m pip install --disable-pip-version-check --no-input -r scripts/android-verify-requirements.txt
+      - name: Verify native APK identity, permissions, backup, artwork and 16 KB support
+        run: |
+          "$RUNNER_TEMP/android-apk-verifier/bin/python" scripts/verify_android_apk.py \
+            android/app/build/outputs/apk/release/app-release.apk \
+            --mode learner --signing test \
+            --output dist/native/android-verification.json
+      # Expo's development certificate is intentionally retained for Samsung QA.
+      # Publication requires owner credentials and the separate production gate.
+      - name: Upload verified standalone Android learner APK
         uses: actions/upload-artifact@v4
         with:
           name: android-offline-test-apk
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
-      - name: Upload debug APK (requires Metro, not for offline QA)
+      - name: Upload native verification evidence
         uses: actions/upload-artifact@v4
         with:
-          name: android-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: android-native-verification
+          path: dist/native/android-verification.json
           if-no-files-found: error
           retention-days: 7
-      # The generated bundle is CI verification ONLY. A production Play release
-      # must use the owner's upload key/Play App Signing, not a build-machine key.
-      - name: Upload CI-only release App Bundle (NOT for Play publishing)
+      - name: Upload CI-only App Bundle (NOT for Play publishing)
         uses: actions/upload-artifact@v4
         with:
           name: android-release-ci-only-aab
@@ -147,10 +144,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  ios-simulator:
-    name: Build iOS simulator app
-    runs-on: macos-26
+  artwork-review:
+    name: Optional internal artwork review export
+    if: github.event_name == 'workflow_dispatch' && inputs.artwork_review == true
+    runs-on: ubuntu-24.04
     needs: quality
+    env:
+      EXPO_PUBLIC_IMAGE_REVIEW: 'true'
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -160,34 +160,14 @@ jobs:
           node-version: 22.13.1
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
-      - name: Generate iOS native project and install Pods
-        run: npx expo prebuild --platform ios --non-interactive
-      - name: Build for iOS Simulator
-        shell: bash
-        run: |
-          set -euo pipefail
-          WORKSPACE="$(find ios -maxdepth 1 -name '*.xcworkspace' -print -quit)"
-          if [[ -z "$WORKSPACE" ]]; then
-            echo "Expo did not generate an Xcode workspace."
-            exit 1
-          fi
-          SCHEME="$(basename "$WORKSPACE" .xcworkspace)"
-          echo "Building workspace: $WORKSPACE"
-          xcodebuild -list -workspace "$WORKSPACE"
-          echo "Using scheme: $SCHEME"
-          xcodebuild \
-            -workspace "$WORKSPACE" \
-            -scheme "$SCHEME" \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build/ios \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-      - name: Upload iOS simulator app
+      - name: Export separate internal artwork reviewer
+        run: npx expo export --platform android --output-dir dist/android-artwork-review --clear
+      - name: Verify complete internal artwork collection
+        run: node scripts/check-export-assets.cjs dist/android-artwork-review android review
+      - name: Upload internal review export
         uses: actions/upload-artifact@v4
         with:
-          name: ios-simulator-app
-          path: build/ios/Build/Products/Debug-iphonesimulator/*.app
+          name: android-artwork-review-bundle
+          path: dist/android-artwork-review/
           if-no-files-found: error
           retention-days: 7

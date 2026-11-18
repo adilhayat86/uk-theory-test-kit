@@ -6,6 +6,8 @@ export type QuestionProgressDetail = {
   attempts: number;
   correctAttempts: number;
   lastSelectedIndex: number;
+  /** Epoch milliseconds of the latest ordinary answer; optional for legacy callers. */
+  lastAnsweredAt?: number;
 };
 
 export type TopicReview = {

@@ -2,6 +2,7 @@ export type RootScreen = "home" | "setup" | "mock" | "progress";
 export type Screen =
   | RootScreen
   | "more"
+  | "help"
   | "module"
   | "lesson"
   | "roadSigns"
@@ -21,6 +22,7 @@ export const screenTitles: Record<Screen, string> = {
   home: "Learn",
   setup: "Practise",
   more: "Study tools",
+  help: "Help",
   module: "Topic",
   lesson: "Lesson",
   roadSigns: "Signs",

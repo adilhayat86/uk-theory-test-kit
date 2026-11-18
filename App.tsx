@@ -11,6 +11,7 @@ import {
   Alert,
   BackHandler,
   Keyboard,
+  Linking,
   Image,
   Pressable,
   ScrollView,
@@ -23,6 +24,8 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { questions } from "./src/data/questions";
 import { brandAssets } from "./src/data/brandAssets";
 import MoreScreen from "./src/components/MoreScreen";
+import HelpScreen from "./src/components/HelpScreen";
+import StorageRecoveryScreen from "./src/components/StorageRecoveryScreen";
 import {
   CourseHome,
   ModuleScreen,
@@ -42,7 +45,6 @@ import type {
 import { selectCheckpointQuestions } from "./src/domain/courseAssessment";
 import ProgressScreen from "./src/components/ProgressScreen";
 import { buildLearningOverview } from "./src/domain/learningProgress";
-import { eligiblePracticeQuestions } from "./src/domain/practiceSelection";
 import { colors as palette } from "./src/theme";
 import BottomNavigation from "./src/components/BottomNavigation";
 import {
@@ -63,6 +65,10 @@ import ImageReviewScreen from "./src/components/ImageReviewScreen";
 import RoadSignsScreen from "./src/components/RoadSignsScreen";
 import PracticeResultsScreen from "./src/components/PracticeResultsScreen";
 import { chooseQuestions } from "./src/domain/mockExam";
+import type { MockResult } from "./src/domain/mockExam";
+import { buildRevisionFocus } from "./src/domain/revisionFocus";
+import { loadLearningData } from "./src/storage/loadLearningData";
+import { createLatestSnapshotLoader } from "./src/storage/latestSnapshot";
 import {
   beginPractice,
   practiceIsCompatible,
@@ -70,22 +76,16 @@ import {
 import type { PracticeSession } from "./src/domain/practiceSession";
 import type { TheoryQuestion } from "./src/data/questions";
 import {
-  getLessonProgress,
-  getCheckpointResults,
   saveLessonPosition,
   markLessonRead,
-  getBookmarkedQuestionIds,
-  getProgressSummary,
-  getQuestionProgressRecords,
-  getSavedPracticeSession,
   replaceSavedPractice,
   recordSavedPracticeAnswer,
   advanceSavedPractice,
   clearSavedPractice,
   toggleBookmark,
+  resetLearningData,
 } from "./src/storage/database";
 import type { ProgressSummary } from "./src/domain/progress";
-import { getQuestionsToRetry } from "./src/domain/revision";
 import type { QuestionProgressDetail } from "./src/domain/revision";
 
 const EMPTY_PROGRESS: ProgressSummary = {
@@ -108,6 +108,7 @@ function AppContent() {
   const [checkpointResults, setCheckpointResults] = useState<
     CheckpointResult[]
   >([]);
+  const [mockResults, setMockResults] = useState<MockResult[]>([]);
   const returnScreen = previousScreen(navigation);
   const backLabel = returnScreen ? screenTitles[returnScreen] : "Home";
   const navigate = useCallback((screen: Screen) => {
@@ -138,10 +139,17 @@ function AppContent() {
     QuestionProgressDetail[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [storageMessage, setStorageMessage] = useState<string | null>(null);
   const answerLockedRef = useRef(false);
   const pendingBookmarksRef = useRef<Set<string>>(new Set());
+  const mountedRef = useRef(true);
+  const dataReadyRef = useRef(false);
+  const dataEpochRef = useRef(0);
+  const loadAttemptRef = useRef(0);
+  const snapshotLoader = useMemo(() => createLatestSnapshotLoader(loadLearningData), []);
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   const scrollToTop = useCallback(
@@ -191,113 +199,123 @@ function AppContent() {
     [bookmarkedIds],
   );
 
-  const retryQuestions = useMemo(
-    () => getQuestionsToRetry(questions, progressRecords),
-    [progressRecords],
+  const revisionFocus = useMemo(
+    () => buildRevisionFocus(questions, progressRecords, mockResults, courseLessons),
+    [progressRecords, mockResults],
   );
   const learningOverview = useMemo(
     () => buildLearningOverview(questions, progressRecords),
     [progressRecords],
   );
-  const unseenQuestions = useMemo(
-    () =>
-      eligiblePracticeQuestions(
-        questions,
-        progressRecords,
-        [],
-        [],
-        "unseen",
-      ).slice(0, 10),
-    [progressRecords],
-  );
 
   const refreshLocalData = useCallback(async () => {
-    const [nextProgress, nextBookmarks, nextRecords, nextLessons, nextChecks] =
-      await Promise.all([
-        getProgressSummary(),
-        getBookmarkedQuestionIds(),
-        getQuestionProgressRecords(),
-        getLessonProgress(),
-        getCheckpointResults(),
-      ]);
-    setProgress(nextProgress);
-    setBookmarkedIds(nextBookmarks);
-    setProgressRecords(nextRecords);
-    setLessonRecords(nextLessons);
-    setCheckpointResults(nextChecks);
-  }, []);
+    if (!dataReadyRef.current) return;
+    const epoch = dataEpochRef.current;
+    const saved = await snapshotLoader.load();
+    if (!saved || !mountedRef.current || epoch !== dataEpochRef.current) return;
+    setProgress(saved.progress);
+    setBookmarkedIds(saved.bookmarks);
+    setProgressRecords(saved.records);
+    setLessonRecords(saved.lessons);
+    setCheckpointResults(saved.checkpoints);
+    setMockResults(saved.mocks);
+  }, [snapshotLoader]);
+
+  const loadInitialData = useCallback(async () => {
+    const attempt = ++loadAttemptRef.current;
+    const epoch = dataEpochRef.current;
+    dataReadyRef.current = false;
+    snapshotLoader.invalidate();
+    setIsLoading(true);
+    setLoadFailed(false);
+    const current = () => mountedRef.current && attempt === loadAttemptRef.current && epoch === dataEpochRef.current;
+    try {
+      const saved = await loadLearningData();
+      if (!current()) return false;
+      setProgress(saved.progress);
+      setBookmarkedIds(saved.bookmarks);
+      setProgressRecords(saved.records);
+      setLessonRecords(saved.lessons);
+      setCheckpointResults(saved.checkpoints);
+      setMockResults(saved.mocks);
+      const session = saved.practice;
+      if (session && practiceIsCompatible(session, questions) &&
+          (!session.checkpoint || (isCurrentCheckpointContext(session.checkpoint, courseModules, courseLessons) &&
+            session.questionIds.every(id => courseModules.find(module => module.id === session.checkpoint!.moduleId)?.questionIds.includes(id))))) {
+        practiceRef.current = session;
+        setPracticeSession(session);
+      } else {
+        practiceRef.current = null;
+        setPracticeSession(null);
+        if (session) setStorageMessage("Your saved practice belongs to an older course or question set. Start a new session; your earlier answer history is retained.");
+      }
+      dataReadyRef.current = true;
+      return true;
+    } catch {
+      if (current()) setLoadFailed(true);
+      return false;
+    } finally {
+      if (current()) setIsLoading(false);
+    }
+  }, [snapshotLoader]);
 
   useEffect(() => {
-    let mounted = true;
-    Promise.all([
-      getProgressSummary(),
-      getBookmarkedQuestionIds(),
-      getQuestionProgressRecords(),
-      getSavedPracticeSession(),
-      getLessonProgress(),
-      getCheckpointResults(),
-    ])
-      .then(
-        ([
-          nextProgress,
-          nextBookmarks,
-          nextRecords,
-          savedPractice,
-          nextLessons,
-          nextChecks,
-        ]) => {
-          if (!mounted) return;
-          setProgress(nextProgress);
-          setBookmarkedIds(nextBookmarks);
-          setProgressRecords(nextRecords);
-          setLessonRecords(nextLessons);
-          setCheckpointResults(nextChecks);
-          if (
-            savedPractice &&
-            practiceIsCompatible(savedPractice, questions) &&
-            (!savedPractice.checkpoint ||
-              (isCurrentCheckpointContext(
-                savedPractice.checkpoint,
-                courseModules,
-                courseLessons,
-              ) &&
-                savedPractice.questionIds.every((id) =>
-                  courseModules
-                    .find(
-                      (item) => item.id === savedPractice.checkpoint!.moduleId,
-                    )
-                    ?.questionIds.includes(id),
-                )))
-          ) {
-            practiceRef.current = savedPractice;
-            setPracticeSession(savedPractice);
-          } else if (savedPractice) {
-            setStorageMessage(
-              "Your saved practice belongs to an older course or question set. Start a new session; your earlier answer history is retained.",
-            );
-          }
-        },
-      )
-      .catch(() => {
-        if (mounted)
-          setStorageMessage(
-            "Local storage could not be opened. Your current practice screen is still available.",
-          );
-      })
-      .finally(() => {
-        if (mounted) setIsLoading(false);
-      });
+    mountedRef.current = true;
+    void loadInitialData();
     return () => {
-      mounted = false;
+      mountedRef.current = false;
+      loadAttemptRef.current += 1;
     };
-  }, []);
+  }, [loadInitialData]);
+
+  async function performDataReset() {
+    if (!dataReadyRef.current || practiceSavingRef.current || pendingBookmarksRef.current.size) return;
+    dataReadyRef.current = false;
+    dataEpochRef.current += 1;
+    snapshotLoader.invalidate();
+    loadAttemptRef.current += 1;
+    setIsResetting(true);
+    // Unmount all session owners before clearing SQLite; their late reads cannot hydrate the new app.
+    dispatchNavigation({ type: "tab", screen: "home" });
+    try {
+      await resetLearningData();
+      practiceRef.current = null;
+      answerLockedRef.current = false;
+      pendingBookmarksRef.current = new Set();
+      setSelectedModuleId(undefined);
+      setSelectedLessonId(undefined);
+      setSetupTopic(undefined);
+      setMockFocused(false);
+      setStorageMessage(null);
+      const loaded = await loadInitialData();
+      if (loaded) setStorageMessage("Your learning data has been reset.");
+    } catch {
+      // The delete is transactional; reopen the saved state before enabling any further writes.
+      await loadInitialData();
+      setStorageMessage("Learning data could not be reset. Please try again.");
+    } finally {
+      setIsResetting(false);
+    }
+  }
+
+  function requestDataReset() {
+    if (isSaving || practiceSavingRef.current || pendingBookmarksRef.current.size) {
+      Alert.alert("Please wait", "Let the current save finish, then try again.");
+      return;
+    }
+    Alert.alert("Reset all learning data?",
+      "This deletes lesson progress, answers, topic checks, practice sessions, mock exams, saved questions and saved signs on this phone. The course and videos stay available.", [
+        { text: "Keep my data", style: "cancel" },
+        { text: "Delete learning data", style: "destructive", onPress: () => { void performDataReset(); } },
+      ]);
+  }
 
   function startPractice(
     items: TheoryQuestion[] = questions,
     questionLimit?: number,
     checkpoint?: CheckpointContext,
   ) {
-    if (practiceSavingRef.current) return;
+    if (!dataReadyRef.current || practiceSavingRef.current) return;
     if (
       checkpoint &&
       (!isCurrentCheckpointContext(checkpoint, courseModules, courseLessons) ||
@@ -319,7 +337,8 @@ function AppContent() {
     }
 
     async function createSession() {
-      if (practiceSavingRef.current) return;
+      if (!dataReadyRef.current || practiceSavingRef.current) return;
+      const epoch = dataEpochRef.current;
       practiceSavingRef.current = true;
       setIsSaving(true);
       try {
@@ -337,12 +356,14 @@ function AppContent() {
           checkpoint,
         );
         await replaceSavedPractice(started);
+        if (epoch !== dataEpochRef.current) return;
         practiceRef.current = started;
         setPracticeSession(started);
         answerLockedRef.current = false;
         setStorageMessage(null);
         navigate("practice");
       } catch {
+        if (epoch !== dataEpochRef.current) return;
         setStorageMessage(
           "Could not create an offline practice session. Please try again.",
         );
@@ -397,11 +418,13 @@ function AppContent() {
   }
 
   async function discardPractice() {
-    if (practiceSavingRef.current) return;
+    if (!dataReadyRef.current || practiceSavingRef.current) return;
+    const epoch = dataEpochRef.current;
     practiceSavingRef.current = true;
     setIsSaving(true);
     try {
       await clearSavedPractice();
+      if (epoch !== dataEpochRef.current) return;
       practiceRef.current = null;
       setPracticeSession(null);
       answerLockedRef.current = false;
@@ -409,6 +432,7 @@ function AppContent() {
       selectTab("home");
       scrollToTop();
     } catch {
+      if (epoch !== dataEpochRef.current) return;
       setStorageMessage("Could not discard the session. Please try again.");
     } finally {
       practiceSavingRef.current = false;
@@ -417,6 +441,8 @@ function AppContent() {
   }
 
   async function chooseAnswer(index: number) {
+    if (!dataReadyRef.current) return;
+    const epoch = dataEpochRef.current;
     const active = practiceRef.current;
     if (
       !active ||
@@ -435,6 +461,7 @@ function AppContent() {
         currentQuestion,
         index,
       );
+      if (epoch !== dataEpochRef.current) return;
       practiceRef.current = persisted;
       setPracticeSession(persisted);
       setStorageMessage(null);
@@ -446,6 +473,7 @@ function AppContent() {
         );
       }
     } catch {
+      if (epoch !== dataEpochRef.current) return;
       // Neither the answer nor the accuracy counter changes if the SQLite
       // transaction fails. Allow the learner to tap again rather than lose it.
       answerLockedRef.current = false;
@@ -457,30 +485,43 @@ function AppContent() {
   }
 
   async function handleBookmark(questionId: string) {
-    if (pendingBookmarksRef.current.has(questionId)) return;
-    pendingBookmarksRef.current.add(questionId);
+    if (!dataReadyRef.current || pendingBookmarksRef.current.has(questionId)) return;
+    const epoch = dataEpochRef.current;
+    const pending = pendingBookmarksRef.current;
+    snapshotLoader.invalidate();
+    pending.add(questionId);
     try {
       const isSaved = await toggleBookmark(questionId);
+      if (epoch !== dataEpochRef.current) return;
       setBookmarkedIds((previous) =>
         isSaved
           ? [...previous.filter((id) => id !== questionId), questionId]
           : previous.filter((id) => id !== questionId),
       );
       setStorageMessage(null);
+      try {
+        await refreshLocalData();
+      } catch {
+        if (epoch === dataEpochRef.current) setStorageMessage("Your bookmark was saved, but progress could not be refreshed.");
+      }
     } catch {
+      if (epoch !== dataEpochRef.current) return;
       setStorageMessage("The bookmark could not be saved on this device.");
     } finally {
-      pendingBookmarksRef.current.delete(questionId);
+      pending.delete(questionId);
     }
   }
 
   async function goToNextQuestion() {
+    if (!dataReadyRef.current) return;
+    const epoch = dataEpochRef.current;
     const current = practiceRef.current;
     if (!current || practiceSavingRef.current) return;
     practiceSavingRef.current = true;
     setIsSaving(true);
     try {
       const persisted = await advanceSavedPractice(current);
+      if (epoch !== dataEpochRef.current) return;
       practiceRef.current = persisted;
       setPracticeSession(persisted);
       answerLockedRef.current = false;
@@ -493,6 +534,7 @@ function AppContent() {
         );
       }
     } catch {
+      if (epoch !== dataEpochRef.current) return;
       setStorageMessage("Could not save the next position. Try again.");
     } finally {
       practiceSavingRef.current = false;
@@ -505,6 +547,8 @@ function AppContent() {
     navigate("module");
   }
   function openLesson(id: string) {
+    if (!dataReadyRef.current) return;
+    const epoch = dataEpochRef.current;
     const lesson = courseLessons.find((item) => item.id === id);
     if (!lesson) return;
     setSelectedModuleId(lesson.moduleId);
@@ -515,13 +559,15 @@ function AppContent() {
     if (!record)
       void saveLessonPosition(id, lesson.version, lesson.sections[0].id)
         .then(refreshLocalData)
-        .catch(() =>
-          setStorageMessage("Your reading position could not be saved."),
-        );
+        .catch(() => {
+          if (epoch === dataEpochRef.current) setStorageMessage("Your reading position could not be saved.");
+        });
     if (tab === "home") navigate("module");
     navigate("lesson");
   }
   async function storeLessonPosition(sectionId: string) {
+    if (!dataReadyRef.current) throw new Error("Learning data is not ready.");
+    const epoch = dataEpochRef.current;
     setIsSaving(true);
     try {
       await saveLessonPosition(
@@ -529,6 +575,7 @@ function AppContent() {
         selectedLesson.version,
         sectionId,
       );
+      if (epoch !== dataEpochRef.current) throw new Error("Learning data was reset.");
       try {
         await refreshLocalData();
       } catch {
@@ -537,7 +584,7 @@ function AppContent() {
         );
       }
     } catch {
-      setStorageMessage(
+      if (epoch === dataEpochRef.current) setStorageMessage(
         "Your reading position could not be saved. Please try again.",
       );
       throw new Error("Position not saved");
@@ -546,14 +593,17 @@ function AppContent() {
     }
   }
   async function confirmLessonRead() {
+    if (!dataReadyRef.current) return;
+    const epoch = dataEpochRef.current;
     setIsSaving(true);
     try {
       await markLessonRead(selectedLesson.id, selectedLesson.version);
       await refreshLocalData();
+      if (epoch !== dataEpochRef.current) return;
       goBack();
       scrollToTop();
     } catch {
-      setStorageMessage(
+      if (epoch === dataEpochRef.current) setStorageMessage(
         "Your study confirmation could not be saved. Please try again.",
       );
     } finally {
@@ -607,14 +657,16 @@ function AppContent() {
     return () => subscription.remove();
   }, [returnScreen, goBack]);
 
-  if (isLoading) {
+  if (isLoading || isResetting) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={colors.blue} />
-        <Text style={styles.loadingText}>Opening your offline study data…</Text>
+        <Text style={styles.loadingText}>{isResetting ? "Resetting your learning data…" : "Opening your offline study data…"}</Text>
       </View>
     );
   }
+
+  if (loadFailed) return <StorageRecoveryScreen onRetry={() => { void loadInitialData(); }} />;
 
   return (
     <SafeAreaView
@@ -717,6 +769,8 @@ function AppContent() {
                   onResume={() => navigate("practice")}
                   onTools={() => navigate("more")}
                   onExams={() => selectTab("mock")}
+                  revisionFocus={revisionFocus}
+                  onRevise={() => startPractice(revisionFocus.questions.slice(0, 10))}
                 />
               )}
               {tab === "module" && selectedModule && (
@@ -758,6 +812,7 @@ function AppContent() {
                   }
                 />
               )}
+              {tab === "help" && <HelpScreen onReset={requestDataReset} resetting={isSaving} />}
 
               {tab === "practice" && (
                 <>
@@ -895,6 +950,12 @@ function AppContent() {
                             <Text style={styles.referenceText}>
                               {currentQuestion.reference}
                             </Text>
+                            {currentQuestion.sourceUrl?.startsWith("https://") ? <Pressable
+                              accessibilityRole="link" style={{ minHeight: 44, justifyContent: "center" }}
+                              onPress={() => { void Linking.openURL(currentQuestion.sourceUrl!).catch(() =>
+                                Alert.alert("Unable to open source", "Connect to the internet and try again.")); }}>
+                              <Text style={{ color: palette.primary, fontSize: 13, fontWeight: "700" }}>Check the source ↗</Text>
+                            </Pressable> : null}
                             <Pressable
                               accessibilityRole="button"
                               disabled={isSaving}
@@ -938,6 +999,7 @@ function AppContent() {
                     initialTopic={setupTopic}
                     records={progressRecords}
                     savedIds={bookmarkedIds}
+                    mockResults={mockResults}
                     onStart={startPractice}
                   />
                 </>
@@ -951,6 +1013,10 @@ function AppContent() {
                   topicsCompleted={courseProgress.modulesCompleted}
                   totalTopics={courseProgress.totalModules}
                   onPageChange={scrollToTop}
+                  onPractiseQuestions={items => startPractice(items)}
+                  onResultSaved={() => {
+                    void refreshLocalData().catch(() => setStorageMessage("Your exam was saved. Reopen Progress to refresh its revision suggestions."));
+                  }}
                 />
               )}
               {tab === "search" && (
@@ -1029,6 +1095,9 @@ function AppContent() {
                     onModule={openModule}
                     onContinue={() => selectTab("home")}
                     onExams={() => selectTab("mock")}
+                    revisionFocus={revisionFocus}
+                    onRevise={() => startPractice(revisionFocus.questions.slice(0, 10))}
+                    onReadLesson={openLesson}
                   />
                   <ProgressScreen
                     overview={learningOverview}

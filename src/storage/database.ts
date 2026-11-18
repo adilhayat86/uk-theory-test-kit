@@ -19,6 +19,7 @@ type StoredProgressRow = {
 
 type StoredProgressDetailRow = StoredProgressRow & {
   last_selected_index: number;
+  last_answered_at: string;
 };
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
@@ -93,16 +94,28 @@ async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
  * One active practice snapshot lives in local SQLite. The queue guarantees
  * that a stale answer write cannot replace a later session after navigation.
  */
-let practiceWriteTail: Promise<void> = Promise.resolve();
+let storageWriteTail: Promise<void> = Promise.resolve();
+let storageGeneration = 0;
+let resettingData = false;
 
-function enqueuePracticeWrite<T>(task: () => Promise<T>): Promise<T> {
-  const operation = practiceWriteTail.then(task, task);
-  practiceWriteTail = operation.then(() => undefined, () => undefined);
+/** All writes share a barrier so reset cannot leave a late bookmark or exam behind. */
+function enqueueStorageWrite<T>(task: () => Promise<T>): Promise<T> {
+  if (resettingData) return Promise.reject(new Error('Learning data is being reset.'));
+  const generation = storageGeneration;
+  const operation = storageWriteTail.then(() => {
+    if (generation !== storageGeneration) throw new Error('Learning data changed before this write.');
+    return task();
+  });
+  storageWriteTail = operation.then(() => undefined, () => undefined);
   return operation;
 }
 
+function enqueuePracticeWrite<T>(task: () => Promise<T>): Promise<T> {
+  return enqueueStorageWrite(task);
+}
+
 export async function getSavedPracticeSession(): Promise<PracticeSession | null> {
-  await practiceWriteTail;
+  await storageWriteTail;
   const db = await openDatabase();
   const row = await db.getFirstAsync<{ payload: string }>(
     'SELECT payload FROM active_practice WHERE slot = 1',
@@ -213,6 +226,7 @@ export async function advanceSavedPractice(session: PracticeSession): Promise<Pr
 }
 
 export async function recordAnswer(question: TheoryQuestion, selectedIndex: number): Promise<void> {
+  return enqueueStorageWrite(async () => {
   const db = await openDatabase();
   const isCorrect = selectedIndex === question.correctIndex ? 1 : 0;
 
@@ -230,9 +244,11 @@ export async function recordAnswer(question: TheoryQuestion, selectedIndex: numb
     selectedIndex,
     new Date().toISOString(),
   );
+  });
 }
 
 export async function getProgressSummary(): Promise<ProgressSummary> {
+  await storageWriteTail;
   const db = await openDatabase();
   const rows = await db.getAllAsync<StoredProgressRow>(
     'SELECT question_id, attempts, correct_attempts FROM question_progress',
@@ -246,28 +262,28 @@ export async function getProgressSummary(): Promise<ProgressSummary> {
 
 /** Keep all revision decisions on the device, using data already in SQLite. */
 export async function getQuestionProgressRecords(): Promise<QuestionProgressDetail[]> {
+  await storageWriteTail;
   const db = await openDatabase();
   const rows = await db.getAllAsync<StoredProgressDetailRow>(
-    'SELECT question_id, attempts, correct_attempts, last_selected_index FROM question_progress',
+    'SELECT question_id, attempts, correct_attempts, last_selected_index, last_answered_at FROM question_progress',
   );
   return rows.map((row) => ({
     questionId: row.question_id,
     attempts: row.attempts,
     correctAttempts: row.correct_attempts,
     lastSelectedIndex: row.last_selected_index,
+    ...(Number.isFinite(Date.parse(row.last_answered_at))
+      ? { lastAnsweredAt: Date.parse(row.last_answered_at) } : {}),
   }));
 }
 
-let lessonWriteTail: Promise<void> = Promise.resolve();
 
 function enqueueLessonWrite(task: () => Promise<void>): Promise<void> {
-  const operation = lessonWriteTail.then(task, task);
-  lessonWriteTail = operation.catch(() => undefined);
-  return operation;
+  return enqueueStorageWrite(task);
 }
 
 export async function getLessonProgress(): Promise<LessonProgress[]> {
-  await lessonWriteTail;
+  await storageWriteTail;
   const db = await openDatabase();
   const rows = await db.getAllAsync<{
     lesson_id: string; content_version: number; last_section_id: string | null;
@@ -327,7 +343,7 @@ export async function markLessonRead(lessonId: string, contentVersion: number): 
 }
 
 export async function getCheckpointResults(): Promise<CheckpointResult[]> {
-  await practiceWriteTail;
+  await storageWriteTail;
   const db = await openDatabase();
   const rows = await db.getAllAsync<{ payload: string }>(
     'SELECT payload FROM checkpoint_results ORDER BY completed_at DESC, rowid DESC',
@@ -343,6 +359,7 @@ export async function getCheckpointResults(): Promise<CheckpointResult[]> {
 }
 
 export async function getBookmarkedQuestionIds(): Promise<string[]> {
+  await storageWriteTail;
   const db = await openDatabase();
   const rows = await db.getAllAsync<{ question_id: string }>(
     'SELECT question_id FROM bookmarks ORDER BY created_at DESC',
@@ -351,6 +368,7 @@ export async function getBookmarkedQuestionIds(): Promise<string[]> {
 }
 
 export async function toggleBookmark(questionId: string): Promise<boolean> {
+  return enqueueStorageWrite(async () => {
   const db = await openDatabase();
   const existing = await db.getFirstAsync<{ question_id: string }>(
     'SELECT question_id FROM bookmarks WHERE question_id = ?',
@@ -368,10 +386,12 @@ export async function toggleBookmark(questionId: string): Promise<boolean> {
     new Date().toISOString(),
   );
   return true;
+  });
 }
 
 /** Offline saved road-sign notes use their own table, separate from question bookmarks. */
 export async function getSavedSignIds(): Promise<string[]> {
+  await storageWriteTail;
   const db = await openDatabase();
   const rows = await db.getAllAsync<{ sign_id: string }>(
     'SELECT sign_id FROM saved_signs ORDER BY created_at DESC',
@@ -380,6 +400,7 @@ export async function getSavedSignIds(): Promise<string[]> {
 }
 
 export async function toggleSavedSign(signId: string): Promise<boolean> {
+  return enqueueStorageWrite(async () => {
   const db = await openDatabase();
   const existing = await db.getFirstAsync<{ sign_id: string }>(
     'SELECT sign_id FROM saved_signs WHERE sign_id = ?',
@@ -394,9 +415,33 @@ export async function toggleSavedSign(signId: string): Promise<boolean> {
     signId, new Date().toISOString(),
   );
   return true;
+  });
+}
+
+/** Explicit user action only. All study data is deleted together or retained together. */
+export async function resetLearningData(): Promise<void> {
+  if (resettingData) throw new Error('Learning data is already being reset.');
+  resettingData = true;
+  storageGeneration += 1;
+  const operation = storageWriteTail.then(async () => {
+    const db = await openDatabase();
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      for (const table of ['question_progress', 'bookmarks', 'active_practice', 'saved_signs',
+        'mock_exam_sessions', 'mock_exam_results', 'lesson_progress', 'checkpoint_results']) {
+        await txn.runAsync('DELETE FROM ' + table);
+      }
+    });
+  });
+  storageWriteTail = operation.then(() => undefined, () => undefined);
+  try {
+    await operation;
+  } finally {
+    resettingData = false;
+  }
 }
 
 export async function closeDatabaseForTests(): Promise<void> {
+  await storageWriteTail;
   if (databasePromise) {
     const db = await databasePromise;
     await db.closeAsync();
@@ -408,12 +453,9 @@ export async function closeDatabaseForTests(): Promise<void> {
  * Serialize mock writes: an answer-save arriving after a submit must not recreate
  * an active session. This queue also keeps rapid answer/flag updates in order.
  */
-let mockWriteTail: Promise<void> = Promise.resolve();
 
 function enqueueMockWrite(task: () => Promise<void>): Promise<void> {
-  const operation = mockWriteTail.then(task, task);
-  mockWriteTail = operation.catch(() => undefined);
-  return operation;
+  return enqueueStorageWrite(task);
 }
 
 export async function saveMockSession(session: MockSession): Promise<void> {
@@ -435,7 +477,7 @@ export async function saveMockSession(session: MockSession): Promise<void> {
 }
 
 export async function getActiveMockSession(): Promise<MockSession | null> {
-  await mockWriteTail;
+  await storageWriteTail;
   const db = await openDatabase();
   const row = await db.getFirstAsync<{ payload: string }>(
     'SELECT payload FROM mock_exam_sessions WHERE completed_at IS NULL ORDER BY updated_at DESC LIMIT 1',
@@ -450,7 +492,7 @@ export async function getActiveMockSession(): Promise<MockSession | null> {
 }
 
 export async function getMockResults(limit: number = 10): Promise<MockResult[]> {
-  await mockWriteTail;
+  await storageWriteTail;
   const db = await openDatabase();
   const rows = await db.getAllAsync<{ payload: string }>(
     'SELECT payload FROM mock_exam_results ORDER BY completed_at DESC LIMIT ?',
@@ -470,6 +512,7 @@ function resultIdentity(result: MockResult, includeFinishedAt = true): string {
   return JSON.stringify({
     id: result.id, mode: result.mode, questionIds: result.questionIds,
     answers: result.questionIds.map(id => [id, result.answers[id] ?? null]),
+    answerTimes: result.questionIds.map(id => [id, result.answerTimes?.[id] ?? null]),
     correct: result.correct, answered: result.answered, total: result.total,
     percent: result.percent, passed: result.passed, startedAt: result.startedAt,
     ...(includeFinishedAt ? { finishedAt: result.finishedAt } : {}),

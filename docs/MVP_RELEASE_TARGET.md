@@ -1,134 +1,52 @@
-# Android MVP release target — independent GB car theory revision
+# Android paid MVP scope — 18 November 2026
 
-Decision date: 6 November 2026
+## Agreed product
 
-## Product promise
+**Driving Theory Test UK: Learn**, independent Great Britain car-theory revision. Android only for this phase. One-time paid download, all content included; no adverts, account, subscription or in-app purchase. The existing UK price target is £0.99, subject to Play country pricing. Support email supplied by the owner: **adilhayatkamker@gmail.com**.
 
-A **£0.99 one-time paid, ad-free, offline Android revision app** for
-**Great Britain car learners**. No account, subscriptions, mobile data,
-third-party analytics or in-app purchases required for study.
+The commercial promise is a compact learning-and-revision product, not a complete official test package. The listing must state that hazard-perception testing and Northern Ireland-specific content are not included. Do not claim DVSA endorsement, licensed official questions, complete Highway Code coverage, a pass guarantee or a validated readiness percentage.
 
-MVP positioning: **independent car theory revision**, not an official DVSA
-app and not a full "4-in-1" mock test replacement. The working repository
-name can remain. The current descriptive title is **Driving Theory Test UK: Learn**
-(17 November 2026), pending the existing store-publication process and metadata
-approval. Do not imply Great Britain content covers Northern Ireland.
+## MVP included
 
-## In-scope user journey
+1. A substantive 15-topic, 38-lesson course with objectives, explanations, worked road examples, recaps, illustrations, original video examples and primary sources.
+2. Saved reading positions and explicit study confirmations. Opening material alone does not complete it.
+3. Dedicated representative ten-question topic checks, requiring eight correct and all current lessons studied for completion. New content versions require compatible confirmations and checks.
+4. 309 original revision questions with four options, explanation and source; smart/topic/picture/unseen/saved practice, search and flashcards.
+5. A useful mistake loop combining ordinary practice and completed mocks, linked to relevant lessons. Timestamped later corrections supersede older wrong answers; derived revision selection does not award reading or topic completion.
+6. Full multiple-choice mocks: 50 questions, 57 minutes, 43 correct to pass; three linked questions on one of three original silent offline animations. Direct exams require a fresh study acknowledgement. Saved attempts retain answers, flags, acknowledgement, position and wall-clock timer.
+7. Filtered and paginated exam review, wrong versus unanswered distinction, compact topic feedback, targeted retry and source/lesson links.
+8. Separate course, topic-check, question-revision and mock progress. Ordinary saved practice does not displace the course's primary next step.
+9. Thirty illustrated sign notes and recognition quiz; saved questions/signs survive restart.
+10. Offline help/privacy/about/support, safe confirmed all-data reset, transactional storage and a blocking startup-retry screen when saved data cannot be read.
+11. Learner-only Android packaging: curated media, no draft artwork gallery, reduced permissions, explicit no-backup/no-transfer data policy and actual native-package verification.
 
-1. Install, open and start a 5- or 10-question mixed practice immediately.
-2. Choose a topic or browse the original offline question bank.
-3. See four answers; receive correct/incorrect feedback and the reason/rule.
-4. Bookmark a question, search by wording/topic/rule, and return to it.
-5. Finish practice and review all/correct/incorrect/saved, topic score and
-   repeat incorrect questions only.
-6. See attempt accuracy and topic coverage stored locally (SQLite).
-7. Optional light extras already written: recall/reveal flashcards and
-   **clearly labelled text-first** road-sign notes and mini quiz.
-8. Optional short timed 5-question mini test; never advertise it as a
-   full official-style 50-question exam or as a pass predictor.
+## Deliberately outside this phase
 
-## Deliberately NOT part of this MVP
+- iOS development, exports, native builds or release.
+- Hazard-perception simulation, official video footage or protected DVSA question-bank reproduction.
+- Cloud accounts, cross-phone progress sync, subscriptions, adverts, chat or gamification.
+- More question volume merely to inflate counts, other vehicle classes or Northern Ireland rules.
+- Merging into main, public privacy hosting, Play Console changes or public/paid publication without the separate owner release decision.
 
-- Full DVSA-style 50-question mock, unless the actual playable local silent
-  video case-study and all requirements have been implemented and reviewed.
-- Hazard-perception simulator, 14 clips, official scoring or clip downloads.
-  A standalone informational guide is not sold as a simulator feature.
-- Full Highway Code book / hundreds of illustrated road signs;
-  a text-based starter set cannot be advertised as complete coverage.
-- AI-generated-only question sets, rewording, chat, voiceover, gamification,
-  pass-money-back guarantees, social features, leaderboards or ad placements.
-- Northern Ireland-specific car questions, other vehicle types, iOS release.
-- Logins, cloud backup, paid subscriptions and remote customer profiles.
+## Completion and release evidence
 
-## Minimum commercial content gate (required before charging)
+Implementation acceptance requires Android configuration/type/test/content checks, Android export and learner-asset checks, a standalone APK and actual APK identity/assets/permissions/backup/16 KB verification. Test the exact candidate on Android for the course → check → revision → exam loop, restart persistence, hidden captions, privacy/help and both Cancel/confirm reset paths. Record actual device/build evidence; do not carry forward an older version's phone pass as the new version's result.
 
-**200 unique, independently authored, rule-checked questions** across
-**at least 10 topics**, each topic with at least 10 questions. Each question
-must have four distinct options, one checked answer, a useful explanation,
-and a reliable rule/source reference.
+The existing0.7.0 Samsung checks are historical evidence. Version0.8.0 must have its own final record. Modern Samsung testing does not substitute for a lower-memory Android/Play pre-launch check before store release.
 
-Automated guard: run `npm run check:mvp:content`. This checks question
-count, topic distribution and basic source/answer integrity; it **now passes the numeric/question-format gate for 200 authored questions**.
-Independent human editorial sign-off remains incomplete and is a separate launch blocker. Run it in CI with
-`npm run check:mvp:content -- --report-only` to exercise the script before
-the bank is complete without hiding the unmet requirement.
+## Independent content approval
 
-This structural gate is **not** editorial approval. A second required release gate is `npm run check:mvp:editorial`, which validates the 200-row named-reviewer tracker and intentionally fails until all questions are independently approved. Two-person or
-independent cross-check of answers against current Highway Code, sign
-specifications and official guidance must be recorded for all questions.
-Review date and source URL/rule number should be traceable before release.
+Structural completeness is necessary but not independent editorial approval. The current catalogue contains **471 review records**: 309 questions, 38 lessons, three videos, 91 logical learner-image presentations and 30 sign notes. Hashes bind text, answers, mappings and actual linked media bytes. All actual rows remain pending until a named independent human reviewer checks them and records a valid date.
 
-## Android-specific launch exit checks
+Run `npm run check:mvp:editorial` strictly before charging. The report-only form is for development visibility and does not approve publication. Export the concrete reviewer pack with `npm run export:review -- --output PATH --copy-media`.
 
-- CI green on final commit: npm ci, Expo Doctor, TypeScript, Jest, Android
-  JS export, installable Android build; an iOS build is a nice-to-have,
-  not the first-store launch blocker.
-- Android signed **release AAB** and Play Console policy target verified,
-  with correct app title, listing screenshots, category, support email
-  and external privacy notice. Debug APK alone is NOT the release build.
-- Install on a real Samsung/low-end Android device; launch with airplane
-  mode, navigate, answer, bookmark, force-stop, relaunch and confirm SQLite
-  progress/bookmarks are intact.
-- Run 5/10-question practice, finish, review filters and retry errors;
-  verify no double-counting or mixed answers after rapid taps.
-- Test font scaling, TalkBack button semantics, portrait, Back navigation,
-  scrolling on long questions and offline crashes.
-- No copyright-infringing DVSA/competitor questions, videos, artwork,
-  logos or trademarks. Review commercial licence requirements and any
-  Open Government Licence attribution for sign/Highway Code assets.
-- No unsupported "official", "complete", "pass guaranteed", "all DVSA
-  questions" or hazard-perception claims in the listing.
-- Separate manual approve-to-release decision after all evidence exists.
+## Owner steps before charging/publication
 
-## Current status
+- Complete independent factual, originality and media review; correct rejected items and re-review changed hashes.
+- Supply the publisher's legal identity and publish the prepared privacy notice at a stable public HTTPS URL; verify in-app/store disclosures match the final binary.
+- Configure the owner's upload key and Play App Signing. The existing test certificate and CI-only AAB must not become a public release.
+- Complete the Play listing, country pricing, content rating, target audience, Data safety, app access and any required closed test/pre-launch report for the actual developer account.
+- Confirm this package has not previously been offered free in Play before choosing upfront paid pricing.
+- Run the strict production preflight, verify the final signed AAB/certificate, and record the owner's explicit publish decision.
 
-**Implementation:** 200 questions have been drafted in the feature branch, with
-source URLs and a per-question editorial tracker. Smart study, search,
-bookmarks, flashcards, road-sign text preview and per-topic results exist. Automated CI / physical-device QA must
-be verified for the exact final commit.
-
-**Biggest gap:** all 200 questions require independent editorial verification,
-realistic distractor review and Android device QA. The automated gate checks
-structure only; it does not mean every answer is legally verified.
-
-## Upgrade path only AFTER this MVP
-
-1. Properly illustrated, licensed/attributed road-sign library and
-   searchable, current Highway Code reader.
-2. Full 50-question/57-minute mock with 3 silent video-case-study questions,
-   accurate 43/50 multiple-choice pass criterion and offline playback.
-3. Original or separately licensed hazard videos with supported tap/scoring
-   and proper 44/75 criteria.
-4. iOS build/QA and optional learner plan.
-
-## Official rules and licensing evidence
-
-- https://www.gov.uk/theory-test/multiple-choice-questions
-- https://www.gov.uk/theory-test/pass-mark-and-result
-- https://www.gov.uk/theory-test/hazard-perception-test
-- https://www.gov.uk/guidance/make-and-sell-driving-theory-test-revision-products
-
-The DVSA page says official revision questions and clips must not be
-reproduced without permission; do not assume the competitor APK supplies
-rights. Confirm commercial licensing implications with a qualified reviewer
-before store publication. Highway Code/official sign content can be reused
-subject to the applicable Open Government Licence conditions.
-
-Review evidence: [200-question editorial audit](QUESTION_BANK_EDITORIAL_AUDIT.md) and [per-question review tracker](QUESTION_REVIEW_TRACKER.csv).
-
-## Reliability & release work committed (6 November 2026)
-
-- SQLite-backed ordinary practice session resume on restart, including final
-  result review; answer and progress update committed together transactionally.
-- Duplicate answer taps rejected by domain logic and database-backed session
-  validation; native Android hardware Back returns to study navigation.
-- CI builds a debug APK **and a release-mode AAB for inspection only**.
-  Production signing and Play submission remain separate.
-- Pre-release version `0.1.0`, Android versionCode `1`.
-- [Physical-device smoke-test checklist](ANDROID_RELEASE_SMOKE_TEST.md) and
-  [draft privacy notice](PRIVACY_POLICY_DRAFT.md) prepared; not approved.
-
-**Still blocked:** all 200 questions need independent source/editorial approval,
-real-device offline QA has not been performed, and developer contact, Play
-privacy disclosures and production upload-key signing are missing.
+See the current Android release guide for primary Google documentation and signing commands. These owner/reviewer gates are not simulated by AI review, passing automated tests or a working internal APK.

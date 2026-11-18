@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import QuestionIllustration from "./QuestionIllustration";
 import type { TheoryQuestion } from "../data/questions";
 import {
@@ -190,6 +190,15 @@ export default function PracticeResultsScreen({
                   {entry.question.explanation}
                 </Text>
                 <Text style={styles.reference}>{entry.question.reference}</Text>
+                {entry.question.sourceUrl?.startsWith("https://") ? (
+                  <Pressable accessibilityRole="link"
+                    accessibilityLabel={`Read source for question ${index + 1}`}
+                    onPress={() => { void Linking.openURL(entry.question.sourceUrl!).catch(() =>
+                      Alert.alert("Source unavailable", "Source links open in your browser and need an internet connection.")); }}
+                    style={styles.textAction}>
+                    <Text style={styles.link}>Check the source ↗</Text>
+                  </Pressable>
+                ) : null}
                 {onReadLesson &&
                 courseLessons.find((lesson) =>
                   lesson.questionIds.includes(entry.question.id),

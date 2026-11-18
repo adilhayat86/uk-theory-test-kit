@@ -1,0 +1,2 @@
+# Build-verification tooling only; not bundled into the Android app.
+Pillow==13.0.0

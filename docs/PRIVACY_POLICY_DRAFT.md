@@ -1,63 +1,42 @@
-# Driving Theory Test UK: Learn — privacy notice (DRAFT, NOT YET PUBLISHED)
+# Driving Theory Test UK: Learn — privacy notice prepared for publisher review
 
-Last revised: 17 November 2026
+Revised: 18 November 2026. Android MVP 0.8.0.
 
-This draft explains the intended data handling of **Driving Theory Test UK: Learn**, an
-independent Great Britain car-theory revision app. The app is not operated by,
-affiliated with or endorsed by DVSA.
+The public-facing webpage is prepared at [release/privacy/index.html](../release/privacy/index.html). It is **not published**. The confirmed support/privacy contact is **adilhayatkamker@gmail.com**. Publisher legal identity, the hosted privacy URL and final publisher review remain required before a paid Play release.
 
-## Data saved by the app
+## Current data handling
 
-The app stores learning data **on your own device** using its local SQLite
-database. This includes your chosen answers, answer counts and progress,
-bookmarked questions, saved road-sign notes, and active/completed timed
-or ordinary practice sessions. It also stores lesson versions and reading positions, explicit study confirmations, topic-check answer snapshots and results, and the study acknowledgement attached to each mock attempt. These details help you resume and review your
-studies. The app is designed to operate without an account or network
-connection after installation. Lessons, illustrations and the original case-study videos are bundled locally. Optional source-reference links open official websites in your browser and require a connection; the lessons themselves do not.
+Study works without an account, advertising, analytics or a developer-operated progress server. The app keeps lesson positions and study confirmations, question answers, revision progress, saved questions/signs, ordinary practice, topic-check snapshots, mock answers/flags/timing/results and each mock's study acknowledgement in its private local storage.
 
-## Information the developer does not request
+Lessons, illustrations and the three original case-study animations are bundled locally. Optional source/help links open the user's browser or another app and need connectivity. The app does not automatically attach study history to those links or to a support email.
 
-The current app does not request your name, email address, phone number,
-location, photographs, contacts, government ID or payment card details.
-It does not currently integrate advertising SDKs, analytics, remote
-databases or in-app tracking. Your study history is not sent to our server
-and we do not sell personal data to advertisers.
+No name, email, password, location, contacts, photographs, government ID or payment-card information is needed to study. If a user chooses to email support, the mailbox receives the sender address and whatever they include. The prepared notice explains that distinction; it does not falsely claim the support mailbox receives no personal information.
 
-## Payments, stores and diagnostics
+The intended commercial model is a **one-time paid Google Play download with all included content available**, no subscription and no in-app purchases. Google Play processes purchase/account/payment information independently. Android/store diagnostics are governed by their settings and terms.
 
-If offered as a paid app, **Google Play** processes the purchase and
-handles its own payment and account information under Google's policies.
-Operating systems and app stores may separately handle basic purchase or
-technical diagnostics under their own terms; that does not mean the app
-uploads your personal study history.
+## Local-only storage and deletion
 
-## Keeping or deleting your progress
+The Android config explicitly sets `allowBackup=false` and `fullBackupContent=false`. Its generated `dataExtractionRules` exclude all nine app-storage domains from both cloud backup and device transfer. This additional rule matters because some manufacturers can permit device transfers despite `allowBackup=false` alone. The native APK verifier checks the **compiled manifest and referenced rules**, not only app.json.
 
-The learning history remains on your device. Uninstalling the app typically
-removes its local database. Device-level backup/restore tools may preserve
-copies outside the app; use your device backup settings to manage those.
+The MVP has no cloud copy from which to restore learning. Resetting app study data, clearing Android app storage, uninstalling or replacing the phone can permanently remove history. An ordinary app update must continue to preserve local data through compatible migrations; disabling backup does not authorize an update-time wipe. Copies independently made using manual/device-management tools are outside the app's control.
 
-There is no account to close and no remote progress profile to erase.
-If backup or sync features are added later, this notice will be revised
-before the release carrying those features.
+The user can remove local study data with the app's reset control or Android Settings → Apps → Driving Theory Test UK: Learn → Storage → Clear data. There is no remote learner account to delete. Email privacy enquiries and requests about support correspondence use the confirmed address above.
 
-## Children and legal information
+## Publisher checklist before posting the notice
 
-This educational app is intended for learners preparing for the GB car
-theory test. It is not a replacement for official road rules and is not
-a source of legal or driving-safety certification.
+- Review the prepared HTML against the final shipped code, SDKs, manifest permissions and actual support-mailbox practices, including retention/deletion of correspondence.
+- Confirm the developer identity used in Play Console. Do not invent a legal name from the GitHub username.
+- Publish the reviewed notice as a normal, accessible public HTTPS webpage, with no login, geofencing or PDF-only delivery. Enter its real URL in `release/android-release.json` and Play Console.
+- Make privacy information accessible inside the app and keep its contact/data-handling text consistent with the hosted notice.
+- Complete the Play Data safety form from the actual production behavior. Local-only processing is different from off-device collection; SDK behavior and voluntary support communications still need accurate treatment.
+- Recheck storefront, audience, content-rating and local consumer/privacy requirements before publishing. This repository draft is not legal approval.
 
-## Contact before launch
+## Primary policy and platform references
 
-**BLOCKER:** Insert and verify a developer support/privacy contact email,
-and publish the final reviewed notice at a stable public HTTPS URL before
-listing the app on Google Play. This draft is documentation and is **not
-yet a public legal/privacy approval**.
+Checked 17–18 November 2026:
 
-## Review checklist for the publisher
+- [Google Play: prepare your app for review/privacy policy](https://support.google.com/googleplay/android-developer/answer/9859455)
+- [Google Play: Data safety declarations](https://support.google.com/googleplay/android-developer/answer/10787469)
+- [Android: Auto Backup, cloud and device-transfer exclusions](https://developer.android.com/identity/data/autobackup)
 
-- Confirm production SDKs and manifest permissions after building the AAB.
-- Confirm no unexpected remote network calls or third-party SDKs.
-- Add developer legal name and support/privacy email.
-- Review local consumer/privacy requirements in target storefront regions.
-- Confirm privacy statements match the production Google Play Data safety form.
+The production preflight intentionally fails until publisher identity, the public privacy URL, owner signing configuration and independent content approvals are supplied. A passing internal build does not publish this page or approve a paid release.

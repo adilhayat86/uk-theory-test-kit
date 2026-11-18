@@ -1,113 +1,63 @@
-# Question-bank authoring and editorial audit — 6 November 2026
+# Android paid-MVP content and editorial evidence — 18 November 2026
 
-## Scope and delivery
+The current product is an independent, offline Great Britain car-theory course and revision app. Its **309 original questions**, **38 lessons**, **three original video animations**, learning illustrations and **30 road-sign notes/quizzes** remain pending independent human review. This document supersedes the historical 200-question, text-first MVP audit; that older drafting milestone was never paid-release approval.
 
-The independent Great Britain car-theory **revision-only** MVP has **200 authored
-multiple-choice questions**. The 21 original starter questions were retained and
-179 new original question/answer sets were created from current GOV.UK Highway
-Code guidance. The content is text-first; it is not the licensed DVSA practice
-bank, a complete official mock simulation or a hazard-perception test.
+The selected product scope is a £0.99 one-time Android purchase with all included learning content, no account, no advertising and no subscription. The current work prepares that MVP; it does not authorize publishing, charging users, production signing or merging into main. iOS work is outside this phase.
 
-### Topic distribution
+## Current review scope
 
-| Topic | Questions | New additions |
-| --- | ---: | ---: |
-| Road rules | 17 | 16 |
-| Motorways | 17 | 16 |
-| Vehicle safety | 17 | 16 |
-| Weather conditions | 17 | 13 |
-| Road signs | 17 | 16 |
-| Road junctions | 17 | 15 |
-| Roundabouts | 17 | 15 |
-| Overtaking | 17 | 15 |
-| Pedestrian crossings | 16 | 15 |
-| Vulnerable road users | 16 | 14 |
-| Snow and ice | 16 | 15 |
-| Parking | 16 | 13 |
-| **TOTAL** | **200** | **179** |
+| Category | Current entries | Independently approved | Source decision sheet |
+| --- | ---: | ---: | --- |
+| Questions | 309 | 0 | [Question tracker](QUESTION_REVIEW_TRACKER.csv) |
+| Lessons | 38 | 0 | [Lesson tracker](LESSON_REVIEW_TRACKER.csv) |
+| Original video case studies | 3 | 0 | [Video tracker](VIDEO_REVIEW_TRACKER.csv) |
+| Learner image presentations | 91 | 0 | [Image tracker](IMAGE_REVIEW_TRACKER.csv) |
+| Road-sign notes and quizzes | 30 | 0 | [Sign-note tracker](SIGN_NOTE_REVIEW_TRACKER.csv) |
+| **Total decision records** | **471** | **0** | [Human review pack](reviewer-pack/README.md) |
 
-## Primary sources used for the authoring draft
+The 91 image entries are logical presentations, including aliases, captions and neutral descriptions. They refer to **85 distinct PNG files**: the 52 selected project images, 30 DfT images and three retained starter images. Together with the three videos, the review manifest identifies 88 distinct media files by SHA-256. The 69 unselected project-artwork drafts are excluded from learner-content review and the learner build. Selection is not approval.
 
-The GOV.UK Highway Code pages below were consulted. They reported an update
-date of **22 October 2025** when checked on 6 November 2026.
-Each question contains a textual rule/source reference and direct `sourceUrl`.
-**A URL and rule number are pointers for editorial verification, not proof
-that a reviewer has approved the answer.**
+The question bank is the retained 228 records plus 72 questions addressing course gaps and nine linked video questions. All 300 ordinary questions have a lesson mapping. The additional sign-note quizzes are separate assessed material and therefore have their own review records.
 
-- Road rules, signals, speed, stopping distances and markings:
-  https://www.gov.uk/guidance/the-highway-code/general-rules-techniques-and-advice-for-all-drivers-and-riders-103-to-158
-- Motorways, joining, closed lanes, overtaking and exits:
-  https://www.gov.uk/guidance/the-highway-code/motorways-253-to-273
-- Driver fitness, licence, child seats and towing:
-  https://www.gov.uk/guidance/the-highway-code/rules-for-drivers-and-motorcyclists-89-to-102
-- Tyres, fluids and vehicle maintenance:
-  https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security
-- Weather and winter conditions:
-  https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237
-- Sign types and restrictions:
-  https://www.gov.uk/guidance/the-highway-code/traffic-signs
-- Junctions, roundabouts, overtaking and crossings:
-  https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203
-- Pedestrians, cyclists, animals and other vulnerable road users:
-  https://www.gov.uk/guidance/the-highway-code/road-users-requiring-extra-care-204-to-225
-- Waiting, parking, lighting and restrictions:
-  https://www.gov.uk/guidance/the-highway-code/waiting-and-parking-238-to-252
+## What the mechanical gates prove
 
-## Current checks and evidence
+`node scripts/check-mvp-content.cjs` checks question structure: at least 200 distinct questions, at least ten topics, ten per topic, four distinct options, a valid answer index and inspectable source/reference fields. Its success says nothing about legal accuracy, suitable distractors, originality or completeness.
 
-- **Structural:** 200 unique IDs, 12 topics, each with 16–17 questions;
-  exactly four distinct options per question and one correct index; no
-  identical question wording; required explanation and rule/source URL.
-- **Automated:** `npm run check:mvp:content` and `npm test`.
-  See GitHub Actions for the exact commit status.
-- **Authorship:** the new 179 question prompts and distractors were written
-  for this project rather than extracted from the competitor APK.
-- **Independent human editorial approval: NOT COMPLETE.** Every question,
-  explanation, law-vs-guidance wording and reference remains **pending**.
+`node scripts/check-editorial-review.cjs` independently rebuilds a catalogue from the current bundled TypeScript data and actual PNG/MP4 bytes. It requires a matching decision record for **all five categories**, an explicit `APPROVED` status, a non-empty named reviewer and a real UTC calendar date that is not in the future. It currently exits **1 / NOT READY** because all 471 decisions are pending.
 
-A complete question-by-question review sheet is provided in
-[QUESTION_REVIEW_TRACKER.csv](QUESTION_REVIEW_TRACKER.csv).
-All 200 entries deliberately start as `PENDING_INDEPENDENT_REVIEW`.
+`--report-only` reports exactly the same unresolved state but exits 0 for internal development builds. Green development CI is not commercial editorial sign-off. No command in this workflow creates human approval, uploads an app or publishes anything.
 
-## Mandatory editor verification protocol
+The static readers do not execute data modules. Unsupported calls/imports fail rather than running arbitrary TypeScript. The review reader only resolves static const data, named local imports and bundled PNG/MP4 references within the expected source roots.
 
-For EACH question (no sampling for commercial publication):
+## Approvals are bound to the content actually reviewed
 
-1. Open its primary GOV.UK source URL. Confirm the numbered rule or sign
-   really supports the question and correct response.
-2. Check **MUST/MUST NOT** versus **should/should not**, including any relevant
-   exceptions and differences between England, Scotland and Wales.
-3. Check the three distractors for ambiguity or unintended second correct
-   answers, and whether the wording tests knowledge rather than nonsense.
-4. Check for repetitive items, misleading absolutes, outdated statistics,
-   unintended copying of official test-bank language, and any outdated laws.
-5. Mark the row `APPROVED` only after a named independent reviewer has
-   recorded date, judgement and any amendment required.
-6. Re-run test suite and update review evidence whenever a question changes.
+Every tracker row contains `content_sha256`. Question fingerprints include the complete prompt, choices, correct index, explanation, topic/difficulty, reference, source URL and image/video identifiers. They also include the resolved question/review images, captions, neutral descriptions and actual media SHA-256 values. A new teaching-image mapping therefore changes the relevant fingerprint even if the question text is unchanged.
 
-**Do not market these 200 as fully reviewed or release the £0.99 product**
-until the independent source-fact-check and physical-device gates are complete.
-Questions about regional limitations are for GB car learners only, not DVA NI.
+Lesson fingerprints include all objectives, sections, scenarios, recaps, sources, content versions and question mappings, together with linked question fingerprints and actual linked images/videos. A changed answer or teaching image invalidates the dependent lesson approval as well. Video, image and sign-note records cover their complete bundled metadata/content and associated media. Changing bytes while retaining a filename or logical ID cannot reuse the old approval.
 
-## Next steps before charging
+Fingerprints are an evidence control, not proof that someone reviewed an item. Reviewer independence, factual judgement, commercial rights and the final owner release decision still require real human work. Never copy hashes or reviewer names into an approval merely to make the gate pass.
 
-1. Complete independent rule-by-rule review and resolve all rejected wording.
-2. Check selected question choices against realistic exam-style distractor
-   standards; strengthen weak options and avoid accidental easy patterns.
-3. Run signed Android release AAB and actual offline/manual UI checks.
-4. Complete Play listing, privacy/copyright and store policy review.
-5. Publish only after explicit sign-off. Hazard clips and the full 50-question
-   video-case-study exam remain outside the lean MVP.
+## Human review package and procedure
 
-## Licensing
+[Open the reviewer pack](reviewer-pack/README.md). It contains complete original app text, choices and correct answers, lesson teaching/scenarios/recaps, source links, media links, five decision sheets, a JSON catalogue and a media manifest. It links to primary sources rather than copying the licensed DVSA question bank or competitor content.
 
-This question bank is independent editorial work. Do not add DVSA licensed
-question wording, videos, proprietary commercial competitor graphics or
-brand marks without a separate grant of permission. Any government assets
-should be checked against the applicable Open Government Licence terms.
+For **every item**, without sampling:
 
-## Mechanical independent-review gate
+1. Open the cited primary source. Check that the current rule/sign supports the teaching and checked answer. Authoring-source checks recorded on 17 November are described in [the course review record](COURSE_CONTENT_REVIEW.md); this tooling update does not claim a new factual source review.
+2. Verify legal MUST/MUST NOT versus advice, relevant exceptions, GB regional distinctions, unambiguous correct answers, realistic distractors and teaching-to-test fit. Review repeated or weak questions rather than approving them to reach a count.
+3. Inspect each image and the complete videos for accurate UK traffic direction, timing, sign details, educational relevance, readable presentation, neutral unanswered descriptions and hidden answer captions. Review each sign-note quiz as well as its prose.
+4. Check originality, commercial asset permission and required attribution against [asset licences](ASSET_LICENCES.md). Do not infer rights from a competitor APK or an attached source link.
+5. Enter `NEEDS_CHANGES` with actionable notes for rejected material. Enter `APPROVED` only after actual independent review, with the reviewer’s name and UTC date (`YYYY-MM-DD`). Preserve the supplied content hash.
+6. Return completed decision sheets to the owner. Amend app content in source, generate a new pack and re-review affected items. Run the strict gate before preparing a production upload. Passing it does not replace production signing, Play/privacy preparation, real-device checks or the owner's release decision.
 
-Run `npm run check:mvp:editorial` locally before preparing a paid Android release. The command checks that every current ID has a matching tracker row with source metadata, an explicit `APPROVED` status, a reviewer name and a valid review date. This is not a substitute for real editorial work; it only ensures that the work has been recorded. It **intentionally fails now** (0/200 approved).
+## Generate or refresh a review copy
 
-GitHub CI runs the same script with `--report-only` while the bank is under review. Passing CI therefore does not mean this commercial-release sign-off is complete.
+```sh
+node scripts/export-editorial-review.cjs --refresh-trackers
+node scripts/export-editorial-review.cjs --output PATH --copy-media
+node scripts/check-editorial-review.cjs
+```
+
+The first command refreshes source tracker hashes and `docs/reviewer-pack`. It preserves unchanged recorded decisions and comments, resets changed/unbound approvals to pending, clears the stale reviewer/date and records why a previous approval was invalidated. It never promotes a pending record. The second command produces a standalone folder with the exact media files; without `--refresh-trackers`, it does not change source decision sheets.
+
+The strict gate currently failing is expected. Content must remain marked pending until a named independent human completes this work. The app is independent revision, not the licensed DVSA bank, complete Highway Code, hazard-perception simulator or Northern Ireland-specific course; the paid listing must communicate those limits accurately.

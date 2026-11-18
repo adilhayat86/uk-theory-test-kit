@@ -8,6 +8,10 @@ import type { PracticeMode } from "../domain/practiceSelection";
 import TopicPicker from "./TopicPicker";
 import { getTopicReview } from "../domain/revision";
 import type { QuestionProgressDetail } from "../domain/revision";
+import type { MockResult } from "../domain/mockExam";
+import { mergeRevisionRecords } from "../domain/revisionFocus";
+
+const EMPTY_MOCK_RESULTS: readonly MockResult[] = [];
 
 const modes: { id: PracticeMode; title: string; detail: string }[] = [
   {
@@ -32,8 +36,8 @@ const modes: { id: PracticeMode; title: string; detail: string }[] = [
   },
   {
     id: "unseen",
-    title: "Not tried yet",
-    detail: "Explore questions you have not answered",
+    title: "Not practised yet",
+    detail: "Questions you have not answered in practice",
   },
   { id: "saved", title: "Saved", detail: "Revisit your bookmarked questions" },
 ];
@@ -43,6 +47,7 @@ type Props = {
   savedIds: string[];
   initialTopic?: string;
   onStart: (items: TheoryQuestion[]) => void;
+  mockResults?: readonly MockResult[];
 };
 
 export default function PracticeSetupScreen({
@@ -50,6 +55,7 @@ export default function PracticeSetupScreen({
   savedIds,
   initialTopic,
   onStart,
+  mockResults = EMPTY_MOCK_RESULTS,
 }: Props) {
   const [topics, setTopics] = useState<string[]>(
     initialTopic ? [initialTopic] : [],
@@ -61,9 +67,15 @@ export default function PracticeSetupScreen({
     () => getTopicReview(questions, records),
     [records],
   );
+  const revisionRecords = useMemo(
+    () => mergeRevisionRecords(questions, records, mockResults),
+    [records, mockResults],
+  );
+  const latestMistakes = useMemo(() => new Map(getTopicReview(questions, revisionRecords)
+    .map((item) => [item.topic, item.recentMistakes])), [revisionRecords]);
   const eligible = useMemo(
-    () => eligiblePracticeQuestions(questions, records, savedIds, topics, mode),
-    [records, savedIds, topics, mode],
+    () => eligiblePracticeQuestions(questions, mode === "smart" || mode === "incorrect" ? revisionRecords : records, savedIds, topics, mode),
+    [records, revisionRecords, savedIds, topics, mode],
   );
   const count = Math.min(limit, eligible.length);
 
@@ -87,7 +99,7 @@ export default function PracticeSetupScreen({
       </Text>
       <Text style={styles.summaryHint}>
         {mode === "smart"
-          ? "Revision based on your question history"
+          ? "Recent mistakes from practice and completed exams first"
           : modes.find((item) => item.id === mode)?.title}
       </Text>
       <Pressable
@@ -176,8 +188,8 @@ export default function PracticeSetupScreen({
                 item.questionsTried +
                 "/" +
                 item.totalQuestions +
-                " tried · " +
-                item.recentMistakes +
+                " practised · " +
+                (latestMistakes.get(item.topic) ?? 0) +
                 " to retry",
             }))}
           />

@@ -9,6 +9,8 @@ import TimedProgress from "./TimedProgress";
 import CaseStudyVideo from "./CaseStudyVideo";
 import { Illustration } from "./QuestionIllustration";
 import { colors } from "../theme";
+import RevisionFocusCard from "./RevisionFocusCard";
+import type { RevisionFocus } from "../domain/revisionFocus";
 
 type Progress = ReturnType<typeof buildCourseProgress>;
 const statusCopy = {
@@ -51,6 +53,8 @@ export function CourseHome({
   onResume,
   onTools,
   onExams,
+  revisionFocus,
+  onRevise,
 }: {
   progress: Progress;
   records: LessonProgress[];
@@ -60,6 +64,8 @@ export function CourseHome({
   onResume: () => void;
   onTools: () => void;
   onExams: () => void;
+  revisionFocus?: RevisionFocus;
+  onRevise?: () => void;
 }) {
   const unread = courseLessons.filter(
     (lesson) =>
@@ -74,6 +80,7 @@ export function CourseHome({
     (item) => !item.completed && item.lessonsRead === item.totalLessons,
   );
   const active = !!session && session.currentIndex < session.questionIds.length;
+  const activeCheck = active && !!session?.checkpoint;
   return (
     <View>
       <Text accessibilityRole="header" style={s.title}>
@@ -96,25 +103,27 @@ export function CourseHome({
       <View style={s.continueCard}>
         <Text style={s.kicker}>YOUR NEXT STEP</Text>
         <Text style={s.heading}>
-          {active
-            ? "Continue your saved practice"
+          {activeCheck
+            ? "Continue your topic check"
             : ready
               ? courseModules.find((item) => item.id === ready.moduleId)?.title
               : (next?.title ?? "Practise a full mock exam")}
         </Text>
         <Text style={s.body}>
-          {active
-            ? "Your answers and position are saved."
+          {activeCheck
+            ? "Your topic-check answers and position are saved."
             : ready
-              ? "You have studied the lessons. Check your understanding with 10 questions."
+              ? ready.status === "revisit"
+                ? "Revisit this topic's examples, then try its 10-question check again."
+                : "You have studied the lessons. Check your understanding with 10 questions."
               : next
                 ? "Read the lesson, work through its example, then confirm you have studied it."
                 : "Your reading is complete. Use topic checks and mock results to find what to revisit."}
         </Text>
         <StudyButton
           title={
-            active
-              ? "Continue practice"
+            activeCheck
+              ? "Continue topic check"
               : ready
                 ? "Open topic check"
                 : next
@@ -122,7 +131,7 @@ export function CourseHome({
                   : "Go to mock exams"
           }
           onPress={
-            active
+            activeCheck
               ? onResume
               : ready
                 ? () => onModule(ready.moduleId)
@@ -139,6 +148,11 @@ export function CourseHome({
           />
         ) : null}
       </View>
+      {active && !activeCheck ? <View style={s.savedPractice}>
+        <Text style={s.body}>Your question practice is saved for later.</Text>
+        <StudyButton title="Continue practice" onPress={onResume} secondary />
+      </View> : null}
+      <RevisionFocusCard focus={revisionFocus} onRevise={onRevise} onReadLesson={onLesson} />
       <Text accessibilityRole="header" style={s.sectionTitle}>
         Your course
       </Text>
@@ -396,11 +410,17 @@ export function CourseProgressSummary({
   onContinue,
   onExams,
   onModule,
+  revisionFocus,
+  onRevise,
+  onReadLesson,
 }: {
   progress: Progress;
   onContinue: () => void;
   onExams: () => void;
   onModule: (id: string) => void;
+  revisionFocus?: RevisionFocus;
+  onRevise?: () => void;
+  onReadLesson?: (id: string) => void;
 }) {
   return (
     <View>
@@ -433,6 +453,7 @@ export function CourseProgressSummary({
             : onContinue
         }
       />
+      <RevisionFocusCard focus={revisionFocus} onRevise={onRevise} onReadLesson={onReadLesson} />
       <TimedProgress onOpen={onExams} />
       <Text style={s.sectionTitle}>Topic checks</Text>
       {courseModules.map((module) => {
@@ -473,6 +494,7 @@ function Metric({ value, label }: { value: string; label: string }) {
   );
 }
 const s = StyleSheet.create({
+  savedPractice: { marginTop: 12 },
   title: {
     fontSize: 25,
     lineHeight: 33,

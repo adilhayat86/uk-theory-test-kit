@@ -19,6 +19,8 @@ export type MockSession = {
   mode: MockMode;
   questionIds: string[];
   answers: Record<string, number>;
+  /** Per-answer observation times; older v1 snapshots can omit some or all entries. */
+  answerTimes?: Record<string, number>;
   flaggedIds: string[];
   currentIndex: number;
   startedAt: number;
@@ -31,6 +33,7 @@ export type MockResult = {
   mode: MockMode;
   questionIds: string[];
   answers: Record<string, number>;
+  answerTimes?: Record<string, number>;
   correct: number;
   answered: number;
   total: number;
@@ -178,6 +181,7 @@ export function beginMock(
     mode,
     questionIds,
     answers: {},
+    answerTimes: {},
     flaggedIds: [],
     currentIndex: 0,
     startedAt: now,
@@ -200,6 +204,7 @@ export function answerQuestion(
   index: number,
   now: number,
 ): MockSession {
+  if (!Number.isFinite(now)) throw new Error("Invalid answer time.");
   if (isExpired(session, now)) return session;
   if (
     !session.questionIds.includes(questionId) ||
@@ -209,7 +214,8 @@ export function answerQuestion(
   ) {
     throw new Error("Invalid question or answer.");
   }
-  return { ...session, answers: { ...session.answers, [questionId]: index } };
+  return { ...session, answers: { ...session.answers, [questionId]: index },
+    answerTimes: { ...session.answerTimes, [questionId]: Math.max(session.startedAt, now) } };
 }
 
 export function flagQuestion(
@@ -259,18 +265,24 @@ export function finishMock(
   const answered = session.questionIds.filter((id) =>
     Object.prototype.hasOwnProperty.call(session.answers, id),
   ).length;
+  const answerTimes = session.answerTimes === undefined ? undefined : Object.fromEntries(
+    Object.entries(session.answerTimes).filter(([id, answeredAt]) =>
+      Object.prototype.hasOwnProperty.call(session.answers, id) &&
+      Number.isFinite(answeredAt) && answeredAt >= session.startedAt && answeredAt < session.expiresAt),
+  );
   return {
     id: session.id,
     mode: session.mode,
     questionIds: [...session.questionIds],
     answers: { ...session.answers },
+    ...(answerTimes === undefined ? {} : { answerTimes }),
     correct,
     answered,
     total,
     percent: total === 0 ? 0 : Math.round((correct * 100) / total),
     passed: session.mode === "full" ? correct >= FULL_EXAM_PASS_MARK : null,
     startedAt: session.startedAt,
-    finishedAt: Math.max(session.startedAt, Math.min(now, session.expiresAt)),
+    finishedAt: Math.max(session.startedAt, ...Object.values(answerTimes ?? {}), Math.min(now, session.expiresAt)),
     reason,
     ...(session.studyAcknowledgement
       ? { studyAcknowledgement: { ...session.studyAcknowledgement } }
@@ -304,6 +316,7 @@ export function isMockSession(value: unknown): value is MockSession {
     !session.flaggedIds.every((id) => session.questionIds?.includes(id))
   )
     return false;
+  if (!validAnswerTimes(session.answerTimes, session.answers, session.startedAt, session.expiresAt, true)) return false;
   if (
     session.studyAcknowledgement !== undefined &&
     !isStudyAcknowledgement(session.studyAcknowledgement)
@@ -314,6 +327,17 @@ export function isMockSession(value: unknown): value is MockSession {
     ([id, index]) =>
       ids.has(id) && Number.isInteger(index) && index >= 0 && index <= 3,
   );
+}
+
+/** Partial timestamps preserve compatibility when an older saved mock is resumed. */
+function validAnswerTimes(
+  value: unknown, answers: Record<string, number>, start: number, end: number, exclusiveEnd = false,
+): boolean {
+  if (value === undefined) return true;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  return Object.entries(value).every(([id, at]) =>
+    Object.prototype.hasOwnProperty.call(answers, id) && typeof at === "number" && Number.isFinite(at) &&
+    at >= start && (exclusiveEnd ? at < end : at <= end));
 }
 
 export function formattedTimeLeft(milliseconds: number): string {
@@ -407,6 +431,7 @@ export function isMockResult(value: unknown): value is MockResult {
   )
     return false;
   if (item.mode === "full" && total !== FULL_EXAM_QUESTION_COUNT) return false;
+  if (!validAnswerTimes(item.answerTimes, item.answers, item.startedAt!, item.finishedAt!)) return false;
   if (
     item.studyAcknowledgement !== undefined &&
     !isStudyAcknowledgement(item.studyAcknowledgement)

@@ -1,0 +1,503 @@
+{
+  "schemaVersion": 1,
+  "generated_at_utc": "2026-11-18T13:36:01.668Z",
+  "source_commit": "76b8cd325d908ac63b5dfb23a10c496e1c866638",
+  "source_content_worktree_dirty": true,
+  "catalogue_sha256": "3c7a2d66daab004095503091c90d17c9499c7356fb9cd08369840e2c57d2e745",
+  "counts": {
+    "question": 309,
+    "lesson": 38,
+    "video": 3,
+    "image": 91,
+    "sign-note": 30
+  },
+  "review_status": "REQUIRES_STRICT_GATE_AND_INDEPENDENT_HUMAN_REVIEW",
+  "media_included": false,
+  "recorded_status_counts": {
+    "question": {
+      "PENDING_INDEPENDENT_REVIEW": 309
+    },
+    "lesson": {
+      "PENDING_INDEPENDENT_REVIEW": 38
+    },
+    "video": {
+      "PENDING_INDEPENDENT_REVIEW": 3
+    },
+    "image": {
+      "PENDING_INDEPENDENT_REVIEW": 91
+    },
+    "sign-note": {
+      "PENDING_INDEPENDENT_REVIEW": 30
+    }
+  },
+  "media_files": [
+    {
+      "file": "src/assets/zebra-crossing.png",
+      "sha256": "955cd8d6aa932c3418e04b48cf428c60d08a3d50da80e0f08e1eae6f5fb2a5e1",
+      "review_path": "../../src/assets/zebra-crossing.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/crossing_zebra_pedestrian_priority_explanation_01.png",
+      "sha256": "f2206d2ad2fbd8e8098a63adb780c3789f09ee02cec8659143f7e1ca5404f272",
+      "review_path": "../../src/assets/illustrations-v2/images/crossing_zebra_pedestrian_priority_explanation_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_head_restraint_position_original_02.png",
+      "sha256": "b0eaacd72a5e4f7a85a011f82d6bfbd7a87c8d08836407b9228e8faaaaf0aef1",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_head_restraint_position_original_02.png"
+    },
+    {
+      "file": "src/assets/dft-signs/no-entry.png",
+      "sha256": "f5a842891867864030ed0a76d4a1917af303645bfcb67adbc531c7dd0e516d77",
+      "review_path": "../../src/assets/dft-signs/no-entry.png"
+    },
+    {
+      "file": "src/assets/dft-signs/stop.png",
+      "sha256": "6878c730b895e53ff9686d29bec3aa458c632568fe718524e0cb01b78b925ab2",
+      "review_path": "../../src/assets/dft-signs/stop.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_stop_roadside_scene_01.png",
+      "sha256": "603e2adc2b5095e2561865b9ec78bf3c577a368b3f634eb8fa64df1702f16861",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_stop_roadside_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_headlight_dipped_beam_original_01.png",
+      "sha256": "43625940dbb201b14c371b8cae5611f09e4fd7fe1053ca00cf784a610f31e59b",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_headlight_dipped_beam_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/motorway_two_second_gap_original_01.png",
+      "sha256": "dd7a421f12ce795383a32b09309b20942ca9a65c91087b150125b02045e791e3",
+      "review_path": "../../src/assets/illustrations-v2/images/motorway_two_second_gap_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/motorway_joining_slip_road_original_01.png",
+      "sha256": "dc9774f93e34a497ae6979840cad9cb4bfdff975231e9992d088977939676793",
+      "review_path": "../../src/assets/illustrations-v2/images/motorway_joining_slip_road_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_brake_lights_original_02.png",
+      "sha256": "c4e4a0ae0cea4e412a6aa17f3a766c665693a8f8377fff76268aed29dbf28f3d",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_brake_lights_original_02.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_tyre_tread_depth_original_01.png",
+      "sha256": "6961e67961478d8e213a5065ce04a46c30b8bf514f3f6c5107293f7ae7d2e349",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_tyre_tread_depth_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_tyre_pressure_check_original_01.png",
+      "sha256": "58d0234b727bfdc3269823ec1cc659c2e4915098a46e01240044b5aa66b633b1",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_tyre_pressure_check_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_coolant_reservoir_original_01.png",
+      "sha256": "43ae15c6afa3573e82691e4fb4943bf920485d37c47e219c8c558e5aab527a8c",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_coolant_reservoir_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_no_entry_roadside_scene_01.png",
+      "sha256": "54f77a11a68592b627451dc4aefada58e84d179023126e24635c7e2dbb9cd145",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_no_entry_roadside_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_ahead_only_scene_01.png",
+      "sha256": "4138d309fa87a8f4b92f4a776a465fd4bf73f6eadecb951d1a9fd581658dac94",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_ahead_only_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_keep_left_bollard_scene_01.png",
+      "sha256": "d4bac4aa5e9f7408ff32a68fb8ab0334e327f7ca223349acd4dc0479a76f4fa7",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_keep_left_bollard_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_no_overtaking_scene_01.png",
+      "sha256": "57afa5b2fe4b16e72f7f72d1154f4083accd5194446481a01a6e180384e34fcf",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_no_overtaking_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/warn_road_narrows_both_scene_01.png",
+      "sha256": "5feb64fb7fe0ff95a774e1119335417b1efe8a1060954226620b04c8ca134357",
+      "review_path": "../../src/assets/illustrations-v2/images/warn_road_narrows_both_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/warn_double_bend_scene_01.png",
+      "sha256": "8cba84651e9d9e5dcb8e404e105655673bdd93d7aea660e909095b2a1721c924",
+      "review_path": "../../src/assets/illustrations-v2/images/warn_double_bend_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/warn_steep_hill_down_scene_01.png",
+      "sha256": "5c776d588444a82c780538fb760ff5407f67189fea6541bfbd34df9351584d5e",
+      "review_path": "../../src/assets/illustrations-v2/images/warn_steep_hill_down_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_give_way_roadside_scene_01.png",
+      "sha256": "f867bbf9e7b2d99c8e4749c2d04ae0f80948f7d49469259249d6f980e6b5969e",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_give_way_roadside_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/junction_yellow_box_exit_clear_explanation_01.png",
+      "sha256": "b9c46a74cc32b45a43fdfd91f5b319973d472f9e07466d844d5210c2a7a64664",
+      "review_path": "../../src/assets/illustrations-v2/images/junction_yellow_box_exit_clear_explanation_01.png"
+    },
+    {
+      "file": "src/assets/dft-signs/give-way.png",
+      "sha256": "697a6fdb5f262ec2464fe9944f2bbffaf7ba6bac6545f7f392c666640c760d95",
+      "review_path": "../../src/assets/dft-signs/give-way.png"
+    },
+    {
+      "file": "src/assets/speed-limit-30.png",
+      "sha256": "44a7878d22b5a046acc3919d79235f2202fe910c929ef248bb9c1c64dec9b781",
+      "review_path": "../../src/assets/speed-limit-30.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_speed_limit_30_roadside_scene_01.png",
+      "sha256": "ff4d08fd4a6d486725cbe8c5e96b1502119c48678e185c27c7c23594cedd8e3b",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_speed_limit_30_roadside_scene_01.png"
+    },
+    {
+      "file": "src/assets/speed-limit-50.png",
+      "sha256": "fe8109643e95f2be88400db16b4735b6d219924818e462538af899067ddcd34c",
+      "review_path": "../../src/assets/speed-limit-50.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_speed_limit_50_roadside_scene_01.png",
+      "sha256": "d205709feb27fb23774f42afce3cdf3988bbcb4c732b55aa278247fdef0990a8",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_speed_limit_50_roadside_scene_01.png"
+    },
+    {
+      "file": "src/assets/dft-signs/national-speed-limit.png",
+      "sha256": "da34db86353d4b5618292901bbc9ab959aebde88d8351ccacbfab13219274041",
+      "review_path": "../../src/assets/dft-signs/national-speed-limit.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_national_speed_limit_roadside_scene_01.png",
+      "sha256": "929e55bb08572f37745b9ad920027fec59dd844a5af1fe07aba7de05f2322e6e",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_national_speed_limit_roadside_scene_01.png"
+    },
+    {
+      "file": "src/assets/dft-signs/keep-left.png",
+      "sha256": "a132e5572eae4cacf02faf287acfa5e9a9f61cced546f3e2c7e90a1142e0f2d3",
+      "review_path": "../../src/assets/dft-signs/keep-left.png"
+    },
+    {
+      "file": "src/assets/dft-signs/signals-ahead.png",
+      "sha256": "08ea254035dcd36e8d769dea63d07ef6bfa8647804b341d9820806944e058f55",
+      "review_path": "../../src/assets/dft-signs/signals-ahead.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/warn_traffic_signals_ahead_roadside_scene_01.png",
+      "sha256": "c26f22382e2962b7a5f1ac30fc9f8178e9b5c6a308e8ea1a3d206d2c0f91b551",
+      "review_path": "../../src/assets/illustrations-v2/images/warn_traffic_signals_ahead_roadside_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_oil_pressure_individual_01.png",
+      "sha256": "caeb1476d5fd154f7fb69f946b4967f21a90fd523ef11b42a292d71414c0d702",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_oil_pressure_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_battery_individual_01.png",
+      "sha256": "2b28f18dd2bfdd20551792013622544e603c3ca926e80eb12d03210564e3d0f6",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_battery_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_abs_individual_01.png",
+      "sha256": "8ab8f2354f785dc8642838ef1cad7b26608581e14821884da355af1345fdddeb",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_abs_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_tyre_pressure_individual_01.png",
+      "sha256": "2dc8219859f7aa4eef78740fa1a1d54b9942d42eeae87d98130f244fff7494b8",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_tyre_pressure_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_engine_management_individual_01.png",
+      "sha256": "e13e50b2011f35ab91f10445291918745910336d4fe3a1dd3f53a0f796313b13",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_engine_management_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_brake_system_individual_01.png",
+      "sha256": "7e676cdf244c9087d950751361d129bb23f3854eb4e6a1110cdfd7bf4c9ee9d7",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_brake_system_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_coolant_temperature_individual_01.png",
+      "sha256": "d6d0aa12f0b6435a30b5c2c21fc72483734195e6d3d6abffa5efea3b9852a002",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_coolant_temperature_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_airbag_individual_01.png",
+      "sha256": "82943f36816ef8b308316890dc3517933d9f8088482ec39263b0c1168b316ab6",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_airbag_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_seatbelt_individual_01.png",
+      "sha256": "d07363255b4e5e677fcfe09c54cf24a5911aec09bf1c5de7959fd947220bac57",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_seatbelt_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_traction_control_individual_01.png",
+      "sha256": "e079b9c96c955296ee0777b8d52233fff9a3ed6f12bcb4ed17a63172d1a455b3",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_traction_control_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_low_fuel_individual_01.png",
+      "sha256": "80218463dc7c09491a6dc22590b03bd8e18710924674106def7a41a76fe34109",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_low_fuel_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/dash_main_beam_individual_01.png",
+      "sha256": "77c1cfc730c81a0f2b099e991d06155e51acdf4b9106ed2118daf06ad08f38c7",
+      "review_path": "../../src/assets/illustrations-v2/images/dash_main_beam_individual_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_engine_oil_dipstick_original_01.png",
+      "sha256": "6bfe7d494860e5702178428b26c90e66ea106fc9c662c7ae0c48b434d2ed643c",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_engine_oil_dipstick_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_brake_fluid_reservoir_original_01.png",
+      "sha256": "3d3a87ac7f810dd8e0e105bc1691aead0ee7a0e7a266fc28627cdeea2917ffb2",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_brake_fluid_reservoir_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_screenwash_reservoir_original_02.png",
+      "sha256": "5ebe4ea91de12f5c78e27a2f1e563e31e6c3ddf06396e84a4f6418760827ecf2",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_screenwash_reservoir_original_02.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_windscreen_wipers_original_01.png",
+      "sha256": "75448af7596c384658e784c782acf03064521ace6d9285dd89b8b45579753add",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_windscreen_wipers_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_seatbelt_fastened_original_01.png",
+      "sha256": "9b7f390f6107a3d16bcd5b6e9b3452f69612c0c5d27fe332d57822a1968e03dd",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_seatbelt_fastened_original_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_child_seat_harness_original_02.png",
+      "sha256": "ceb594c1edaf23109f0b8e0c7e0a110f88dff6e4911cce1dabfe00bca40c004c",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_child_seat_harness_original_02.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_secure_boot_load_original_02.png",
+      "sha256": "40f0eaca6c828d8a9b6d2b490f288ac71e9ed0c99c7277b2f7c0460b71f18475",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_secure_boot_load_original_02.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/vehicle_rearview_mirror_original_02.png",
+      "sha256": "1d29ee669e6b26a5ce76ec90051dd42f66756bacf8485f344d1bc9895d6b462e",
+      "review_path": "../../src/assets/illustrations-v2/images/vehicle_rearview_mirror_original_02.png"
+    },
+    {
+      "file": "src/assets/case-studies/town-crossing.mp4",
+      "sha256": "3f07f170b55dcd01c3a506369b4bdca98b71cb0f608227be46194b73bcafe793",
+      "review_path": "../../src/assets/case-studies/town-crossing.mp4"
+    },
+    {
+      "file": "src/assets/case-studies/wet-following-gap.mp4",
+      "sha256": "46d140d9031b6afa6434a6742958ab136da9230491abb0e7c25a478ac573a863",
+      "review_path": "../../src/assets/case-studies/wet-following-gap.mp4"
+    },
+    {
+      "file": "src/assets/case-studies/cyclist-and-parked-vehicles.mp4",
+      "sha256": "d75d697f37730e94ada379f084ac582487e5cf38acccfc6e4ed5caf256aca3d1",
+      "review_path": "../../src/assets/case-studies/cyclist-and-parked-vehicles.mp4"
+    },
+    {
+      "file": "src/assets/dft-signs/red-ring.png",
+      "sha256": "4b860514b9fb6280fc910e11bae4d85db2366d05f9b4232251e3f4f0a52fc9be",
+      "review_path": "../../src/assets/dft-signs/red-ring.png"
+    },
+    {
+      "file": "src/assets/dft-signs/bend-right.png",
+      "sha256": "4462fa1090e8a4b9220eba1fcaddee81b1e80ac1d135f1f4f11a57f44d24ca2c",
+      "review_path": "../../src/assets/dft-signs/bend-right.png"
+    },
+    {
+      "file": "src/assets/dft-signs/roundabout.png",
+      "sha256": "c8212589e733afcc284cfe10cd50133279cd774ba8ca8697eb84f58b6813f25f",
+      "review_path": "../../src/assets/dft-signs/roundabout.png"
+    },
+    {
+      "file": "src/assets/dft-signs/no-overtaking.png",
+      "sha256": "97a259c3434f9ae3af3940c4b5e31efaff6182b3385eb29c13788ff3540614b1",
+      "review_path": "../../src/assets/dft-signs/no-overtaking.png"
+    },
+    {
+      "file": "src/assets/dft-signs/slippery-road.png",
+      "sha256": "d855b08a52f1d3f3e32d126b1eccac84f1edb11f3acdf9f3e2ab6f6cab1f5026",
+      "review_path": "../../src/assets/dft-signs/slippery-road.png"
+    },
+    {
+      "file": "src/assets/dft-signs/parking.png",
+      "sha256": "356d0d9d4e843b366c86f900836c3d4689bb46520c2d650615be77e4aa1682ce",
+      "review_path": "../../src/assets/dft-signs/parking.png"
+    },
+    {
+      "file": "src/assets/dft-signs/blue-circle.png",
+      "sha256": "3baec44d0f31034689d84bb25121076767720f60c7ed4e15e2d3705e6278a421",
+      "review_path": "../../src/assets/dft-signs/blue-circle.png"
+    },
+    {
+      "file": "src/assets/dft-signs/no-u-turn.png",
+      "sha256": "bbcd2772cec2c2cea64ce060481b37fecb91a202444142e3ff5ded410f4cba08",
+      "review_path": "../../src/assets/dft-signs/no-u-turn.png"
+    },
+    {
+      "file": "src/assets/dft-signs/warning-triangle.png",
+      "sha256": "429ef53f05843e6b4e93e05d279a30361270c4396954877f30795ac338953f22",
+      "review_path": "../../src/assets/dft-signs/warning-triangle.png"
+    },
+    {
+      "file": "src/assets/dft-signs/crossing-warning.png",
+      "sha256": "01f159255ba4562044fbacb5ae5a5398852ebf0e73681523ef6bf86b49169803",
+      "review_path": "../../src/assets/dft-signs/crossing-warning.png"
+    },
+    {
+      "file": "src/assets/dft-signs/motorway-direction.png",
+      "sha256": "19aed6d6d67d8aea636e70de841e143239cd8386c2b5344f0c3f0c1754317a2a",
+      "review_path": "../../src/assets/dft-signs/motorway-direction.png"
+    },
+    {
+      "file": "src/assets/dft-signs/primary-direction.png",
+      "sha256": "547a4000503ab62ca977d7c5e5f8e2dcaaf0e6cf136d44c195376d70f3d60650",
+      "review_path": "../../src/assets/dft-signs/primary-direction.png"
+    },
+    {
+      "file": "src/assets/dft-signs/nonprimary-direction.png",
+      "sha256": "d006f400897c0eabd7e53af45602ee691b14f19e45cfb89cd20be5599c587ce5",
+      "review_path": "../../src/assets/dft-signs/nonprimary-direction.png"
+    },
+    {
+      "file": "src/assets/dft-signs/speed-40.png",
+      "sha256": "27af2cddbeda8474f52f22acdf0f478f43c5eac805d8e162a5ba177abc633bcb",
+      "review_path": "../../src/assets/dft-signs/speed-40.png"
+    },
+    {
+      "file": "src/assets/dft-signs/no-motor-vehicles.png",
+      "sha256": "b92b98ff0f6167badfd15d7b6d7b3facf7e7a3bc27354d1adf874760734c8845",
+      "review_path": "../../src/assets/dft-signs/no-motor-vehicles.png"
+    },
+    {
+      "file": "src/assets/dft-signs/oncoming-priority.png",
+      "sha256": "902d75e38609a0a6069ecb2347b0d18d0eaa7462551c7b209c6812eeb9d797f1",
+      "review_path": "../../src/assets/dft-signs/oncoming-priority.png"
+    },
+    {
+      "file": "src/assets/dft-signs/turn-left.png",
+      "sha256": "635a4395be90ef35cab33721e656c5ceab146dacc65c9b579d2c4e8c10a97759",
+      "review_path": "../../src/assets/dft-signs/turn-left.png"
+    },
+    {
+      "file": "src/assets/dft-signs/crossroads.png",
+      "sha256": "ea9f5b03443c2c1ae16b25f3e0acd0a63523e6c665d62745e57d8e6cbb973d4d",
+      "review_path": "../../src/assets/dft-signs/crossroads.png"
+    },
+    {
+      "file": "src/assets/dft-signs/t-junction.png",
+      "sha256": "cab7723ba8e5a7c52e414c181232829f2bd25701c67b962981a8ebd934c239b0",
+      "review_path": "../../src/assets/dft-signs/t-junction.png"
+    },
+    {
+      "file": "src/assets/dft-signs/road-narrows.png",
+      "sha256": "75bb00df017d17d995da5c2fad75a8ffee2371ebf82ac3b2611505ea8b97d3f4",
+      "review_path": "../../src/assets/dft-signs/road-narrows.png"
+    },
+    {
+      "file": "src/assets/dft-signs/two-way.png",
+      "sha256": "f50cc840659f129dc85aa8b643d908ffcf475305505ffa77849cf34e4a258e4f",
+      "review_path": "../../src/assets/dft-signs/two-way.png"
+    },
+    {
+      "file": "src/assets/dft-signs/school.png",
+      "sha256": "754fe2f9289e49b72e939f59437c88f099214b4fc90900cb94e8f57878b907b2",
+      "review_path": "../../src/assets/dft-signs/school.png"
+    },
+    {
+      "file": "src/assets/dft-signs/no-through-road.png",
+      "sha256": "bc07308a4c3cf0c8547674762d6bd6b12d7b9afc2326acd48f8b6fd8015f87ab",
+      "review_path": "../../src/assets/dft-signs/no-through-road.png"
+    },
+    {
+      "file": "src/assets/dft-signs/motorway-start.png",
+      "sha256": "318db3687419582b0f01a3713d9f7f93f2c0303a8894b5a4cc659e094a4c0c5c",
+      "review_path": "../../src/assets/dft-signs/motorway-start.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_no_motor_vehicles_scene_01.png",
+      "sha256": "2072f553952c8e2cfd2207ad71620ee76c5b3cc39048b7cd95231de2d78c70eb",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_no_motor_vehicles_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_no_u_turn_scene_01.png",
+      "sha256": "2d533ce85cdf099fadaec34c4fa193f541393df3d7e4a356404f80eb456a1ed7",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_no_u_turn_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/warn_right_bend_scene_01.png",
+      "sha256": "2646989cff9832dbea3baaedec86568e0ee5038b25e82faf70466d0f84b2dafd",
+      "review_path": "../../src/assets/illustrations-v2/images/warn_right_bend_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/warn_slippery_road_scene_01.png",
+      "sha256": "cd6b2cd83f5fc3268a99bfee82f88a709a7762abbaabdd07d5a5557ab6a8ee7b",
+      "review_path": "../../src/assets/illustrations-v2/images/warn_slippery_road_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/warn_school_children_scene_01.png",
+      "sha256": "100ebba3a2246d477200d0d01b3f88feb5978dc86d2327228b1838c2270907d0",
+      "review_path": "../../src/assets/illustrations-v2/images/warn_school_children_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_speed_limit_40_roadside_scene_01.png",
+      "sha256": "b71ef0e4f1bc7a8cf2854aa741eb71017a584a1d8c225079cd5acd294e9eadfc",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_speed_limit_40_roadside_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/reg_turn_left_only_roadside_scene_01.png",
+      "sha256": "a36cd19dfb4e6e0ed3679bb230e1ff82ae08b1733d811e4da01061302e34421d",
+      "review_path": "../../src/assets/illustrations-v2/images/reg_turn_left_only_roadside_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/warn_crossroads_scene_01.png",
+      "sha256": "980d38876718bdd927246c455ed0df36b9089974de2b1f561afecf4d9943591c",
+      "review_path": "../../src/assets/illustrations-v2/images/warn_crossroads_scene_01.png"
+    },
+    {
+      "file": "src/assets/illustrations-v2/images/warn_two_way_traffic_scene_01.png",
+      "sha256": "cd256d2236d923fd22c48e3e06aee5a9b527c933ae251b00baddb260e6176786",
+      "review_path": "../../src/assets/illustrations-v2/images/warn_two_way_traffic_scene_01.png"
+    }
+  ],
+  "reference_documents": [
+    {
+      "source": "docs/ASSET_LICENCES.md",
+      "review_path": "references/ASSET_LICENCES.md",
+      "sha256": "c9b066213211e87a6a3445ae24e53b36493bb68f727849dc5064df89825f4e67"
+    },
+    {
+      "source": "docs/IMAGE_LIBRARY_REVIEW.md",
+      "review_path": "references/IMAGE_LIBRARY_REVIEW.md",
+      "sha256": "ba28f1c8bc64a33ca3fc01ea521b56c904fe7047d7bb74a7013869ca429c271f"
+    },
+    {
+      "source": "docs/content-sources.md",
+      "review_path": "references/content-sources.md",
+      "sha256": "af47f3255f902637e1a29c788434ef85a0454d8b65fc96bdcef60bcb36d06b3a"
+    },
+    {
+      "source": "docs/COURSE_CONTENT_REVIEW.md",
+      "review_path": "references/COURSE_CONTENT_REVIEW.md",
+      "sha256": "aa300ece6467b2ff77400616851951a48a6c37e604eb0e342dc1b306b12433f6"
+    },
+    {
+      "source": "docs/QUESTION_BANK_EDITORIAL_AUDIT.md",
+      "review_path": "references/QUESTION_BANK_EDITORIAL_AUDIT.md",
+      "sha256": "f816e2ffca8d8af0390f200f3e20c1d1e4e1fc7d70ecbb513915054e187046d7"
+    }
+  ],
+  "notice": "This export contains the app’s independently authored revision content. Source links and hashes do not constitute editorial, licensing or paid-release approval."
+}

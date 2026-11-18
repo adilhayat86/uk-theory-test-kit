@@ -2,11 +2,13 @@ import React from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Screen } from "../domain/navigation";
 import { colors } from "../theme";
+import { appInformation } from "../data/appInformation";
 const tools: { title: string; screen: Screen }[] = [
   { title: "Road signs", screen: "roadSigns" },
   { title: "Saved questions", screen: "saved" },
   { title: "Flashcards", screen: "flashcards" },
   { title: "Search questions", screen: "search" },
+  { title: "Help & app information", screen: "help" },
 ];
 export default function MoreScreen({
   onOpen,
@@ -45,7 +47,7 @@ export default function MoreScreen({
           </Pressable>
         </View>
       ) : null}
-      <Text style={s.footer}>Driving Theory Test UK: Learn · Test build</Text>
+      <Text style={s.footer}>{appInformation.name} · Version {appInformation.version}</Text>
       <Text style={s.muted}>
         Independent Great Britain revision. Not affiliated with DVSA. Works
         offline.

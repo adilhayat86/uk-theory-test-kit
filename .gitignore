@@ -10,3 +10,12 @@ android/
 .env
 .env.*
 !.env.example
+
+# Owner signing material must never enter source control.
+*.jks
+*.keystore
+keystore.properties
+credentials.json
+release-credentials.json
+__pycache__/
+*.pyc

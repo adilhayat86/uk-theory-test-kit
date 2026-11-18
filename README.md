@@ -1,59 +1,51 @@
-# Driving Theory Test UK: Learn
+# Driving Theory Test UK: Learn — Android paid MVP
 
-Independent, offline Great Britain car-theory study built with Expo, React Native, TypeScript and SQLite. Learning-first internal build **0.7.0**, Android code **10**. Not affiliated with DVSA.
+Android-only, offline Great Britain car-theory revision. Current internal MVP candidate: **0.8.0 / Android code 11**. The agreed model is a **one-time paid download with everything included**, no adverts, subscriptions, in-app purchases or account. Initial UK price target: £0.99; final regional prices are set in Google Play. Support: **adilhayatkamker@gmail.com**.
 
-## Learn, check, revise, then practise an exam
+## The learning journey
 
-- **15 modules / 38 original lessons**: objectives, substantive teaching, worked road scenarios, selected illustrations/video examples, recaps and primary-source references.
-- Explicit lesson-study confirmation and saved reading positions. Opening or scrolling a lesson does not complete it.
-- Dedicated **10-question topic checks**, passing at **8/10**. Every lesson is represented. Topic completion requires current lesson confirmations and a compatible passed check; ordinary question practice does not award course completion.
-- **309 original questions across15topics**: the previous228 records are unchanged, with72 questions for curriculum gaps and9 linked video questions added. Questions include four choices, an explanation and a primary rule reference.
-- **Full multiple-choice practice mocks:50questions/57minutes/43correct**, with47ordinaryquestions sampled across topics and3linkedquestions about one of3original silent20-second video case studies. Five-question warm-ups remain available.
-- Direct exam access requires a fresh explicit study acknowledgement for each new attempt. That confirmation never marks lessons or topic checks complete. Saved attempts retain their acknowledgement, answers, flags, position and absolute timer.
-- Distinct lesson, topic-check, revision-coverage and mock-result progress. Mistakes link to relevant learning material. No invented official pass-readiness percentage.
-- Study tools:30illustrated sign notes and quiz, flashcards, search, saved questions and smart/picture/topic revision. Search begins with an empty prompt rather than dumping the entire bank.
-- Four primary tabs: **Learn, Practise, Exams, Progress**. Study tools are secondary. Only lessons/active answering use focused navigation; exam overview and results retain main navigation.
-- All content and playable videos work offline. No account, advertising, subscription or remote progress server.
+- **Learn:** 38 original lessons across 15 topics, with explanations, illustrated examples, recaps and source references. Explicit study confirmations and reading positions are saved locally.
+- **Check understanding:** each topic has a dedicated 10-question check, passing at 8/10 after its lessons are studied. Ordinary practice and exam self-confirmation never complete lessons.
+- **Revise:** recent mistakes from practice and mock exams lead back to relevant lessons and targeted questions. Newer correct answers clear older mistakes. Learn keeps the course as its primary next step; saved practice is secondary.
+- **Exams:** 50 questions, 57 minutes, practice pass at 43 correct. Each full mock includes three questions on one of three original silent video cases. Direct access requires an explicit study confirmation for each new attempt. Five-question warm-ups remain available.
+- **Review and progress:** mock results separate wrong and unanswered questions, offer bounded answer review, topic feedback, lesson links and targeted practice. Reading, topic checks, question coverage and exam results remain distinct.
+- **Study tools:** 309 questions, 30 illustrated sign notes and quiz, flashcards, search and saved items. Question images hide answer captions before answering.
+- **Help and control:** offline privacy/about information, support email and an explicit confirmed reset. Startup read failures show Retry instead of silently replacing existing work with an empty session.
 
-The animations are independently authored diagrams, notDVSAfootage. These mocks assess multiple-choice knowledge; there is no hazard-perception simulator. The course is selected independent revision, not a licensed copy of the fullHighwayCode or officialDVSAquestionbank, and it does not cover NorthernIreland-specific rules.
+All learning content is bundled offline. External source/licence links and email support use other apps and need the relevant connection. No hazard-perception simulator, Northern Ireland-specific course or licensed DVSA question bank is included. Independent revision does not guarantee an official test pass.
 
-This remains an internal test build. A paid store release requires independent human editorial sign-off of questions, lessons and media, production signing and the separate publication checks. Structural tests and AI source checks do not constitute that approval.
-
-See [learning model and scope](docs/LEARNING_COURSE_2026-11-17.md), [course/source review](docs/COURSE_CONTENT_REVIEW.md), [asset licences](docs/ASSET_LICENCES.md) and [original video authoring](src/assets/case-studies/README.md). Historical MVP/navigation documents describe earlier versions.
-
-## Development
+## Development and checks
 
 Use Node.js 22.13 or later in the Node 22 line.
 
 ```sh
 npm ci
+npm run check:android
 npm run doctor
 npm run typecheck
 npm test
-npx expo start
-```
-
-Content checks:
-
-```sh
 npm run check:mvp:content
 npm run check:mvp:editorial -- --report-only
-```
-
-Structural checks meet the 200-question / 10-topic minimum. They do not constitute independent human rule, source or originality approval. Editorial trackers remain pending; do not mark them approved automatically.
-
-## Builds and offline artwork
-
-GitHub Actions checks types, tests, Expo compatibility, Android/iOS exports, a standalone Android learner APK and an iOS simulator build. The standalone release-mode APK embeds JavaScript and works without Metro. Its development signing key is for device testing; the CI AAB is not a production Play upload.
-
-Ordinary learner exports include the selected learning images, DfT signs and app branding. Set `EXPO_PUBLIC_IMAGE_REVIEW=false`. Verify an export with:
-
-```sh
+npm run export:android
 node scripts/check-export-assets.cjs dist/android android learner
 ```
 
-The internal device-test APK and artwork-review export use `EXPO_PUBLIC_IMAGE_REVIEW=true` and include Home → My images for browsing the complete collection. All 121 original draft images are searchable and available offline, with previous/next navigation and optional image details. Their review status and tracker remain unchanged. Ordinary learner exports include 52 selected project images and exclude the remaining 69. Selection is not human editorial approval. Restart Metro when changing the flag.
+`npm run check:release` is the separate strict paid-publication gate. It intentionally fails while independent content approval, publisher identity, published privacy URL or owner signing credentials are missing. An internal APK is never evidence of permission to charge or publish.
 
-See [illustrated-study mappings and sources](docs/ILLUSTRATED_STUDY_2026-11-16.md) for the 20 new questions, added teaching examples and held artwork.
+The review catalogue binds approval to exact content and media hashes across questions, lessons, videos, learning-image presentations and sign notes. Changing an answer, explanation, lesson or linked asset invalidates stale approval. All actual reviewer rows remain pending. Prepare the human review handoff with:
 
-Source SVGs, hashes, licensing and PNG dimensions for DfT images are retained under `src/assets/dft-signs/`. No network downloads are needed during study.
+```sh
+npm run export:review -- --output /path/to/reviewer-pack --copy-media
+```
+
+See [content review](docs/COURSE_CONTENT_REVIEW.md), [current MVP scope](docs/MVP_RELEASE_TARGET.md), [asset licences](docs/ASSET_LICENCES.md), [Android release guide](release/README.md) and [store listing draft](release/PLAY_LISTING_DRAFT.md).
+
+## Android packaging
+
+CI runs Android configuration checks, TypeScript, tests, an Android learner export and a standalone release-mode test APK/AAB. **No iOS export or native build is run in this phase.**
+
+The default learner build uses `EXPO_PUBLIC_IMAGE_REVIEW=false`: 52 selected project learning images plus the DfT signs, original diagrams and branding are bundled. The 69 unselected draft masters and the internal My images gallery are excluded. A separate opt-in workflow export retains the complete artwork-review tool for internal work.
+
+Native verification checks the actual APK: app version/package, test or owner certificate, embedded lessons/questions/videos, selected/unselected image pixels, permissions, backup exclusions, 16 KB native-library/ZIP alignment and offline JavaScript. Storage, overlay and vibration permissions are blocked. Cloud backup and device transfer of study data are explicitly disabled; the app does not promise cross-phone progress recovery.
+
+The internal APK uses the existing development certificate for Samsung updates. The CI AAB is inspection-only. Production signing is a guarded separate channel using owner environment variables; no upload key or credentials belong in source control. Prepared privacy HTML is local under `release/privacy/`; it has not been published.

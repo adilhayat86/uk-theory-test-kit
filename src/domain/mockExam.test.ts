@@ -4,7 +4,7 @@ import {
   FULL_EXAM_DURATION_MS, FULL_EXAM_PASS_MARK,
   answerQuestion, beginMock, chooseQuestions, finishMock, flagQuestion,
   formattedTimeLeft, fullMockReadiness, goToQuestion, isExpired,
-  isMockSession, timeLeftMs,
+  isMockSession, isMockResult, timeLeftMs,
 } from './mockExam';
 
 const sampleTime = 1_700_000_000_000;
@@ -124,5 +124,54 @@ describe('mock exam engine', () => {
     expect(isMockSession({ ...mock, flaggedIds: ['unrelated'] })).toBe(false);
     expect(isMockSession(null)).toBe(false);
     expect(isMockSession('not a session')).toBe(false);
+  });
+
+  it('records and snapshots per-answer times without mutating earlier choices', () => {
+    const original = beginMock(questions, 'sample', sampleTime, () => 0.5);
+    const id = original.questionIds[0];
+    const first = answerQuestion(original, id, 2, sampleTime + 10);
+    const changed = answerQuestion(first, id, 1, sampleTime + 20);
+    expect(original.answerTimes).toEqual({});
+    expect(first.answerTimes?.[id]).toBe(sampleTime + 10);
+    expect(changed.answerTimes?.[id]).toBe(sampleTime + 20);
+    const result = finishMock(changed, questions, sampleTime + 30);
+    expect(result.answerTimes).toEqual({ [id]: sampleTime + 20 });
+    expect(result.answerTimes).not.toBe(changed.answerTimes);
+    expect(isMockResult(JSON.parse(JSON.stringify(result)))).toBe(true);
+  });
+
+  it('preserves older v1 snapshots with missing or partial answer timestamps', () => {
+    const { answerTimes: _unused, ...original } = beginMock(questions, 'sample', sampleTime, () => 0.5);
+    const [oldId, newId] = original.questionIds;
+    const legacy = { ...original, answers: { [oldId]: 1 } };
+    expect(isMockSession(legacy)).toBe(true);
+    const resumed = answerQuestion(legacy, newId, 2, sampleTime + 10);
+    expect(resumed.answerTimes).toEqual({ [newId]: sampleTime + 10 });
+    expect(isMockSession(resumed)).toBe(true);
+    expect(isMockResult(finishMock(resumed, questions, sampleTime + 20))).toBe(true);
+    expect(finishMock(legacy, questions, sampleTime + 20).answerTimes).toBeUndefined();
+  });
+
+  it('rejects timestamps for unanswered IDs and dates outside an attempt', () => {
+    const original = beginMock(questions, 'sample', sampleTime, () => 0.5);
+    const id = original.questionIds[0];
+    const answered = answerQuestion(original, id, 1, sampleTime + 10);
+    expect(isMockSession({ ...answered, answerTimes: { unrelated: sampleTime } })).toBe(false);
+    expect(isMockSession({ ...answered, answerTimes: { [id]: sampleTime - 1 } })).toBe(false);
+    expect(isMockSession({ ...answered, answerTimes: { [id]: original.expiresAt } })).toBe(false);
+    expect(isMockSession({ ...answered, answerTimes: { [id]: NaN } })).toBe(false);
+    expect(isMockSession({ ...answered, answerTimes: [] })).toBe(false);
+    const result = finishMock(answered, questions, sampleTime + 20);
+    expect(isMockResult({ ...result, answerTimes: { [id]: result.finishedAt + 1 } })).toBe(false);
+    expect(isMockResult({ ...result, answerTimes: { unrelated: sampleTime } })).toBe(false);
+    expect(() => answerQuestion(original, id, 1, NaN)).toThrow(/answer time/);
+  });
+
+  it('keeps completed timestamps valid if the device clock moves back after answering', () => {
+    const original = beginMock(questions, 'sample', sampleTime, () => 0.5);
+    const answered = answerQuestion(original, original.questionIds[0], 1, sampleTime + 20);
+    const result = finishMock(answered, questions, sampleTime + 10);
+    expect(result.finishedAt).toBe(sampleTime + 20);
+    expect(isMockResult(result)).toBe(true);
   });
 });

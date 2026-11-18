@@ -1,0 +1,16 @@
+{
+  "status": "internal-mvp",
+  "platform": "android",
+  "purchaseModel": "paid-download",
+  "allContentIncluded": true,
+  "advertising": false,
+  "subscriptions": false,
+  "inAppPurchases": false,
+  "supportEmail": "adilhayatkamker@gmail.com",
+  "publisherLegalName": null,
+  "privacyPolicyUrl": null,
+  "uploadCertificateSha256": null,
+  "minimumAndroidApi": 24,
+  "minimumTargetApi": 36,
+  "progressBackup": "disabled"
+}

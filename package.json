@@ -1,19 +1,20 @@
 {
   "name": "uk-theory-test-kit",
-  "version": "1.0.0",
+  "version": "0.8.0",
   "private": true,
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios",
     "test": "jest --runInBand",
     "typecheck": "tsc --noEmit",
     "doctor": "npx expo-doctor@latest",
     "export:android": "expo export --platform android --output-dir dist/android",
-    "export:ios": "expo export --platform ios --output-dir dist/ios",
     "check:mvp:content": "node scripts/check-mvp-content.cjs",
-    "check:mvp:editorial": "node scripts/check-editorial-review.cjs"
+    "check:mvp:editorial": "node scripts/check-editorial-review.cjs",
+    "check:android": "node scripts/check-android-release.cjs",
+    "check:release": "node scripts/check-android-release.cjs --production",
+    "export:review": "node scripts/export-editorial-review.cjs"
   },
   "dependencies": {
     "expo": "~58.0.26",
